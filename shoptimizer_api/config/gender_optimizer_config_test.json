@@ -1,0 +1,49 @@
+{
+  "adult_product_categories": [
+    "Apparel & Accessories",
+    "Health & Beauty",
+    "Sporting Goods",
+    "Luggage & Bags",
+    "Electronics"
+  ],
+  "baby_product_categories": [
+    "Baby & Toddler",
+    "Baby & Toddler Clothing",
+    "Baby & Toddler Clothing Accessories",
+    "Baby & Toddler Furniture"
+  ],
+  "female": {
+    "adult_search_terms": [
+      "Women's",
+      "Women"
+    ],
+    "baby_search_terms": [
+      "Girl's",
+      "Girl"
+    ],
+    "baby_title_replacement": "Girl's",
+    "adult_title_replacement": "Women's"
+  },
+  "male": {
+    "adult_search_terms": [
+      "Men's",
+      "Men"
+    ],
+    "baby_search_terms": [
+      "Boy's",
+      "Boy"
+    ],
+    "baby_title_replacement": "Boy's",
+    "adult_title_replacement": "Men's"
+  },
+  "unisex": {
+    "adult_search_terms": [
+      "Unisex"
+    ],
+    "baby_search_terms": [
+      "Unisex"
+    ],
+    "baby_title_replacement": "Unisex",
+    "adult_title_replacement": "Unisex"
+  }
+}
