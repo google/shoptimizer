@@ -36,8 +36,7 @@ class SizeLengthOptimizer(base_optimizer.BaseOptimizer):
 
   _OPTIMIZER_PARAMETER = 'size-length-optimizer'
 
-  def _optimize(self, product_batch: Dict[str, Any], language: str,
-                country: str, currency: str) -> int:
+  def _optimize(self, product_batch: Dict[str, Any], language: str, _) -> int:
     """Runs size length optimization.
 
     Fixes invalid size values.
@@ -46,8 +45,6 @@ class SizeLengthOptimizer(base_optimizer.BaseOptimizer):
     Args:
       product_batch: A batch of product data.
       language: The language to use for this optimizer.
-      country: The country to use for this optimizer.
-      currency: The currency to use for this optimizer.
 
     Returns:
       The number of products affected by this optimization.

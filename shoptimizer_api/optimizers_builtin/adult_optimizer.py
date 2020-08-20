@@ -37,7 +37,7 @@ class AdultOptimizer(base_optimizer.BaseOptimizer):
   _adult_types = None
 
   def _optimize(self, product_batch: Mapping[str, Any], language: str,
-                country: str, currency: str) -> int:
+                _) -> int:
     """Runs the optimization.
 
     Fixes invalid adult values.
@@ -46,8 +46,6 @@ class AdultOptimizer(base_optimizer.BaseOptimizer):
     Args:
       product_batch: A batch of product data.
       language: The language to use for this optimizer.
-      country: The country to use for this optimizer.
-      currency: The currency to use for this optimizer.
 
     Returns:
       The number of products affected by this optimization.

@@ -85,17 +85,15 @@ class BaseOptimizer(abc.ABC):
       self,
       product_batch: Dict[str, Any],
       language: str = constants.DEFAULT_LANG,
-      country: str = constants.DEFAULT_COUNTRY,
-      currency: str = constants.DEFAULT_CURRENCY
+      country: str = constants.DEFAULT_COUNTRY
   ) -> (Dict[str, Any], optimization_result.OptimizationResult):
     """The entry point for running optimization processing.
 
     Args:
       product_batch:  A batch of product data.
-      language: The language this optimizer uses. Default is English ("en") as
+      language: The language this optimizer uses. Default is Japanese ("en") as
         per ISO 639-2 Language codes.
       country: The country this optimizer uses.
-      currency: The currency this optimizer uses.
 
     Returns:
       The optimized product data: Dict[str, Any]
@@ -105,7 +103,7 @@ class BaseOptimizer(abc.ABC):
 
     try:
       num_products_optimized = self._optimize(optimized_product_batch, language,
-                                              country, currency)
+                                              country)
     except NotImplementedError:
       logging.error('Optimizer %s did not implement base_optimizer correctly.',
                     self._OPTIMIZER_PARAMETER)
@@ -114,8 +112,8 @@ class BaseOptimizer(abc.ABC):
     # that protects the main API container from crashing, so
     
     except Exception as error:
-      logging.exception('Error while running optimization %s: %s',
-                        self._OPTIMIZER_PARAMETER, error)
+      logging.error('Error while running optimization %s: %s',
+                    self._OPTIMIZER_PARAMETER, error)
       return product_batch, optimization_result.OptimizationResult(
           'failure', 0, str(error))
     else:
@@ -125,7 +123,7 @@ class BaseOptimizer(abc.ABC):
 
   @abc.abstractmethod
   def _optimize(self, product_batch: Dict[str, Any], language: str,
-                country: str, currency: str) -> int:
+                country: str) -> int:
     """Implement optimization logic in this method.
 
     Subclasses must call base_optimizer.set_optimization_tracking(...)
@@ -135,16 +133,11 @@ class BaseOptimizer(abc.ABC):
       product_batch:  A batch of product data.
       language: The language to use for this optimizer.
       country: The country to use for this optimizer.
-      currency: The currency to use for this optimizer.
 
     Returns:
       The number of products affected by this optimization: int
     """
     raise NotImplementedError('Optimizer must implement the method optimize.')
-
-  def get_optimizer_parameter(self) -> str:
-    """Returns the URL parameter that indicates this optimizer should be run."""
-    return self._OPTIMIZER_PARAMETER
 
 
 def set_optimization_tracking(product: Dict[str, Any],

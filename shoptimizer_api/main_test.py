@@ -79,20 +79,6 @@ class MainTest(parameterized.TestCase):
     response = self.test_client.get(f'{main._V1_BASE_URL}/unmapped-route')
     self.assertEqual(http.HTTPStatus.NOT_FOUND, response.status_code)
 
-  def test_invalid_query_string_param_returns_bad_request(self):
-    request_body = requests_bodies.VALID_SINGLE_PRODUCT
-
-    response = self.test_client.post(
-        f'{main._V1_BASE_URL}/batch/optimize?invalid-parameter=true',
-        json=request_body)
-    response_data = response.data.decode('utf-8')
-    response_dict = json.loads(response_data)
-
-    self.assertEqual(
-        ('Invalid query string parameter detected. Please provide a valid '
-         'Shoptimizer API query string parameter.'), response_dict['error-msg'])
-    self.assertEqual(http.HTTPStatus.BAD_REQUEST, response.status_code)
-
   # endregion
 
   # region builtin optimizer tests

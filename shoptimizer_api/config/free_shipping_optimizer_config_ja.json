@@ -1,9 +1,0 @@
-{
-  "free_shipping_patterns": [
-    "送料.?(無料|込)"
-  ],
-  "shipping_exclusion_patterns": [
-    "沖縄.*(除く|以外)",
-    "北海道.*(除く|以外)"
-  ]
-}

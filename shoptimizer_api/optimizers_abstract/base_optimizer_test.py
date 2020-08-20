@@ -29,8 +29,7 @@ class DummyOptimizer(base_optimizer.BaseOptimizer):
   """A dummy optimizer for testing (marks all products optimized)."""
   _OPTIMIZER_PARAMETER = 'dummy-optimizer'
 
-  def _optimize(self, product_batch: Dict[str, Any], language: str,
-                country: str, currency: str) -> int:
+  def _optimize(self, product_batch: Dict[str, Any], language: str) -> int:
     for entry in product_batch['entries']:
       product = entry['product']
       base_optimizer.set_optimization_tracking(product,
@@ -43,8 +42,7 @@ class DummySanitizer(base_optimizer.BaseOptimizer):
   """A dummy sanitizer for testing (marks all products sanitized)."""
   _OPTIMIZER_PARAMETER = 'dummy-sanitizer'
 
-  def _optimize(self, product_batch: Dict[str, Any], language: str,
-                country: str, currency: str) -> int:
+  def _optimize(self, product_batch: Dict[str, Any], language: str) -> int:
     for entry in product_batch['entries']:
       product = entry['product']
       base_optimizer.set_optimization_tracking(product,
@@ -60,8 +58,7 @@ class BaseOptimizerTest(parameterized.TestCase):
 
     class OptimizerWithNoUrlParameter(base_optimizer.BaseOptimizer):
 
-      def _optimize(self, product_batch: Dict[str, Any], language: str,
-                    country: str, currency: str) -> int:
+      def _optimize(self, product_batch: Dict[str, Any], language: str) -> int:
         pass
 
     with self.assertRaises(NotImplementedError):
@@ -85,7 +82,8 @@ class BaseOptimizerTest(parameterized.TestCase):
       _OPTIMIZER_PARAMETER = 'raise-error'
 
       def _optimize(self, product_batch: Dict[str, Any], language: str,
-                    country: str, currency: str):
+                    country: str) -> int:
+        product_batch = {'data': 'Corrupt data'}
         raise SystemError('Dummy error')
 
     optimizer = OptimizerThatRaisesError()

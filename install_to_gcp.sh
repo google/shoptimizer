@@ -118,4 +118,4 @@ CreateTrigger deploy_shoptimizer_to_cloud_run.yaml \
   "Shoptimizer Deploy Shoptimizer API" \
   _GCP_PROJECT="$GCP_PROJECT"
 
-print_green "Installation and setup finished. Please deploy via Cloud Build by pushing the code to your source repository at ${HYPERLINK}https://source.cloud.google.com/$GCP_PROJECT/$SOURCE_REPO\ahttps://source.cloud.google.com/$GCP_PROJECT/$SOURCE_REPO${HYPERLINK}\a"
+print_green "Installation and setup finished. Please deploy via Cloud Build either manually or by pushing to your source repository at ${HYPERLINK}https://source.cloud.google.com/{$GCP_PROJECT}/{$SOURCE_REPO}\ahttps://source.cloud.google.com/{$GCP_PROJECT}/{$SOURCE_REPO}${HYPERLINK}\a"

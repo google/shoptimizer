@@ -474,7 +474,6 @@ class TitleOptimizerBrandTest(parameterized.TestCase):
 
   def setUp(self):
     super(TitleOptimizerBrandTest, self).setUp()
-    app_util.setup_test_app()
     self.optimizer = title_optimizer.TitleOptimizer()
     self.fields_to_append = ['gender', 'color', 'sizes', 'brand']
 
