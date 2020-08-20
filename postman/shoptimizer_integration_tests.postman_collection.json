@@ -3685,7 +3685,7 @@
 					"raw": "{\n    \"entries\": [\n        {\n            \"batchId\": 1111,\n            \"merchantId\": 1234567,\n            \"method\": \"insert\",\n            \"product\": {\n                \"kind\": \"content#product\",\n                \"offerId\": \"1111111111\",\n                \"source\": \"api\",\n                \"title\": \"[送料無料] Google Shoes 送料無料(一部地域除く)\",\n                \"description\": \"The Google Tee is available in unisex sizing and features a retail fit.\",\n                \"link\": \"http://my.site.com/blacktee/\",\n                \"imageLink\": \"https://shop.example.com/.../images/GGOEGXXX1100.jpg\",\n                \"contentLanguage\": \"en\",\n                \"targetCountry\": \"US\",\n                \"channel\": \"online\",\n                \"ageGroup\": \"adult\",\n                \"availability\": \"in stock\",\n                \"availabilityDate\": \"2019-01-25T13:00:00-08:00\",\n                \"condition\": \"new\",\n                \"gender\": \"male\",\n                \"gtin\": \"608802531656\",\n                \"itemGroupId\": \"google_tee\",\n                \"mpn\": \"608802531656\",\n                \"price\": {\n                    \"value\": \"21.99\",\n                    \"currency\": \"USD\"\n                },\n                \"productTypes\": [\n                \t\"a\",\n                \t\"b\",\n                \t\"c\",\n                \t\"d\",\n                \t\"e\"\n                ],\n                \"destinations\": [\n                    {\n                        \"destinationName\": \"Shopping\",\n                        \"intention\": \"required\"\n                    }\n                ]\n            }\n        }\n    ]\n}"
 				},
 				"url": {
-					"raw": "{{baseApiUrl}}/shoptimizer/v1/batch/optimize?title-optimizer=true&lang=ja",
+					"raw": "{{baseApiUrl}}/shoptimizer/v1/batch/optimize?promo-text-removal-optimizer=true&lang=ja",
 					"host": [
 						"{{baseApiUrl}}"
 					],
@@ -3697,7 +3697,7 @@
 					],
 					"query": [
 						{
-							"key": "title-optimizer",
+							"key": "promo-text-removal-optimizer",
 							"value": "true"
 						},
 						{
@@ -3748,7 +3748,7 @@
 					"raw": "{\n    \"entries\": [\n        {\n            \"batchId\": 1111,\n            \"merchantId\": 1234567,\n            \"method\": \"insert\",\n            \"product\": {\n                \"kind\": \"content#product\",\n                \"offerId\": \"1111111111\",\n                \"source\": \"api\",\n                \"title\": \"【限定クーポン配布中】 はんこ 【 送料無料 】ポイント消化 (TEST)\",\n                \"description\": \"The Google Tee is available in unisex sizing and features a retail fit.\",\n                \"link\": \"http://my.site.com/blacktee/\",\n                \"imageLink\": \"https://shop.example.com/.../images/GGOEGXXX1100.jpg\",\n                \"contentLanguage\": \"en\",\n                \"targetCountry\": \"US\",\n                \"channel\": \"online\",\n                \"ageGroup\": \"adult\",\n                \"availability\": \"in stock\",\n                \"availabilityDate\": \"2019-01-25T13:00:00-08:00\",\n                \"condition\": \"new\",\n                \"gender\": \"male\",\n                \"gtin\": \"608802531656\",\n                \"itemGroupId\": \"google_tee\",\n                \"mpn\": \"608802531656\",\n                \"price\": {\n                    \"value\": \"21.99\",\n                    \"currency\": \"USD\"\n                },\n                \"productTypes\": [\n                \t\"a\",\n                \t\"b\",\n                \t\"c\",\n                \t\"d\",\n                \t\"e\"\n                ],\n                \"destinations\": [\n                    {\n                        \"destinationName\": \"Shopping\",\n                        \"intention\": \"required\"\n                    }\n                ]\n            }\n        }\n    ]\n}"
 				},
 				"url": {
-					"raw": "{{baseApiUrl}}/shoptimizer/v1/batch/optimize?title-optimizer=true&lang=ja",
+					"raw": "{{baseApiUrl}}/shoptimizer/v1/batch/optimize?promo-text-removal-optimizer=true&lang=ja",
 					"host": [
 						"{{baseApiUrl}}"
 					],
@@ -3760,7 +3760,7 @@
 					],
 					"query": [
 						{
-							"key": "title-optimizer",
+							"key": "promo-text-removal-optimizer",
 							"value": "true"
 						},
 						{
@@ -3811,7 +3811,7 @@
 					"raw": "{\n    \"entries\": [\n        {\n            \"batchId\": 1111,\n            \"merchantId\": 1234567,\n            \"method\": \"insert\",\n            \"product\": {\n                \"kind\": \"content#product\",\n                \"offerId\": \"1111111111\",\n                \"source\": \"api\",\n                \"title\": \"【中古】【10倍ポイント】Tシャツ\",\n                \"description\": \"The Google Tee is available in unisex sizing and features a retail fit.\",\n                \"link\": \"http://my.site.com/blacktee/\",\n                \"imageLink\": \"https://shop.example.com/.../images/GGOEGXXX1100.jpg\",\n                \"contentLanguage\": \"en\",\n                \"targetCountry\": \"US\",\n                \"channel\": \"online\",\n                \"ageGroup\": \"adult\",\n                \"availability\": \"in stock\",\n                \"availabilityDate\": \"2019-01-25T13:00:00-08:00\",\n                \"condition\": \"new\",\n                \"gender\": \"male\",\n                \"gtin\": \"608802531656\",\n                \"itemGroupId\": \"google_tee\",\n                \"mpn\": \"608802531656\",\n                \"price\": {\n                    \"value\": \"21.99\",\n                    \"currency\": \"USD\"\n                },\n                \"productTypes\": [\n                \t\"a\",\n                \t\"b\",\n                \t\"c\",\n                \t\"d\",\n                \t\"e\"\n                ],\n                \"destinations\": [\n                    {\n                        \"destinationName\": \"Shopping\",\n                        \"intention\": \"required\"\n                    }\n                ]\n            }\n        }\n    ]\n}"
 				},
 				"url": {
-					"raw": "{{baseApiUrl}}/shoptimizer/v1/batch/optimize?title-optimizer=true&lang=ja",
+					"raw": "{{baseApiUrl}}/shoptimizer/v1/batch/optimize?promo-text-removal-optimizer=true&lang=ja",
 					"host": [
 						"{{baseApiUrl}}"
 					],
@@ -3823,7 +3823,7 @@
 					],
 					"query": [
 						{
-							"key": "title-optimizer",
+							"key": "promo-text-removal-optimizer",
 							"value": "true"
 						},
 						{
@@ -3874,7 +3874,7 @@
 					"raw": "{\n    \"entries\": [\n        {\n            \"batchId\": 1111,\n            \"merchantId\": 1234567,\n            \"method\": \"insert\",\n            \"product\": {\n                \"kind\": \"content#product\",\n                \"offerId\": \"1111111111\",\n                \"source\": \"api\",\n                \"title\": \"【中古】【test 100%OFF! test】Tシャツ\",\n                \"description\": \"The Google Tee is available in unisex sizing and features a retail fit.\",\n                \"link\": \"http://my.site.com/blacktee/\",\n                \"imageLink\": \"https://shop.example.com/.../images/GGOEGXXX1100.jpg\",\n                \"contentLanguage\": \"en\",\n                \"targetCountry\": \"US\",\n                \"channel\": \"online\",\n                \"ageGroup\": \"adult\",\n                \"availability\": \"in stock\",\n                \"availabilityDate\": \"2019-01-25T13:00:00-08:00\",\n                \"condition\": \"new\",\n                \"gender\": \"male\",\n                \"gtin\": \"608802531656\",\n                \"itemGroupId\": \"google_tee\",\n                \"mpn\": \"608802531656\",\n                \"price\": {\n                    \"value\": \"21.99\",\n                    \"currency\": \"USD\"\n                },\n                \"productTypes\": [\n                \t\"a\",\n                \t\"b\",\n                \t\"c\",\n                \t\"d\",\n                \t\"e\"\n                ],\n                \"destinations\": [\n                    {\n                        \"destinationName\": \"Shopping\",\n                        \"intention\": \"required\"\n                    }\n                ]\n            }\n        }\n    ]\n}"
 				},
 				"url": {
-					"raw": "{{baseApiUrl}}/shoptimizer/v1/batch/optimize?title-optimizer=true&lang=ja",
+					"raw": "{{baseApiUrl}}/shoptimizer/v1/batch/optimize?promo-text-removal-optimizer=true&lang=ja",
 					"host": [
 						"{{baseApiUrl}}"
 					],
@@ -3886,7 +3886,7 @@
 					],
 					"query": [
 						{
-							"key": "title-optimizer",
+							"key": "promo-text-removal-optimizer",
 							"value": "true"
 						},
 						{
@@ -3937,7 +3937,7 @@
 					"raw": "{\n    \"entries\": [\n        {\n            \"batchId\": 1111,\n            \"merchantId\": 1234567,\n            \"method\": \"insert\",\n            \"product\": {\n                \"kind\": \"content#product\",\n                \"offerId\": \"1111111111\",\n                \"source\": \"api\",\n                \"title\": \"【12/25 まで！】【test】Tシャツ\",\n                \"description\": \"The Google Tee is available in unisex sizing and features a retail fit.\",\n                \"link\": \"http://my.site.com/blacktee/\",\n                \"imageLink\": \"https://shop.example.com/.../images/GGOEGXXX1100.jpg\",\n                \"contentLanguage\": \"en\",\n                \"targetCountry\": \"US\",\n                \"channel\": \"online\",\n                \"ageGroup\": \"adult\",\n                \"availability\": \"in stock\",\n                \"availabilityDate\": \"2019-01-25T13:00:00-08:00\",\n                \"condition\": \"new\",\n                \"gender\": \"male\",\n                \"gtin\": \"608802531656\",\n                \"itemGroupId\": \"google_tee\",\n                \"mpn\": \"608802531656\",\n                \"price\": {\n                    \"value\": \"21.99\",\n                    \"currency\": \"USD\"\n                },\n                \"productTypes\": [\n                \t\"a\",\n                \t\"b\",\n                \t\"c\",\n                \t\"d\",\n                \t\"e\"\n                ],\n                \"destinations\": [\n                    {\n                        \"destinationName\": \"Shopping\",\n                        \"intention\": \"required\"\n                    }\n                ]\n            }\n        }\n    ]\n}"
 				},
 				"url": {
-					"raw": "{{baseApiUrl}}/shoptimizer/v1/batch/optimize?title-optimizer=true&lang=ja",
+					"raw": "{{baseApiUrl}}/shoptimizer/v1/batch/optimize?promo-text-removal-optimizer=true&lang=ja",
 					"host": [
 						"{{baseApiUrl}}"
 					],
@@ -3949,7 +3949,7 @@
 					],
 					"query": [
 						{
-							"key": "title-optimizer",
+							"key": "promo-text-removal-optimizer",
 							"value": "true"
 						},
 						{
