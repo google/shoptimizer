@@ -42,6 +42,7 @@ import constants
 from optimizers_abstract import base_optimizer
 from util import optimization_util
 from util import size_miner
+from util import promo_text_remover
 
 _CHARS_TO_USE_WHEN_CREATING_TITLE: int = 34
 _MAX_TITLE_LENGTH: int = 150
@@ -53,13 +54,14 @@ class TitleOptimizer(base_optimizer.BaseOptimizer):
   _OPTIMIZER_PARAMETER: str = 'title-optimizer'
 
   def _optimize(self, product_batch: Dict[str, Any], language: str,
-                country: str) -> int:
+                country: str, currency: str) -> int:
     """Runs the optimization.
 
     Args:
       product_batch: A batch of product data.
       language: The language to use for this optimizer.
       country: The country to use for this optimizer.
+      currency: The currency to use for this optimizer.
 
     Returns:
       The number of products affected by this optimization.
@@ -77,6 +79,7 @@ class TitleOptimizer(base_optimizer.BaseOptimizer):
       original_title_length = len(original_title)
 
       _optimize_length_of_title(product)
+      _remove_unnecessary_text(product, language)
       self._append_attributes_to_title(product, original_title_length, language,
                                        country)
 
@@ -189,6 +192,17 @@ def _complement_title_with_description(product: Dict[str, Any]) -> None:
         'Modified item %s: Populating title with description due to detected '
         'title truncation: %s', product['offerId'], product['title'])
     base_optimizer.set_optimization_tracking(product, base_optimizer.OPTIMIZED)
+
+
+def _remove_unnecessary_text(product: Dict[str, Any], language: str) -> None:
+  """Removes unnecessary text from the title.
+
+  Args:
+    product: Product data.
+    language: The language to use for this optimizer.
+  """
+  remover = promo_text_remover.PromoTextRemover(language=language)
+  remover.remove_text_from_field(product, 'title')
 
 
 def _append_fields_to_title(product: Dict[str, Any], fields: List[str],

@@ -30,34 +30,43 @@ class GTINOptimizerTest(parameterized.TestCase):
 
   @parameterized.named_parameters([{
       'testcase_name': 'empty',
-      'test_gtin': ''
+      'test_gtin': '',
   }, {
       'testcase_name': 'invalid 7-digit GTIN',
-      'test_gtin': '9504000'
+      'test_gtin': '9504000',
   }, {
       'testcase_name': 'invalid 15-digit GTIN',
-      'test_gtin': '009781594741753'
+      'test_gtin': '009781594741753',
   }, {
       'testcase_name': 'invalid 8-digit GTIN',
-      'test_gtin': '12345678'
+      'test_gtin': '12345678',
   }, {
       'testcase_name': 'invalid 12-digit GTIN',
-      'test_gtin': '978159474175'
+      'test_gtin': '978159474175',
   }, {
       'testcase_name': 'invalid 13-digit GTIN',
-      'test_gtin': '9781594741754'
+      'test_gtin': '9781594741754',
   }, {
       'testcase_name': 'invalid 14-digit GTIN',
-      'test_gtin': '12345678901234'
+      'test_gtin': '12345678901234',
   }, {
       'testcase_name': 'invalid GTIN with letters',
-      'test_gtin': '123456789z1234'
+      'test_gtin': '123456789z1234',
   }, {
       'testcase_name': 'invalid repeating-number GTIN',
-      'test_gtin': '1111111111116'
+      'test_gtin': '1111111111116',
   }, {
       'testcase_name': 'invalid sequential-number GTIN',
-      'test_gtin': '123456789999'
+      'test_gtin': '123456789999',
+  }, {
+      'testcase_name': 'invalid coupon prefix',
+      'test_gtin': '19834567890123',
+  }, {
+      'testcase_name': 'invalid restricted prefix',
+      'test_gtin': '10424567890123',
+  }, {
+      'testcase_name': 'invalid bulk indicator',
+      'test_gtin': '90424567890123',
   }])
   def test_gtin_optimizer_removes_gtin_from_request_on_invalid_gtins(
       self, test_gtin):
@@ -72,10 +81,10 @@ class GTINOptimizerTest(parameterized.TestCase):
 
   @parameterized.named_parameters([{
       'testcase_name': 'valid 13-digit GTIN',
-      'test_gtin': '9504000059422'
+      'test_gtin': '9504000059422',
   }, {
       'testcase_name': 'another valid 13-digit GTIN',
-      'test_gtin': '9781594741753'
+      'test_gtin': '9781594741753',
   }])
   def test_gtin_optimizer_does_not_transform_valid_data(self, test_gtin):
     original_data = requests_bodies.build_request_body(
