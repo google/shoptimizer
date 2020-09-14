@@ -148,7 +148,7 @@ call.
 The following file can be imported into [Postman](https://www.postman.com/) to
 create a suite of example HTTP requests:
 
-`/shopping_feed_optimizer/shoptimizer_api/postman/shoptimizer_integration_tests.postman_collection.json`
+`/shoptimizer/shoptimizer_api/postman/shoptimizer_integration_tests.postman_collection.json`
 
 Within the Postman suite, the `{{baseApiUrl}}` environment variable can be set
 to a local host or remote host, such as a Google Cloud Run URL.

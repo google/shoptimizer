@@ -37,17 +37,14 @@ _Note: For  instructions on how to run a container image on your chosen platform
 
 Git clone the repository:
 
-`git clone -b master https://cse.googlesource.com/solutions/shopping_feed_optimizer`
+`git clone https://github.com/google/shoptimizer.git`
 
-If you get an error stating:
-`remote: PERMISSION_DENIED: The caller does not have permission`
-Please visit https://cse.googlesource.com/new-password and follow the instructions
 
 ### 2.2 Build the Image
 
 Navigate to the Shoptimizer directory:
 
-`cd shopping_feed_optimizer/shoptimizer_api`
+`cd shoptimizer/shoptimizer_api`
 
 Run the following command to build the image:
 
@@ -118,7 +115,7 @@ After it is installed, configure Docker for gcloud:
 
 If you are not already in the Shoptimizer directory, navigate to that directory with the following command:
 
-`cd shopping_feed_optimizer/shoptimizer_api`
+`cd shoptimizer/shoptimizer_api`
 
 Then, build the image:
 
