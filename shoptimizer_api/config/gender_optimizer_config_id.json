@@ -1,0 +1,61 @@
+{
+  "adult_product_categories": [
+    "Pakaian & Aksesori",
+    "Kesehatan & Kecantikan",
+    "Peralatan Olahraga",
+    "Koper & Tas",
+    "Elektronika"
+  ],
+  "baby_product_categories": [
+    "Bayi & Balita",
+    "Pakaian Bayi & Balita",
+    "Aksesori Baju Bayi & Balita",
+    "Perabotan Bayi & Balita"
+  ],
+  "female": {
+    "adult_search_terms": [
+      "Wanita",
+      "Perempuan",
+      "Cewek",
+      "Cewe",
+      "Woman",
+      "Women"
+    ],
+    "baby_search_terms": [
+      "Perempuan",
+      "Cewek",
+      "Cewe",
+      "Girl"
+    ],
+    "baby_title_replacement": "Perempuan",
+    "adult_title_replacement": "Wanita"
+  },
+  "male": {
+    "adult_search_terms": [
+      "Pria",
+      "Men",
+      "Laki-laki",
+      "Cowo",
+      "Cowok",
+      "Man"
+    ],
+    "baby_search_terms": [
+      "Laki-laki",
+      "Cowo",
+      "Cowok",
+      "Boy"
+    ],
+    "baby_title_replacement": "Laki-laki",
+    "adult_title_replacement": "Pria"
+  },
+  "unisex": {
+    "adult_search_terms": [
+      "Unisex"
+    ],
+    "baby_search_terms": [
+      "Unisex"
+    ],
+    "baby_title_replacement": "Unisex",
+    "adult_title_replacement": "Unisex"
+  }
+}
