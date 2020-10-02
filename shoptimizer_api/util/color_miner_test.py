@@ -191,6 +191,62 @@ class ColorMinerTest(parameterized.TestCase):
     self.assertCountEqual(expected_standard_colors, mined_standard_color)
     self.assertCountEqual(expected_unique_colors, mined_unique_color)
 
+  @parameterized.named_parameters([
+      {
+          'testcase_name':
+              'mines_from_color',
+          'product':
+              _build_dummy_product(
+                  properties_to_be_updated={'color': 'xanh nước biển'}),
+          'expected_standard_colors': ['xanh nước biển'],
+          'expected_unique_colors': ['xanh nước biển'],
+      },
+      {
+          'testcase_name':
+              'mines_from_title',
+          'product':
+              _build_dummy_product(
+                  properties_to_be_removed=['color'],
+                  properties_to_be_updated={'title': 'Title màu đỏ'}),
+          'expected_standard_colors': ['Màu Đỏ'],
+          'expected_unique_colors': ['Màu Đỏ'],
+      },
+      {
+          'testcase_name':
+              'mines_two_colors_from_title',
+          'product':
+              _build_dummy_product(
+                  properties_to_be_removed=['color'],
+                  properties_to_be_updated={
+                      'title': 'Title màu đỏ xanh lá cây',
+                  }),
+          'expected_standard_colors': ['Màu Đỏ', 'Xanh Lá Cây'],
+          'expected_unique_colors': ['Màu Đỏ', 'Xanh Lá Cây'],
+      },
+      {
+          'testcase_name':
+              'mines_from_description',
+          'product':
+              _build_dummy_product(
+                  properties_to_be_removed=['color'],
+                  properties_to_be_updated={
+                      'title': '',
+                      'description': 'Description xanh lá cây',
+                  }),
+          'expected_standard_colors': ['Xanh Lá Cây'],
+          'expected_unique_colors': ['Xanh Lá Cây'],
+      },
+  ])
+  def test_mine_color_mines_color_with_language_vi(self, product,
+                                                   expected_standard_colors,
+                                                   expected_unique_colors):
+    miner = color_miner.ColorMiner(language='vi')
+
+    mined_standard_color, mined_unique_color = miner.mine_color(product)
+
+    self.assertCountEqual(expected_standard_colors, mined_standard_color)
+    self.assertCountEqual(expected_unique_colors, mined_unique_color)
+
   def test_mine_color_mines_three_colors_from_title_including_four_colors(self):
     miner = color_miner.ColorMiner(language='ja')
     product = _build_dummy_product(
