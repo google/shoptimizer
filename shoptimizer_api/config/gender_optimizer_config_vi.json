@@ -1,0 +1,46 @@
+{
+  "adult_product_categories": [
+    "Quần áo & Phụ kiện",
+    "Sức khỏe và sắc đẹp",
+    "Dụng cụ thể thao",
+    "Hành lý và túi xách",
+    "Thiết bị điện tử"
+  ],
+  "baby_product_categories": [
+    "Trẻ sơ sinh và trẻ tập đi",
+    "Quần áo trẻ em & Trẻ sơ sinh",
+    "Phụ kiện quần áo cho trẻ sơ sinh và trẻ nhỏ",
+    "Đồ nội thất cho trẻ sơ sinh và trẻ nhỏ"
+  ],
+  "female": {
+    "adult_search_terms": [
+      "phụ nữ"
+    ],
+    "baby_search_terms": [
+      "con gái"
+    ],
+    "baby_title_replacement": "con gái",
+    "adult_title_replacement": "phụ nữ"
+  },
+  "male": {
+    "adult_search_terms": [
+      "đàn ông"
+    ],
+    "baby_search_terms": [
+      "con trai"
+    ],
+    "baby_title_replacement": "con trai",
+    "adult_title_replacement": "đàn ông"
+  },
+  "unisex": {
+    "adult_search_terms": [
+      "Unisex"
+    ],
+    "baby_search_terms": [
+      "Unisex"
+    ],
+    "baby_title_replacement": "Unisex",
+    "adult_title_replacement": "Unisex"
+  }
+}
+
