@@ -83,7 +83,7 @@ class PromoTextRemover(object):
     """
     regex_patterns = self._config.get('promotional_text_patterns_regex', [])
     for regex_pattern in regex_patterns:
-      target_text = re.sub(regex_pattern, '', target_text)
+      target_text = re.sub(regex_pattern, '', target_text, flags=re.I)
     return target_text
 
   def _remove_text_by_exact_match(self, target_text: str) -> str:

@@ -59,6 +59,18 @@ class PromoTextRemoverTest(parameterized.TestCase):
       'testcase_name': 'two_patterns',
       'original_title': '[**removing this part**] dummy title removing pattern',
       'expected_title': 'dummy title'
+  }, {
+      'testcase_name': 'ja_patterns_multiple_brackets',
+      'original_title': '【中古】【10倍ポイント】Tシャツ',
+      'expected_title': '【中古】Tシャツ'
+  }, {
+      'testcase_name': 'ja_patterns_percent_off',
+      'original_title': '【中古】【test 100%OFF! test】Tシャツ',
+      'expected_title': '【中古】Tシャツ'
+  }, {
+      'testcase_name': 'ja_patterns_date',
+      'original_title': '【12/25 まで！】【test】Tシャツ',
+      'expected_title': '【test】Tシャツ'
   }])
   def test_text_remover_removes_text_by_regex(self, original_title,
                                               expected_title):

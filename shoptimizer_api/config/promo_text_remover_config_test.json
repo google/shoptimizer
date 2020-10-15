@@ -1,7 +1,10 @@
 {
   "promotional_text_patterns_regex": [
     "\\[.*removing.*\\]",
-    "\\s+removing pattern"
+    "\\s+removing pattern",
+    "[【[(『][^【[(『]*(ポイント|SALE|クーポン)[^])』】]*[])』】]",
+    "[【[(『][^【[(『]*[0-9]+[倍%円][^])』】]*[])』】]",
+    "[【[(『][^【[(『]*[0-9]+/[0-9]+\\s?まで[^])』】]*[])』】]"
   ],
   "promotional_text_patterns_exact_match": [
     "*removing this part",
