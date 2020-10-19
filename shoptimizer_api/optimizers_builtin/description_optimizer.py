@@ -43,12 +43,15 @@ class DescriptionOptimizer(base_optimizer.BaseOptimizer):
 
   _OPTIMIZER_PARAMETER: str = 'description-optimizer'
 
-  def _optimize(self, product_batch: Dict[str, Any], language: str, _) -> int:
+  def _optimize(self, product_batch: Dict[str, Any], language: str,
+                country: str, currency: str) -> int:
     """Runs the optimization.
 
     Args:
       product_batch: A batch of product data.
       language: The language to use for this optimizer.
+      country: The country to use for this optimizer.
+      currency: The currency to use for this optimizer.
 
     Returns:
       The number of products affected by this optimization.

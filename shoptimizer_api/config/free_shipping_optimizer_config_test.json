@@ -1,0 +1,8 @@
+{
+  "free_shipping_patterns": [
+    "free\\s+shipping"
+  ],
+  "shipping_exclusion_patterns": [
+    "exclude\\s+islands"
+  ]
+}

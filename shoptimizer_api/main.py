@@ -96,6 +96,8 @@ def optimize() -> Tuple[str, http.HTTPStatus]:
                                               constants.DEFAULT_LANG).lower()
   country_url_parameter = flask.request.args.get(
       'country', constants.DEFAULT_COUNTRY).lower()
+  currency_url_parameter = flask.request.args.get(
+      'currency', constants.DEFAULT_CURRENCY).upper()
   request_valid, error_msg = _check_request_valid(lang_url_parameter)
 
   if not request_valid:
@@ -107,10 +109,10 @@ def optimize() -> Tuple[str, http.HTTPStatus]:
 
   optimized_product_batch, builtin_optimizer_results = _run_optimizers(
       product_batch, lang_url_parameter, country_url_parameter,
-      _builtin_optimizer_cache)
+      currency_url_parameter, _builtin_optimizer_cache)
   optimized_product_batch, plugin_optimizer_results = _run_optimizers(
       optimized_product_batch, lang_url_parameter, country_url_parameter,
-      _plugin_optimizer_cache)
+      currency_url_parameter, _plugin_optimizer_cache)
 
   response_dict = _build_response_dict(optimized_product_batch,
                                        builtin_optimizer_results,
@@ -157,6 +159,7 @@ def _run_optimizers(
     product_batch: Dict[str, Any],
     language: str,
     country: str,
+    currency: str,
     optim_cache: optimizer_cache.OptimizerCache,
 ) -> (Dict[str, Any], Dict[str, optimization_result.OptimizationResult]):
   """Transforms a JSON payload of product data using optimizers.
@@ -165,6 +168,7 @@ def _run_optimizers(
     product_batch: A batch of product data.
     language: The language to use for this request.
     country: The country to use for this request.
+    currency: The currency to use for this request.
     optim_cache: A cache of optimizer classes.
 
   Returns:
@@ -191,10 +195,11 @@ def _run_optimizers(
   for optimizer_url_parameter in _extract_optimizer_url_parameters():
     optimizer = optimizer_mapping.get(optimizer_url_parameter)
     if optimizer:
-      logging.info('Running optimization %s with language %s',
-                   optimizer_url_parameter, language)
+      logging.info(
+          'Running optimization %s with language %s, country %s, currency %s',
+          optimizer_url_parameter, language, country, currency)
       optimized_product_batch, result = optimizer.process(
-          optimized_product_batch, language)
+          optimized_product_batch, language, country, currency)
       optimization_results[optimizer_url_parameter] = result
 
   return optimized_product_batch, optimization_results
