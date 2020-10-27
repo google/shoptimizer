@@ -71,6 +71,10 @@ class PromoTextRemoverTest(parameterized.TestCase):
       'testcase_name': 'ja_patterns_date',
       'original_title': '【12/25 まで！】【test】Tシャツ',
       'expected_title': '【test】Tシャツ'
+  }, {
+      'testcase_name': 'ja_multiple_bracket_types_mixed_with_exact_terms',
+      'original_title': '【限定クーポン配布中】 はんこ 【 送料無料 】ポイント消化 (TEST)',
+      'expected_title': 'はんこ (TEST)'
   }])
   def test_text_remover_removes_text_by_regex(self, original_title,
                                               expected_title):
