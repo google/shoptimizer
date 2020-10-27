@@ -72,8 +72,18 @@ class FreeShippingOptimizerTest(parameterized.TestCase):
     self.assertNotIn('shipping', product)
     self.assertEqual(0, optimization_result.num_of_products_optimized)
 
+  @parameterized.named_parameters([
+      {
+          'testcase_name': 'original_value_is_zero',
+          'original_value': '0',
+      },
+      {
+          'testcase_name': 'original_value_is_not_zero',
+          'original_value': '100',
+      },
+  ])
   def test_shipping_field_is_not_updated_when_free_shipping_already_exists(
-      self):
+      self, original_value):
     title = 'dummy title free shipping'
     original_data = requests_bodies.build_request_body(
         properties_to_be_updated={
@@ -81,7 +91,7 @@ class FreeShippingOptimizerTest(parameterized.TestCase):
                 title,
             'shipping': [{
                 'price': {
-                    'value': '0',
+                    'value': original_value,
                     'currency': constants.CURRENCY_CODE_JPY
                 },
                 'country': constants.COUNTRY_CODE_JP

@@ -79,7 +79,7 @@ class FreeShippingOptimizer(base_optimizer.BaseOptimizer):
       if product.get('shipping') != original_shipping:
         num_of_products_optimized += 1
         base_optimizer.set_optimization_tracking(product,
-                                                 base_optimizer.SANITIZED)
+                                                 base_optimizer.OPTIMIZED)
 
     return num_of_products_optimized
 
@@ -167,9 +167,8 @@ def _free_shipping_already_exists(shipping_field: List[Dict[str, Any]],
     Whether free shipping object is already in shipping field or not.
   """
   for shipping_object in shipping_field:
-    existing_price_value = shipping_object.get('price', {}).get('value')
     existing_price_currency = shipping_object.get('price', {}).get('currency')
     existing_country = shipping_object.get('country')
-    if existing_price_value == '0' and existing_price_currency == currency and existing_country == country:
+    if existing_price_currency == currency and existing_country == country:
       return True
   return False
