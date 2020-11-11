@@ -50,7 +50,7 @@ class PromoTextRemover(object):
     super(PromoTextRemover, self).__init__()
     self._language = language
     self._config = flask.current_app.config.get('CONFIGS', {}).get(
-        f'promo_text_remover_config_{language}', {})
+        f'promo_text_removal_config_{language}', {})
 
   def remove_text_from_field(self, product: Dict[str, Any],
                              field_key: str) -> None:
