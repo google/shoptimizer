@@ -16,15 +16,14 @@
 # python3
 """A module that removes promotional text from a field of a product.
 
-This modules removes promotional text from a product field that have prefixes
-found in
-"promo_text_remover_config" from the config file.
+This modules removes promotional text from a product field that matches patterns
+found in the "promo_text_removal_optimizer_config_{lang}" config file.
 It uses two methods to remove the text.
 - Regular expression: Removes text that matches regular expressions in the
 config.
 - Exact match: Removes text that exactly matches text in the config.
 
-It does not transform product data unless a config file for a given language
+It does not transform product data unless a config file for the given language
 exists.
 """
 
@@ -42,7 +41,7 @@ class PromoTextRemover(object):
   _config: Optional[Dict[str, Any]] = None
 
   def __init__(self, language: str) -> None:
-    """Initializes TextRemover.
+    """Initializes PromoTextRemover.
 
     Args:
       language: The configured language code.
@@ -50,7 +49,7 @@ class PromoTextRemover(object):
     super(PromoTextRemover, self).__init__()
     self._language = language
     self._config = flask.current_app.config.get('CONFIGS', {}).get(
-        f'promo_text_removal_config_{language}', {})
+        f'promo_text_removal_optimizer_config_{language}', {})
 
   def remove_text_from_field(self, product: Dict[str, Any],
                              field_key: str) -> None:
