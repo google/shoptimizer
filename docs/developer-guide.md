@@ -63,15 +63,20 @@ _**Required:**_
 _**Optional:**_
 
 *   `lang=[en/ja]`
+*   `country=[us/jp]`
+*   `currency=[usd/jpy]`
 *   `adult-optimizer=(true/false)`
 *   `color-length-optimizer=(true/false)`
 *   `condition-optimizer=(true/false)`
 *   `description-optimizer=(true/false)`
+*   `free-shipping-optimizer=(true/false)`
 *   `gtin-optimizer=(true/false)`
 *   `identifier-exists-optimizer=(true/false)`
 *   `invalid-chars-optimizer=(true/false)`
 *   `mpn-optimizer=(true/false)`
 *   `product-type-length-optimizer=(true/false)`
+*   `promo-text-removal-optimizer=(true/false)`
+*   `shopping-exclusion-optimizer=(true/false)`
 *   `size-length-optimizer=(true/false)`
 *   `title-length-optimizer=(true/false)`
 *   `title-optimizer=(true/false)`
@@ -79,14 +84,18 @@ _**Optional:**_
 "lang" will control which language is used for certain optimizers that require
 language-specific token parsing. The supported language values are: "en"
 (English), "ja" (Japanese). If the "lang" parameter is not supplied, it will
-default to Japanese. This directly maps to which language-specific config file
+default to English. This directly maps to which language-specific config file
 is used under the config/ directory. These files can be edited by the user as
 needed.
 
-Apart from "lang", setting any of the other parameters to true will run the
-associated optimizer. If any of these parameters are not provided in the
-request, they will default to false. See section 4. 'Available Optimizers' for
-descriptions of the available optimizers.
+"country" and "currency" will control which country and currency are used for
+certain optimizers that set country-specific and currency-specific value. The
+default value is "us" for "country" and "usd" for "currency".
+
+Apart from "lang", "country" and "currency", setting any of the other parameters
+to true will run the associated optimizer. If any of these parameters are not
+provided in the request, they will default to false. See section 4.
+'Available Optimizers' for descriptions of the available optimizers.
 
 **Request Body**
 
@@ -173,9 +182,12 @@ Config File Name                       | Used by Optimizer(s)                   
 -------------------------------------- | -------------------------------------- | ----------------
 adult_optimizer_config_{lang}.json     | adult-optimizer                        | Set the \"**adult_product_types**\" section to a list of strings representing adult-oriented [Product Types](https://support.google.com/merchants/answer/6324406?hl=en). Do not use the fully qualified path of the entire Product Types string, but instead only put individual types into each entry in this config section (e.g. only look for "Dresses", not "Home > Women > Dresses > Maxi Dresses"). Set the \"**adult_google_product_categories**\" section to a list of key-value pairs, the key being any full [Google Product Category](https://support.google.com/merchants/answer/6324436?hl=en) (the optimizer can match any sub-category of an upper-tier), and the value a list of strings representing tokens that will indicate the product is adult-oriented. Setting the value to a single-element list with the token "\*" will flag the entire GPC as adult-oriented. The optimizer will then check if the product is either of an adult-oriented Product Type, OR an adult-oriented GPC that contains adult-oriented tokens to set the adult attribute. See the default configs for examples.
 brand_blocklist.json                   | title-optimizer, description-optimizer | Add a list of strings representing brands that should not be appended to the title or description of the product. See the default configs for examples.
-color_optimizer_config_{lang}.json     | title_optimizer, description-optimizer | Set \"**color_terms**\" to a dictionary of key-value pairs representing colors to be mined and map complex colors to simple colors. Complex colors get appended to title/description, and simple colors get added to the color field. See the default configs for examples.
-condition_optimizer_config_{lang}.json | condition-optimizer | Set the \"**used_tokens**\" section to a list of string representing tokens in a product's title or description that indicate if a product should be set to "Used". Set the \"**excluded_product_categories**\" section to a list of strings representing any full [Google Product Category](https://support.google.com/merchants/answer/6324436?hl=en) (the optimizer can match any sub-category of an upper-tier) that should exclude this optimizer from checking for tokens in the used_tokens section. Set the \"**target_product_categories**\" section to a list of key-value pairs, the key being any full [Google Product Category](https://support.google.com/merchants/answer/6324436?hl=en) (the optimizer can match any sub-category of an upper-tier), and the value a list of strings representing tokens that will indicate the product is Used. This is useful for category-specific tokens. See the default configs for examples.
-gender_optimizer_config_{lang}.json    | title_optimizer, description-optimizer | Set the \"**adult_product_categories**\" section to a list of strings representing partial [Google Product Categories](https://support.google.com/merchants/answer/6324436?hl=en) (any part of a tier can match a product's category) that indicate products in those categories should be mined for adult genders. Similarly, set the \"**baby_product_categories**\" to a list of partial GPCs that indicate products in those categories should be mined for baby genders. The next three sections, "female", "male", and "unisex" specify the terms to search the [Product Type](https://support.google.com/merchants/answer/6324406?hl=en) field and description for, and the \"**\*__replacement**\" fields specify the desired terms to set as the gender in the title (for either "baby" or "adult" types of products). See the default configs for examples.
+color_optimizer_config_{lang}.json     | title-optimizer, description-optimizer | Set \"**color_terms**\" to a dictionary of key-value pairs representing colors to be mined and map complex colors to simple colors. Complex colors get appended to title/description, and simple colors get added to the color field. See the default configs for examples.
+condition_optimizer_config_{lang}.json | condition-optimizer                    | Set the \"**used_tokens**\" section to a list of string representing tokens in a product's title or description that indicate if a product should be set to "Used". Set the \"**excluded_product_categories**\" section to a list of strings representing any full [Google Product Category](https://support.google.com/merchants/answer/6324436?hl=en) (the optimizer can match any sub-category of an upper-tier) that should exclude this optimizer from checking for tokens in the used_tokens section. Set the \"**target_product_categories**\" section to a list of key-value pairs, the key being any full [Google Product Category](https://support.google.com/merchants/answer/6324436?hl=en) (the optimizer can match any sub-category of an upper-tier), and the value a list of strings representing tokens that will indicate the product is Used. This is useful for category-specific tokens. See the default configs for examples.
+free_shipping_optimizer_config_{lang}.json    | free-shipping-optimizer | Set the \"**free_shipping_patterns**\" section to a list of regex strings representing text that indicates the product is being offered with free shipping. Set the \"**shipping_exclusion_patterns**\" section to a list of regex strings that indicate any exceptions to a product's free shipping status. For example, any specific geographic areas that cannot be offered with free shipping, but otherwise free shipping would apply on that product.
+gender_optimizer_config_{lang}.json    | title-optimizer, description-optimizer | Set the \"**adult_product_categories**\" section to a list of strings representing partial [Google Product Categories](https://support.google.com/merchants/answer/6324436?hl=en) (any part of a tier can match a product's category) that indicate products in those categories should be mined for adult genders. Similarly, set the \"**baby_product_categories**\" to a list of partial GPCs that indicate products in those categories should be mined for baby genders. The next three sections, "female", "male", and "unisex" specify the terms to search the [Product Type](https://support.google.com/merchants/answer/6324406?hl=en) field and description for, and the \"**\*__replacement**\" fields specify the desired terms to set as the gender in the title (for either "baby" or "adult" types of products). See the default configs for examples.
+promo_text_removal_optimizer_config_{lang}.json  | promo-text-removal-optimizer           | Set \"**promotional_text_patterns_regex**\" to a list of strings representing regex patterns that will be matched against the product's title. Set \"**promotional_text_patterns_exact_match**\" to a list of strings representing exact-match patterns that will be matched against the product's title. Matching patterns will be removed from the title.
+shopping_exclusion_optimizer_config_{lang}.json  | shopping-exclusion-optimizer           | Set \"**shopping_exclusion_patterns_exact_match**\" to a list of strings representing text that will be matched against the product's title. If the title contains any of these terms, the optimizer will exclude the product from Shopping ads in the Content API request.
 
 ## 4. Integrating Shoptimizer with your Content API Client
 

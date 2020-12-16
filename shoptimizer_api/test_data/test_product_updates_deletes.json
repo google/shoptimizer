@@ -38,11 +38,8 @@
                 "sizes": [
                     "Large"
                 ],
-                "destinations": [
-                    {
-                        "destinationName": "Shopping",
-                        "intention": "required"
-                    }
+                "includedDestinations": [
+                    "Shopping ads"
                 ]
             }
         }

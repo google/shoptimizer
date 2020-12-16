@@ -60,11 +60,8 @@ VALID_SINGLE_PRODUCT = json.loads("""{
                 "sizes": [
                     "Large"
                 ],
-                "destinations": [
-                    {
-                        "destinationName": "Shopping",
-                        "intention": "required"
-                    }
+                "includedDestinations": [
+                    "Shopping ads"
                 ]
             }
         }
@@ -106,11 +103,8 @@ INVALID_MISSING_ENTRIES = json.loads("""{
                 "sizes": [
                     "Large"
                 ],
-                "destinations": [
-                    {
-                        "destinationName": "Shopping",
-                        "intention": "required"
-                    }
+                "includedDestinations": [
+                    "Shopping ads"
                 ]
             }
 }""")
@@ -155,11 +149,8 @@ INVALID_ENTRIES_MISSING_PRODUCT_LIST = json.loads("""{
                 "sizes": [
                     "Large"
                 ],
-                "destinations": [
-                    {
-                        "destinationName": "Shopping",
-                        "intention": "required"
-                    }
+                "includedDestinations": [
+                    "Shopping ads"
                 ]
             }
         }
