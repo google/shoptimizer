@@ -63,6 +63,8 @@ _**Required:**_
 _**Optional:**_
 
 *   `lang=[en/ja]`
+*   `country=[us/jp]`
+*   `currency=[usd/jpy]`
 *   `adult-optimizer=(true/false)`
 *   `color-length-optimizer=(true/false)`
 *   `condition-optimizer=(true/false)`
@@ -80,14 +82,18 @@ _**Optional:**_
 "lang" will control which language is used for certain optimizers that require
 language-specific token parsing. The supported language values are: "en"
 (English), "ja" (Japanese). If the "lang" parameter is not supplied, it will
-default to Japanese. This directly maps to which language-specific config file
+default to English. This directly maps to which language-specific config file
 is used under the config/ directory. These files can be edited by the user as
 needed.
 
-Apart from "lang", setting any of the other parameters to true will run the
-associated optimizer. If any of these parameters are not provided in the
-request, they will default to false. See section 4. 'Available Optimizers' for
-descriptions of the available optimizers.
+"country" and "currency" will control which country and currency are used for
+certain optimizers that set country-specific and currency-specific value. The
+default value is "us" for "country" and "usd" for "currency".
+
+Apart from "lang", "country" and "currency", setting any of the other parameters
+to true will run the associated optimizer. If any of these parameters are not
+provided in the request, they will default to false. See section 4.
+'Available Optimizers' for descriptions of the available optimizers.
 
 **Request Body**
 
