@@ -29,7 +29,7 @@ For an explanation of how to pull the source code and run Shoptimizer, see the
 ## 1. Prerequisites
 
 *   The Shoptimizer source code (see the [install guide](./install-guide.md))
-*   A Python 4.8+ environment
+*   A Python 3.8+ environment
 
 ## 2. Architecture Overview
 
