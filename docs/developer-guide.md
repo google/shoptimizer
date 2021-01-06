@@ -462,7 +462,7 @@ endpoint:
 
 ## 6. Writing a Plugin
 
-If you want to add your own sanitzation and optimization code to Shoptimizer,
+If you want to add your own sanitization and optimization code to Shoptimizer,
 you can write a plugin to do this.
 
 To create a plugin, open the Shoptimizer solution and follow the steps below.
@@ -607,4 +607,13 @@ for details on configuring the environment variables.
 
 ## 8. Run Unit Tests
 
-You can run all of the unit tests in the solution by running `test_runner.py`.
+First, all the necessary python dependencies need to be installed. You can
+ use pipenv and run:
+```
+pipenv --python 3
+pipenv shell
+pipenv install --dev
+```
+From the pipenv virtual environment, you can now run all of the unit tests in
+ the solution by running `python test_runner.py`.
+
