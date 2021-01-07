@@ -1,0 +1,7 @@
+{
+	"shopping_exclusion_patterns_exact_match": [
+		"法人専用",
+		"法人のみ",
+		"法人限定"
+	]
+}
