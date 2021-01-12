@@ -199,6 +199,7 @@ For example, if you are running the container on localhost with a port of 8080, 
 
 Make a request to the API to check it is working by running the following command:
 
+    curl -H \
     "Authorization: Bearer $(gcloud auth print-identity-token)" \
     [YOUR_SHOPTIMIZER_URL]/shoptimizer/v1/health
 
