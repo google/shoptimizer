@@ -41,6 +41,9 @@ _OPTIMIZERS_PLUGINS_PACKAGE = 'optimizers_plugins'
 _OPTIMIZERS_THAT_USE_MINED_ATTRIBUTES = frozenset(
     ['title-optimizer', 'description-optimizer'])
 _SUPPORTED_LANGUAGES = frozenset(['en', 'ja'])
+_LANG_QUERY_STRING_KEY = 'lang'
+_COUNTRY_QUERY_STRING_KEY = 'country'
+_CURRENCY_QUERY_STRING_KEY = 'currency'
 
 # Sets logging to debug to show logging.info messages.
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
@@ -49,6 +52,16 @@ _builtin_optimizer_cache = optimizer_cache.OptimizerCache(
     _OPTIMIZERS_BUILTIN_PACKAGE)
 _plugin_optimizer_cache = optimizer_cache.OptimizerCache(
     _OPTIMIZERS_PLUGINS_PACKAGE)
+
+_BUILTIN_OPTIMIZER_PARAMETERS = [
+    optimizer_class.get_optimizer_parameter(optimizer_class)
+    for optimizer_class in _builtin_optimizer_cache.optimizer_classes
+]
+_PLUGIN_OPTIMIZER_PARAMETERS = [
+    optimizer_class.get_optimizer_parameter(optimizer_class)
+    for optimizer_class in _plugin_optimizer_cache.optimizer_classes
+]
+_VALID_OPTIMIZER_PARAMETERS = _BUILTIN_OPTIMIZER_PARAMETERS + _PLUGIN_OPTIMIZER_PARAMETERS
 
 app = app_util.create_app()
 
@@ -152,6 +165,22 @@ def _check_request_valid(lang_url_parameter: str) -> (bool, str):
     return False, (f'lang query parameter must be a supported language: '
                    f'{_SUPPORTED_LANGUAGES}')
 
+  # Check for invalid query strings by comparing against optimizers.
+  request_full_query_string_parameters = _extract_all_url_parameters()
+  request_optimizer_query_string_parameters = set(
+      request_full_query_string_parameters) - {
+          _LANG_QUERY_STRING_KEY, _COUNTRY_QUERY_STRING_KEY,
+          _CURRENCY_QUERY_STRING_KEY
+      }
+  invalid_query_string_parameters = list(
+      request_optimizer_query_string_parameters -
+      set(_VALID_OPTIMIZER_PARAMETERS))
+  if invalid_query_string_parameters:
+    logging.error('An invalid query string parameter was provided: %s',
+                  invalid_query_string_parameters)
+    return False, ('Invalid query string parameter detected. Please provide a '
+                   'valid Shoptimizer API query string parameter.')
+
   return True, ''
 
 
@@ -160,7 +189,7 @@ def _run_optimizers(
     language: str,
     country: str,
     currency: str,
-    optim_cache: optimizer_cache.OptimizerCache,
+    cached_optimizers: optimizer_cache.OptimizerCache,
 ) -> (Dict[str, Any], Dict[str, optimization_result.OptimizationResult]):
   """Transforms a JSON payload of product data using optimizers.
 
@@ -169,7 +198,7 @@ def _run_optimizers(
     language: The language to use for this request.
     country: The country to use for this request.
     currency: The currency to use for this request.
-    optim_cache: A cache of optimizer classes.
+    cached_optimizers: A cache of optimizer classes.
 
   Returns:
     The optimized product batch: Dict[str, Any]
@@ -183,16 +212,16 @@ def _run_optimizers(
       optimized_product_batch, language,
       country) if _mined_attributes_required() else {}
 
-  cached_optimizers = [
+  optimizers = [
       optimizer_class(mined_attributes)
-      for optimizer_class in optim_cache.optimizer_classes
+      for optimizer_class in cached_optimizers.optimizer_classes
   ]
-  cached_optimizer_parameters = [
-      optimizer.optimizer_parameter for optimizer in cached_optimizers
+  optimizer_parameters = [
+      optimizer.optimizer_parameter for optimizer in optimizers
   ]
-  optimizer_mapping = dict(zip(cached_optimizer_parameters, cached_optimizers))
+  optimizer_mapping = dict(zip(optimizer_parameters, optimizers))
 
-  for optimizer_url_parameter in _extract_optimizer_url_parameters():
+  for optimizer_url_parameter in _extract_true_optimizer_url_parameters():
     optimizer = optimizer_mapping.get(optimizer_url_parameter)
     if optimizer:
       logging.info(
@@ -228,7 +257,11 @@ def _exists_in_query_string_with_value_true(query_parameter_key: str) -> bool:
   Returns:
     Whether the query parameter has true value or not.
   """
-  return flask.request.args.get(query_parameter_key, '').lower() == 'true'
+  try:
+    return flask.request.args.get(query_parameter_key, '').lower() == 'true'
+  except RuntimeError as error:
+    logging.exception('Error: Retrieving keys from Flask failed. %s', error)
+    return False
 
 
 def _get_mined_attributes(product_batch: Dict[str, Any], language: str,
@@ -247,16 +280,29 @@ def _get_mined_attributes(product_batch: Dict[str, Any], language: str,
   return miner.mine_and_insert_attributes_for_batch(product_batch)
 
 
-def _extract_optimizer_url_parameters() -> List[str]:
+def _extract_all_url_parameters() -> List[str]:
+  """Extracts all of the query string parameters from the request.
+
+  Returns:
+    A list of query string parameter keys.
+  """
+  try:
+    return flask.request.args.keys() or []
+  except RuntimeError as error:
+    logging.exception('Error: Retrieving keys from Flask failed. %s', error)
+    return []
+
+
+def _extract_true_optimizer_url_parameters() -> List[str]:
   """Extracts optimizer parameters whose values are true from query string.
 
   Returns:
-    Optimizer parameters that exist in query string.
+    Optimizer parameters that exist in query string and are set to true.
   """
   optimizer_parameters = []
-  for parameter_name, parameter_value in flask.request.args.items():
+  for parameter_key, parameter_value in flask.request.args.items():
     if isinstance(parameter_value, str) and parameter_value.lower() == 'true':
-      optimizer_parameters.append(parameter_name)
+      optimizer_parameters.append(parameter_key)
   return optimizer_parameters
 
 

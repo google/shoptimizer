@@ -142,6 +142,10 @@ class BaseOptimizer(abc.ABC):
     """
     raise NotImplementedError('Optimizer must implement the method optimize.')
 
+  def get_optimizer_parameter(self) -> str:
+    """Returns the URL parameter that indicates this optimizer should be run."""
+    return self._OPTIMIZER_PARAMETER
+
 
 def set_optimization_tracking(product: Dict[str, Any],
                               tracking_tag: enums.TrackingTag) -> None:
