@@ -73,7 +73,7 @@ Run the installation script:
 
 Set the remote destination for your Cloud project's git repo. You can copy the destination URL from the Source Repo page accessed from your GCP project's admin console, or replace the variables in the command shown below:
 
-`git remote add gcp ssh://[YOUR_USERNAME]@google.com@source.developers.google.com:2022/p/[YOUR_GCP_PROJECT_NAME]/r/[NAME_FOR_YOUR_GIT_REPO_IN_GCP]`
+`git remote add gcp ssh://[YOUR_USERNAME]@source.developers.google.com:2022/p/[YOUR_GCP_PROJECT_NAME]/r/[NAME_FOR_YOUR_GIT_REPO_IN_GCP]`
 
 Finally, push the code to your GCP project's Cloud Source Repository.
 

@@ -80,6 +80,7 @@ _**Optional:**_
 *   `size-length-optimizer=(true/false)`
 *   `title-length-optimizer=(true/false)`
 *   `title-optimizer=(true/false)`
+*   `title-word-order-optimizer=(true/false)`
 
 "lang" will control which language is used for certain optimizers that require
 language-specific token parsing. The supported language values are: "en"
@@ -188,6 +189,7 @@ free_shipping_optimizer_config_{lang}.json    | free-shipping-optimizer | Set th
 gender_optimizer_config_{lang}.json    | title-optimizer, description-optimizer | Set the \"**adult_product_categories**\" section to a list of strings representing partial [Google Product Categories](https://support.google.com/merchants/answer/6324436?hl=en) (any part of a tier can match a product's category) that indicate products in those categories should be mined for adult genders. Similarly, set the \"**baby_product_categories**\" to a list of partial GPCs that indicate products in those categories should be mined for baby genders. The next three sections, "female", "male", and "unisex" specify the terms to search the [Product Type](https://support.google.com/merchants/answer/6324406?hl=en) field and description for, and the \"**\*__replacement**\" fields specify the desired terms to set as the gender in the title (for either "baby" or "adult" types of products). See the default configs for examples.
 promo_text_removal_optimizer_config_{lang}.json  | promo-text-removal-optimizer           | Set \"**promotional_text_patterns_regex**\" to a list of strings representing regex patterns that will be matched against the product's title. Set \"**promotional_text_patterns_exact_match**\" to a list of strings representing exact-match patterns that will be matched against the product's title. Matching patterns will be removed from the title.
 shopping_exclusion_optimizer_config_{lang}.json  | shopping-exclusion-optimizer           | Set \"**shopping_exclusion_patterns_exact_match**\" to a list of strings representing text that will be matched against the product's title. If the title contains any of these terms, the optimizer will exclude the product from Shopping ads in the Content API request.
+title_word_order_config_{lang}.json  | title-word-order-optimizer           | _This config is specifically designed to work with a Word-Mix-Model output config file format._ The format is: a dictionary of Google Product Category (GPC) IDs each mapped to a list of dictionaries containing: 1. high-performing title keywords and 2. their associated weight. Thus, only products within the matching GPC will have their titles optimized if possible.
 
 ## 4. Integrating Shoptimizer with your Content API Client
 
