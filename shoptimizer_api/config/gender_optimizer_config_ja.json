@@ -1,0 +1,47 @@
+{
+  "adult_product_categories": [
+    "ファッション・アクセサリー",
+    "美容・健康",
+    "スポーツ用品",
+    "旅行用かばん・バッグ",
+    "電気製品"
+  ],
+  "baby_product_categories": [
+    "ベビー用品",
+    "ベビー服",
+    "ベビー服小物",
+    "ベビー用家具"
+  ],
+  "female": {
+    "adult_search_terms": [
+      "レディース",
+      "女性"
+    ],
+    "baby_search_terms": [
+      "女の子"
+    ],
+    "baby_title_replacement": "女の子",
+    "adult_title_replacement": "レディース"
+  },
+  "male": {
+    "adult_search_terms": [
+      "メンズ",
+      "男性"
+    ],
+    "baby_search_terms": [
+      "男の子"
+    ],
+    "baby_title_replacement": "男の子",
+    "adult_title_replacement": "メンズ"
+  },
+  "unisex": {
+    "adult_search_terms": [
+      "男女",
+      "ユニセックス"
+    ],
+    "baby_search_terms": [
+    ],
+    "baby_title_replacement": "ユニセックス",
+    "adult_title_replacement": "ユニセックス"
+  }
+}

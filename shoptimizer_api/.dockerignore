@@ -1,0 +1,10 @@
+# https://docs.docker.com/engine/reference/builder/#dockerignore-file
+#
+Dockerfile
+*.md
+*.pyc
+*.pyo
+*.pyd
+__pycache__
+*/postman*
+*/docs*

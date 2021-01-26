@@ -1,0 +1,49 @@
+{
+    "entries": [
+        {
+            "batchId": 1111,
+            "merchantId": 1234567,
+            "method": "insert",
+            "product": {
+                "kind": "content#product",
+                "offerId": "1111111111",
+                "source": "api",
+                "title": "Google Tee Black",
+                "description": "The Black Google Tee is available in ...",
+                "link": "http://my.site.com/blacktee/",
+                "imageLink": "https://shop.example.com/.../images/foo.jpg",
+                "contentLanguage": "en",
+                "targetCountry": "US",
+                "channel": "online",
+                "ageGroup": "adult",
+                "availability": "in stock",
+                "availabilityDate": "2019-01-25T13:00:00-08:00",
+                "brand": "Google",
+                "color": "black",
+                "condition": "new",
+                "customLabel0": "",
+                "customLabel1": "",
+                "customLabel2": "",
+                "customLabel3": "",
+                "customLabel4": "",
+                "gender": "male",
+                "googleProductCategory": "1604",
+                "itemGroupId": "google_tee",
+                "identifierExists": true,
+                "price": {
+                    "value": "21.99",
+                    "currency": "USD"
+                },
+                "sizes": [
+                    "Large"
+                ],
+                "destinations": [
+                    {
+                        "destinationName": "Shopping",
+                        "intention": "required"
+                    }
+                ]
+            }
+        }
+    ]
+}
