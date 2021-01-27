@@ -14,7 +14,33 @@ accept all risks, known and unknown, associated with its usage, including with
 respect to your deployment of any portion of this solution in your systems, or
 usage in connection with your business, if at all._
 
-[TOC]
+- [Shoptimizer API Developer Guide](#shoptimizer-api-developer-guide)
+  * [0. About](#0-about)
+  * [1. Prerequisites](#1-prerequisites)
+  * [2. Architecture Overview](#2-architecture-overview)
+    + [2.1 Shoptimizer Workflow](#21-shoptimizer-workflow)
+    + [2.2 API Specification](#22-api-specification)
+    + [2.3 Example Usage](#23-example-usage)
+  * [3. Config Files](#3-config-files)
+  * [4. Integrating Shoptimizer with your Content API Client](#4-integrating-shoptimizer-with-your-content-api-client)
+    + [4.1 Authentication](#41-authentication)
+    + [4.2 Calling Shoptimizer](#42-calling-shoptimizer)
+    + [4.3 Parsing the Response](#43-parsing-the-response)
+    + [4.4 Checking for Errors](#44-checking-for-errors)
+      - [4.4.1 Bad Requests](#441-bad-requests)
+      - [4.4.2 Optimizer Errors](#442-optimizer-errors)
+    + [4.5 Complete Code Sample](#45-complete-code-sample)
+  * [5. Activating Optimizers](#5-activating-optimizers)
+  * [6. Writing a Plugin](#6-writing-a-plugin)
+    + [6.1 Create a New Module](#61-create-a-new-module)
+    + [6.2 Implement from BaseOptimizer](#62-implement-from-baseoptimizer)
+    + [6.3 Install MeCab](#63-install-mecab)
+    + [6.4 Run Unit Tests](#64-run-unit-tests)
+    + [6.5 Update Shoptimizer](#65-update-shoptimizer)
+  * [7. Tracking Optimization Performance](#7-tracking-optimization-performance)
+    + [7.1 Log the Shoptimizer Response](#71-log-the-shoptimizer-response)
+    + [7.2 View customLabel Fields in Google Ads](#72-view-customlabel-fields-in-google-ads)
+  * [8. Run Unit Tests](#8-run-unit-tests)
 
 ## 0. About
 

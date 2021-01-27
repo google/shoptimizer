@@ -14,7 +14,28 @@ accept all risks, known and unknown, associated with its usage, including with
 respect to your deployment of any portion of this solution in your systems, or
 usage in connection with your business, if at all._
 
-[TOC]
+- [Shoptimizer API Install Guide](#shoptimizer-api-install-guide)
+  * [0. About](#0-about)
+  * [1. Prerequisites](#1-prerequisites)
+  * [2. Installing Shoptimizer](#2-installing-shoptimizer)
+    + [2.1 Installing to GCP Cloud Run automatically](#21-installing-to-gcp-cloud-run-automatically)
+      - [2.1.1 Clone the Solution and set environment variables](#211-clone-the-solution-and-set-environment-variables)
+      - [2.1.2 Run the command-line installation script](#212-run-the-command-line-installation-script)
+      - [2.1.3 Start the deployment using the installed GCP Cloud Build trigger](#213-start-the-deployment-using-the-installed-gcp-cloud-build-trigger)
+    + [2.2 Installing to GCP Cloud Run manually](#22-installing-to-gcp-cloud-run-manually)
+      - [2.2.1 Install Docker and set up the Cloud SDK.](#221-install-docker-and-set-up-the-cloud-sdk)
+      - [2.2.2 Build the Image](#222-build-the-image)
+      - [2.2.3 Push the Image to the GCR](#223-push-the-image-to-the-gcr)
+      - [2.2.4 Deploy to Cloud Run](#224-deploy-to-cloud-run)
+    + [2.3 Build and run Shoptimizer on Docker (local)](#23-build-and-run-shoptimizer-on-docker--local-)
+      - [2.3.1 Clone the Solution](#231-clone-the-solution)
+      - [2.3.2 Build the Image](#232-build-the-image)
+      - [2.3.3 Run the Container](#233-run-the-container)
+  * [3. Testing the Shoptimizer API](#3-testing-the-shoptimizer-api)
+    + [3.1 Local testing](#31-local-testing)
+    + [3.2 Testing on GCP Cloud Run](#32-testing-on-gcp-cloud-run)
+  * [4. Container Security](#4-container-security)
+  * [5. Updating Shoptimizer](#5-updating-shoptimizer)
 
 ## 0. About
 
