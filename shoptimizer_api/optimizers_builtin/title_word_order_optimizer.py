@@ -81,11 +81,11 @@ class TitleWordOrderOptimizer(base_optimizer.BaseOptimizer):
           keyword = keyword_dict.get('keyword')
           if keyword in title_to_transform:
             title_to_transform = title_to_transform.replace(keyword, '')
-            performance_keywords_to_prepend.append(keyword)
+            performance_keywords_to_prepend.append(f'[{keyword}]')
             if len(performance_keywords_to_prepend) >= 3:
               break
 
-        optimized_title = (f'{" ".join(performance_keywords_to_prepend)} '
+        optimized_title = (f'{"".join(performance_keywords_to_prepend)} '
                            f'{title_to_transform}')
         normalized_whitespace_title = ' '.join(optimized_title.split())
         product['title'] = normalized_whitespace_title

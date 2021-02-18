@@ -42,7 +42,7 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
         original_data, 'test')
     product = optimized_data['entries'][0]['product']
 
-    expected_title = 'heavy_keyword Some title with in the middle'
+    expected_title = '[heavy_keyword] Some title with in the middle'
     self.assertEqual(expected_title, product['title'])
     self.assertEqual(1, optimization_result.num_of_products_optimized)
 
@@ -59,8 +59,9 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
         original_data, 'test')
     product = optimized_data['entries'][0]['product']
 
-    expected_title = ('heavy_keyword_2 heavy_keyword Some title with multiple '
-                      'keywords in the middle')
+    expected_title = (
+        '[heavy_keyword_2][heavy_keyword] Some title with multiple '
+        'keywords in the middle')
     self.assertEqual(expected_title, product['title'])
     self.assertEqual(1, optimization_result.num_of_products_optimized)
 
@@ -78,8 +79,9 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
         original_data, 'test')
     product = optimized_data['entries'][0]['product']
 
-    expected_title = ('keyword1 keyword2 Some title with multiple keywords in '
-                      'the middle')
+    expected_title = (
+        '[keyword1][keyword2] Some title with multiple keywords in '
+        'the middle')
     self.assertEqual(expected_title, product['title'])
     self.assertEqual(1, optimization_result.num_of_products_optimized)
 
@@ -96,8 +98,9 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
         original_data, 'test')
     product = optimized_data['entries'][0]['product']
 
-    expected_title = ('heavy_keyword Some title with in the middle and at the '
-                      'end')
+    expected_title = (
+        '[heavy_keyword] Some title with in the middle and at the '
+        'end')
     self.assertEqual(expected_title, product['title'])
     self.assertEqual(1, optimization_result.num_of_products_optimized)
 
@@ -115,7 +118,7 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
         original_data, 'test')
     product = optimized_data['entries'][0]['product']
 
-    expected_title = ('keyword1 keyword2 heavy_keyword_2 Some title with '
+    expected_title = ('[keyword1][keyword2][heavy_keyword_2] Some title with '
                       'multiple keywords heavy_keyword in the middle')
     self.assertEqual(expected_title, product['title'])
     self.assertEqual(1, optimization_result.num_of_products_optimized)
