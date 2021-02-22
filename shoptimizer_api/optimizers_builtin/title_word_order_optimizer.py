@@ -21,11 +21,13 @@ This module performs the following optimization:
 """
 
 import logging
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from flask import current_app
 
 from optimizers_abstract import base_optimizer
+
+_MAX_TITLE_LENGTH = 150
 
 
 class TitleWordOrderOptimizer(base_optimizer.BaseOptimizer):
@@ -76,19 +78,22 @@ class TitleWordOrderOptimizer(base_optimizer.BaseOptimizer):
         sorted_keywords_for_gpc = sorted(
             keywords_for_gpc, key=lambda x: x['weight'], reverse=True)
         performance_keywords_to_prepend = []
-        title_to_transform = original_title
         for keyword_dict in sorted_keywords_for_gpc:
           keyword = keyword_dict.get('keyword')
-          if keyword in title_to_transform:
-            title_to_transform = title_to_transform.replace(keyword, '')
+          if keyword in original_title:
+            moved_title = original_title.replace(keyword, '')
             performance_keywords_to_prepend.append(f'[{keyword}]')
             if len(performance_keywords_to_prepend) >= 3:
               break
 
-        optimized_title = (f'{"".join(performance_keywords_to_prepend)} '
-                           f'{title_to_transform}')
-        normalized_whitespace_title = ' '.join(optimized_title.split())
-        product['title'] = normalized_whitespace_title
+        optimized_title = _generate_prepended_title(
+            performance_keywords_to_prepend, original_title)
+
+        if len(optimized_title) > _MAX_TITLE_LENGTH:
+          optimized_title = _generate_prepended_title(
+              performance_keywords_to_prepend, moved_title)
+
+        product['title'] = optimized_title
 
       if product.get('title', '') != original_title:
         logging.info(
@@ -99,3 +104,9 @@ class TitleWordOrderOptimizer(base_optimizer.BaseOptimizer):
                                                  base_optimizer.OPTIMIZED)
 
     return num_of_products_optimized
+
+
+def _generate_prepended_title(performance_keywords_to_prepend: List[str],
+                              title: str) -> str:
+  prepended_title = f'{"".join(performance_keywords_to_prepend)} {title}'
+  return ' '.join(prepended_title.split())

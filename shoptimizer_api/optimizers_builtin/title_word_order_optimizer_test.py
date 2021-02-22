@@ -29,30 +29,32 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
     app_util.setup_test_app()
     self.optimizer = title_word_order_optimizer.TitleWordOrderOptimizer()
 
-  def test_process_moves_highest_performing_keyword_to_front_of_title(self):
+  def test_process_copies_highest_performing_keyword_to_front_of_title(self):
     original_data = requests_bodies.build_request_body(
         properties_to_be_updated={
             'title':
                 'Some title with heavy_keyword in the middle',
             'googleProductCategory':
-                'ファッション・アクセサリー > ジュエリー > 腕時計'
+                'ファッション・アクセサリー > ジュエリー > 腕時計',
         })
 
     optimized_data, optimization_result = self.optimizer.process(
         original_data, 'test')
     product = optimized_data['entries'][0]['product']
 
-    expected_title = '[heavy_keyword] Some title with in the middle'
+    expected_title = ('[heavy_keyword] Some title with heavy_keyword in the '
+                      'middle')
     self.assertEqual(expected_title, product['title'])
     self.assertEqual(1, optimization_result.num_of_products_optimized)
 
-  def test_process_moves_multiple_performing_keywords_to_front_of_title(self):
+  def test_process_copies_multiple_performing_keywords_to_front_of_title(self):
     original_data = requests_bodies.build_request_body(
         properties_to_be_updated={
             'title':
-                'Some title with multiple keywords heavy_keyword heavy_keyword_2 in the middle',
+                'Some title with multiple keywords heavy_keyword '
+                'heavy_keyword_2 in the middle',
             'googleProductCategory':
-                'ファッション・アクセサリー > ジュエリー > 腕時計'
+                'ファッション・アクセサリー > ジュエリー > 腕時計',
         })
 
     optimized_data, optimization_result = self.optimizer.process(
@@ -60,19 +62,20 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
     product = optimized_data['entries'][0]['product']
 
     expected_title = (
-        '[heavy_keyword_2][heavy_keyword] Some title with multiple '
-        'keywords in the middle')
+        '[heavy_keyword_2][heavy_keyword] Some title with multiple keywords '
+        'heavy_keyword heavy_keyword_2 in the middle')
     self.assertEqual(expected_title, product['title'])
     self.assertEqual(1, optimization_result.num_of_products_optimized)
 
-  def test_process_moves_multiple_performing_keywords_to_front_of_title_in_the_descending_order_of_weight(
+  def test_process_copies_multiple_performing_keywords_to_front_of_title_in_descending_order_of_weight(
       self):
     original_data = requests_bodies.build_request_body(
         properties_to_be_updated={
             'title':
-                'Some title with multiple keywords keyword2 keyword1 in the middle',
+                'Some title with multiple keywords keyword2 keyword1 in the '
+                'middle',
             'googleProductCategory':
-                'ファッション・アクセサリー > ジュエリー > 腕時計'
+                'ファッション・アクセサリー > ジュエリー > 腕時計',
         })
 
     optimized_data, optimization_result = self.optimizer.process(
@@ -80,46 +83,30 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
     product = optimized_data['entries'][0]['product']
 
     expected_title = (
-        '[keyword1][keyword2] Some title with multiple keywords in '
-        'the middle')
+        '[keyword1][keyword2] Some title with multiple keywords keyword2 '
+        'keyword1 in the middle')
     self.assertEqual(expected_title, product['title'])
     self.assertEqual(1, optimization_result.num_of_products_optimized)
 
-  def test_process_completely_removes_a_keyword_from_title_and_prepend_it(self):
-    original_data = requests_bodies.build_request_body(
-        properties_to_be_updated={
-            'title':
-                'Some title with heavy_keyword in the middle and at the end heavy_keyword',
-            'googleProductCategory':
-                'ファッション・アクセサリー > ジュエリー > 腕時計'
-        })
-
-    optimized_data, optimization_result = self.optimizer.process(
-        original_data, 'test')
-    product = optimized_data['entries'][0]['product']
-
-    expected_title = (
-        '[heavy_keyword] Some title with in the middle and at the '
-        'end')
-    self.assertEqual(expected_title, product['title'])
-    self.assertEqual(1, optimization_result.num_of_products_optimized)
-
-  def test_process_moves_at_most_three_performing_keywords_to_front_of_title(
+  def test_process_copies_at_most_three_performing_keywords_to_front_of_title(
       self):
     original_data = requests_bodies.build_request_body(
         properties_to_be_updated={
             'title':
-                'Some title with multiple keywords keyword2 keyword1 heavy_keyword heavy_keyword_2 in the middle',
+                'Some title with multiple keywords keyword2 keyword1 '
+                'heavy_keyword heavy_keyword_2 in the middle',
             'googleProductCategory':
-                'ファッション・アクセサリー > ジュエリー > 腕時計'
+                'ファッション・アクセサリー > ジュエリー > 腕時計',
         })
 
     optimized_data, optimization_result = self.optimizer.process(
         original_data, 'test')
     product = optimized_data['entries'][0]['product']
 
-    expected_title = ('[keyword1][keyword2][heavy_keyword_2] Some title with '
-                      'multiple keywords heavy_keyword in the middle')
+    expected_title = (
+        '[keyword1][keyword2][heavy_keyword_2] Some title with multiple '
+        'keywords keyword2 keyword1 heavy_keyword heavy_keyword_2 in the '
+        'middle')
     self.assertEqual(expected_title, product['title'])
     self.assertEqual(1, optimization_result.num_of_products_optimized)
 
@@ -129,7 +116,7 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
     original_data = requests_bodies.build_request_body(
         properties_to_be_updated={
             'title': 'Some title with heavy_keyword in the middle',
-            'googleProductCategory': 'DIY用品 > DIY小物類'
+            'googleProductCategory': 'DIY用品 > DIY小物類',
         })
 
     optimized_data, optimization_result = self.optimizer.process(
@@ -147,7 +134,7 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
             'title':
                 'Some title with no target keywords in the middle',
             'googleProductCategory':
-                'ファッション・アクセサリー > ジュエリー > 腕時計'
+                'ファッション・アクセサリー > ジュエリー > 腕時計',
         })
 
     optimized_data, optimization_result = self.optimizer.process(
@@ -156,3 +143,22 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
 
     self.assertEqual(original_title, product['title'])
     self.assertEqual(0, optimization_result.num_of_products_optimized)
+
+  def test_process_moves_keyword_if_title_more_than_max_title_length(self):
+    original_data = requests_bodies.build_request_body(
+        properties_to_be_updated={
+            'title':
+                'a' * (title_word_order_optimizer._MAX_TITLE_LENGTH -
+                       len(' heavy_keyword')) + ' heavy_keyword',
+            'googleProductCategory':
+                'ファッション・アクセサリー > ジュエリー > 腕時計',
+        })
+
+    optimized_data, optimization_result = self.optimizer.process(
+        original_data, 'test')
+    product = optimized_data['entries'][0]['product']
+
+    expected_title = '[heavy_keyword] ' + 'a' * (
+        title_word_order_optimizer._MAX_TITLE_LENGTH - len(' heavy_keyword'))
+    self.assertEqual(expected_title, product['title'])
+    self.assertEqual(1, optimization_result.num_of_products_optimized)
