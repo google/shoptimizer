@@ -162,3 +162,20 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
         title_word_order_optimizer._MAX_TITLE_LENGTH - len(' heavy_keyword'))
     self.assertEqual(expected_title, product['title'])
     self.assertEqual(1, optimization_result.num_of_products_optimized)
+
+  def test_process_skips_one_character_wmm_keyword(self):
+    original_title = 'Some title with single a character keyword'
+    original_data = requests_bodies.build_request_body(
+        properties_to_be_updated={
+            'title':
+                original_title,
+            'googleProductCategory':
+                'ファッション・アクセサリー > ジュエリー > 腕時計'
+        })
+
+    optimized_data, optimization_result = self.optimizer.process(
+        original_data, 'test')
+    product = optimized_data['entries'][0]['product']
+
+    self.assertEqual(original_title, product['title'])
+    self.assertEqual(0, optimization_result.num_of_products_optimized)

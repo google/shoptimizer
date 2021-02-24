@@ -78,11 +78,18 @@ class TitleWordOrderOptimizer(base_optimizer.BaseOptimizer):
         sorted_keywords_for_gpc = sorted(
             keywords_for_gpc, key=lambda x: x['weight'], reverse=True)
         performance_keywords_to_prepend = []
+
         for keyword_dict in sorted_keywords_for_gpc:
-          keyword = keyword_dict.get('keyword')
-          if keyword in original_title:
-            moved_title = original_title.replace(keyword, '')
-            performance_keywords_to_prepend.append(f'[{keyword}]')
+          title_word_order_config_keyword = keyword_dict.get('keyword', '')
+
+          if len(title_word_order_config_keyword) <= 1:
+            continue
+
+          if title_word_order_config_keyword in original_title:
+            moved_title = original_title.replace(
+                title_word_order_config_keyword, '')
+            performance_keywords_to_prepend.append(
+                f'[{title_word_order_config_keyword}]')
             if len(performance_keywords_to_prepend) >= 3:
               break
 
