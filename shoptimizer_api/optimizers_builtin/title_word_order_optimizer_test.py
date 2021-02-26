@@ -16,12 +16,25 @@
 """Unit tests for title_word_order_optimizer."""
 
 from absl.testing import parameterized
+import unittest.mock as mock
 
 from optimizers_builtin import title_word_order_optimizer
 from test_data import requests_bodies
 from util import app_util
 
+import constants
 
+_PROPER_GPC_CATEGORY_EN = 'Apparel & Accessories > Jewelry > Watches'
+_PROPER_GPC_CATEGORY_JA = ('ファッション・アクセサリー > '
+                           'ジュエリー > 腕時計')
+
+
+@mock.patch(
+    'optimizers_builtin.title_word_order_optimizer._GCP_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME',
+    'gpc_string_to_id_mapping_{}_test')
+@mock.patch(
+    'optimizers_builtin.title_word_order_optimizer._TITLE_WORD_ORDER_CONFIG_FILE_NAME',
+    'title_word_order_config_{}_test')
 class TitleWordOrderOptimizerTest(parameterized.TestCase):
 
   def setUp(self):
@@ -32,14 +45,12 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
   def test_process_copies_highest_performing_keyword_to_front_of_title(self):
     original_data = requests_bodies.build_request_body(
         properties_to_be_updated={
-            'title':
-                'Some title with heavy_keyword in the middle',
-            'googleProductCategory':
-                'ファッション・アクセサリー > ジュエリー > 腕時計',
+            'title': 'Some title with heavy_keyword in the middle',
+            'googleProductCategory': _PROPER_GPC_CATEGORY_EN,
         })
 
     optimized_data, optimization_result = self.optimizer.process(
-        original_data, 'test')
+        original_data, constants.LANGUAGE_CODE_EN)
     product = optimized_data['entries'][0]['product']
 
     expected_title = ('[heavy_keyword] Some title with heavy_keyword in the '
@@ -50,15 +61,13 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
   def test_process_copies_multiple_performing_keywords_to_front_of_title(self):
     original_data = requests_bodies.build_request_body(
         properties_to_be_updated={
-            'title':
-                'Some title with multiple keywords heavy_keyword '
-                'heavy_keyword_2 in the middle',
-            'googleProductCategory':
-                'ファッション・アクセサリー > ジュエリー > 腕時計',
+            'title': 'Some title with multiple keywords heavy_keyword '
+                     'heavy_keyword_2 in the middle',
+            'googleProductCategory': _PROPER_GPC_CATEGORY_EN,
         })
 
     optimized_data, optimization_result = self.optimizer.process(
-        original_data, 'test')
+        original_data, constants.LANGUAGE_CODE_EN)
     product = optimized_data['entries'][0]['product']
 
     expected_title = (
@@ -74,12 +83,11 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
             'title':
                 'Some title with multiple keywords keyword2 keyword1 in the '
                 'middle',
-            'googleProductCategory':
-                'ファッション・アクセサリー > ジュエリー > 腕時計',
+            'googleProductCategory': _PROPER_GPC_CATEGORY_EN,
         })
 
     optimized_data, optimization_result = self.optimizer.process(
-        original_data, 'test')
+        original_data, constants.LANGUAGE_CODE_EN)
     product = optimized_data['entries'][0]['product']
 
     expected_title = (
@@ -92,15 +100,13 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
       self):
     original_data = requests_bodies.build_request_body(
         properties_to_be_updated={
-            'title':
-                'Some title with multiple keywords keyword2 keyword1 '
-                'heavy_keyword heavy_keyword_2 in the middle',
-            'googleProductCategory':
-                'ファッション・アクセサリー > ジュエリー > 腕時計',
+            'title': 'Some title with multiple keywords keyword2 keyword1 '
+                     'heavy_keyword heavy_keyword_2 in the middle',
+            'googleProductCategory': _PROPER_GPC_CATEGORY_EN,
         })
 
     optimized_data, optimization_result = self.optimizer.process(
-        original_data, 'test')
+        original_data, constants.LANGUAGE_CODE_EN)
     product = optimized_data['entries'][0]['product']
 
     expected_title = (
@@ -120,7 +126,7 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
         })
 
     optimized_data, optimization_result = self.optimizer.process(
-        original_data, 'test')
+        original_data, constants.LANGUAGE_CODE_EN)
     product = optimized_data['entries'][0]['product']
 
     self.assertEqual(original_title, product['title'])
@@ -131,14 +137,12 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
     original_title = 'Some title with no target keywords in the middle'
     original_data = requests_bodies.build_request_body(
         properties_to_be_updated={
-            'title':
-                'Some title with no target keywords in the middle',
-            'googleProductCategory':
-                'ファッション・アクセサリー > ジュエリー > 腕時計',
+            'title': 'Some title with no target keywords in the middle',
+            'googleProductCategory': _PROPER_GPC_CATEGORY_EN,
         })
 
     optimized_data, optimization_result = self.optimizer.process(
-        original_data, 'test')
+        original_data, constants.LANGUAGE_CODE_EN)
     product = optimized_data['entries'][0]['product']
 
     self.assertEqual(original_title, product['title'])
@@ -151,11 +155,11 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
                 'a' * (title_word_order_optimizer._MAX_TITLE_LENGTH -
                        len(' heavy_keyword')) + ' heavy_keyword',
             'googleProductCategory':
-                'ファッション・アクセサリー > ジュエリー > 腕時計',
+                _PROPER_GPC_CATEGORY_EN,
         })
 
     optimized_data, optimization_result = self.optimizer.process(
-        original_data, 'test')
+        original_data, constants.LANGUAGE_CODE_EN)
     product = optimized_data['entries'][0]['product']
 
     expected_title = '[heavy_keyword] ' + 'a' * (
@@ -167,15 +171,36 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
     original_title = 'Some title with single a character keyword'
     original_data = requests_bodies.build_request_body(
         properties_to_be_updated={
-            'title':
-                original_title,
-            'googleProductCategory':
-                'ファッション・アクセサリー > ジュエリー > 腕時計'
+            'title': original_title,
+            'googleProductCategory': _PROPER_GPC_CATEGORY_EN
         })
 
     optimized_data, optimization_result = self.optimizer.process(
-        original_data, 'test')
+        original_data, constants.LANGUAGE_CODE_EN)
     product = optimized_data['entries'][0]['product']
 
     self.assertEqual(original_title, product['title'])
     self.assertEqual(0, optimization_result.num_of_products_optimized)
+
+  @parameterized.named_parameters([{
+      'testcase_name': 'partial_match',
+      'original_title': '有名ブランドTシャツ',
+      'expected_title': '有名ブランドTシャツ'
+  }, {
+      'testcase_name': 'accurate_match',
+      'original_title': '有名ブランドシャツ',
+      'expected_title': '[シャツ] 有名ブランドシャツ'
+  }])
+  def test_wmm_keyword_is_copied_only_with_accurate_match(
+      self, original_title, expected_title):
+    original_data = requests_bodies.build_request_body(
+        properties_to_be_updated={
+            'title': original_title,
+            'googleProductCategory': _PROPER_GPC_CATEGORY_JA
+        })
+
+    optimized_data, _ = self.optimizer.process(original_data,
+                                               constants.LANGUAGE_CODE_JA)
+    product = optimized_data['entries'][0]['product']
+
+    self.assertEqual(expected_title, product['title'])
