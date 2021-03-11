@@ -3,6 +3,18 @@
       {
          "keyword":"シャツ",
          "weight":0.8
+      },
+      {
+         "keyword":"カイナ",
+         "weight":0.7
+      },
+      {
+         "keyword":"エオファース",
+         "weight":0.6
+      },
+      {
+         "keyword":"ツ",
+         "weight":0.5
       }
    ]
 }

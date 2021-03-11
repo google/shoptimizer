@@ -25,8 +25,9 @@ from util import app_util
 import constants
 
 _PROPER_GPC_CATEGORY_EN = 'Apparel & Accessories > Jewelry > Watches'
-_PROPER_GPC_CATEGORY_JA = ('ファッション・アクセサリー > '
-                           'ジュエリー > 腕時計')
+_PROPER_GPC_CATEGORY_JA = (
+    'ファッション・アクセサリー > ジュエリー > 腕時計')
+_MAX_WMM_MOVE_THRESHOLD = 25
 
 
 @mock.patch(
@@ -168,7 +169,8 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
     self.assertEqual(1, optimization_result.num_of_products_optimized)
 
   def test_process_skips_one_character_wmm_keyword(self):
-    original_title = 'Some title with single a character keyword'
+    original_title = 'a' * _MAX_WMM_MOVE_THRESHOLD + ('Some title with single a'
+                                                      ' character keyword')
     original_data = requests_bodies.build_request_body(
         properties_to_be_updated={
             'title': original_title,
@@ -183,15 +185,53 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
     self.assertEqual(0, optimization_result.num_of_products_optimized)
 
   @parameterized.named_parameters([{
-      'testcase_name': 'partial_match',
-      'original_title': '有名ブランドTシャツ',
-      'expected_title': '有名ブランドTシャツ'
+      'testcase_name':
+          'partial_match',
+      'original_title':
+          'a' * _MAX_WMM_MOVE_THRESHOLD + '有名ブランドTシャツ',
+      'expected_title':
+          'a' * _MAX_WMM_MOVE_THRESHOLD + '有名ブランドTシャツ'
   }, {
-      'testcase_name': 'accurate_match',
-      'original_title': '有名ブランドシャツ',
-      'expected_title': '[シャツ] 有名ブランドシャツ'
+      'testcase_name':
+          'accurate_match',
+      'original_title':
+          'a' * _MAX_WMM_MOVE_THRESHOLD + ' 有名ブランドシャツ',
+      'expected_title':
+          '[シャツ] ' + 'a' * _MAX_WMM_MOVE_THRESHOLD +
+          ' 有名ブランドシャツ'
   }])
   def test_wmm_keyword_is_copied_only_with_accurate_match(
+      self, original_title, expected_title):
+    original_data = requests_bodies.build_request_body(
+        properties_to_be_updated={
+            'title': original_title,
+            'googleProductCategory': _PROPER_GPC_CATEGORY_JA
+        })
+
+    optimized_data, _ = self.optimizer.process(original_data,
+                                               constants.LANGUAGE_CODE_JA)
+    product = optimized_data['entries'][0]['product']
+
+    self.assertEqual(expected_title, product['title'])
+
+  @parameterized.named_parameters([{
+      'testcase_name': 'one_word_excluded_then_added_back',
+      'original_title':
+          'レッド・スニーカー、ブランド： '
+          'カイナ、モデル：エオファース、色：レッド',
+      'expected_title':
+          '[カイナ][エオファース] '
+          'レッド・スニーカー、ブランド： '
+          'カイナ、モデル：エオファース、色：レッド'
+  }, {
+      'testcase_name':
+          'keyword_already_inside_no_change_to_title',
+      'original_title':
+          'レッド・スニーカー、ブランド：カイナ、色：レッド',
+      'expected_title':
+          'レッド・スニーカー、ブランド：カイナ、色：レッド'
+  }])
+  def test_scenario_wmm_keyword_in_first_25_char_of_title(
       self, original_title, expected_title):
     original_data = requests_bodies.build_request_body(
         properties_to_be_updated={
