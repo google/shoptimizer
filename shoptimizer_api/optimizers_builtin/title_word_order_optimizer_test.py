@@ -244,3 +244,44 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
     product = optimized_data['entries'][0]['product']
 
     self.assertEqual(expected_title, product['title'])
+
+  def test_wmm_keyword_in_description_should_be_moved_to_front_title(self):
+    description = 'とても良い カイナ とても良い'
+    original_title = 'レッド・スニーカー、ブランド： モデル：エオファース、色：レッド'
+    original_data = requests_bodies.build_request_body(
+        properties_to_be_updated={
+            'title': original_title,
+            'description': description,
+            'googleProductCategory': _PROPER_GPC_CATEGORY_JA
+        })
+
+    optimized_data, _ = self.optimizer.process(original_data,
+                                               constants.LANGUAGE_CODE_JA)
+    product = optimized_data['entries'][0]['product']
+    expected_title = '[カイナ][エオファース] レッド・スニーカー、ブランド： モデル：エオファース、色：レッド'
+    self.assertEqual(expected_title, product['title'])
+
+  @parameterized.named_parameters([{
+      'testcase_name': 'wmm_word_in_product_type_should_move_to_front_title',
+      'original_title': 'レッド・スニーカー、ブランド： モデル：エオファース、色：レッド',
+      'product_types': ['シャツ'],
+      'expected_title': '[シャツ][エオファース] レッド・スニーカー、ブランド： モデル：エオファース、色：レッド'
+  }, {
+      'testcase_name': 'wmm_word_in_product_type_list_move_to_front_title',
+      'original_title': 'レッド・スニーカー、ブランド： モデル：エオファース、色：レッド',
+      'product_types': ['シャツ', 'セーター', 'ジャケット'],
+      'expected_title': '[シャツ][エオファース] レッド・スニーカー、ブランド： モデル：エオファース、色：レッド'
+  }])
+  def test_wmm_keyword_in_product_type_should_be_moved_to_front_title(
+      self, original_title, product_types, expected_title):
+    original_data = requests_bodies.build_request_body(
+        properties_to_be_updated={
+            'title': original_title,
+            'productTypes': product_types,
+            'googleProductCategory': _PROPER_GPC_CATEGORY_JA
+        })
+
+    optimized_data, _ = self.optimizer.process(original_data,
+                                               constants.LANGUAGE_CODE_JA)
+    product = optimized_data['entries'][0]['product']
+    self.assertEqual(expected_title, product['title'])

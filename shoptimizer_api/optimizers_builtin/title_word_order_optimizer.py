@@ -66,6 +66,8 @@ class TitleWordOrderOptimizer(base_optimizer.BaseOptimizer):
     for entry in product_batch['entries']:
       product = entry['product']
       original_title = product.get('title', None)
+      description = product.get('description', None)
+      product_types = product.get('productTypes', [])
 
       if not original_title:
         continue
@@ -81,12 +83,17 @@ class TitleWordOrderOptimizer(base_optimizer.BaseOptimizer):
 
       title_to_process = original_title
       title_words = _tokenize_text(title_to_process, language)
+      description_words = _tokenize_text(description, language)
+      joined_product_types = ' '.join(product_types)
+      product_types_words = _tokenize_text(joined_product_types, language)
 
       (keywords_visible_to_user, keywords_not_visible_to_user,
        title_without_keywords) = (
            _generate_front_and_back_keyword_lists(sorted_keywords_for_gpc,
                                                   title_to_process,
-                                                  title_words))
+                                                  title_words,
+                                                  description_words,
+                                                  product_types_words))
 
       keywords_to_prepend = _generate_list_of_keywords_to_prepend(
           keywords_visible_to_user, keywords_not_visible_to_user,
@@ -122,7 +129,8 @@ def _sort_keywords_for_gpc_by_descending_weight(
 
 def _generate_front_and_back_keyword_lists(
     sorted_keywords: List[Dict[str, str]], title_to_process: str,
-    title_words: List[str]) -> Tuple[List[str], List[str], str]:
+    title_words: List[str], description_words: List[str],
+    product_types_words: List[str]) -> Tuple[List[str], List[str], str]:
   """Generates two lists of keywords: those in the front and back of the title.
 
   Args:
@@ -130,7 +138,8 @@ def _generate_front_and_back_keyword_lists(
       descending weight.
     title_to_process: The product title being optimized.
     title_words: A list of semantically tokenized words in the title.
-
+    description_words: A list of semantically tokenized description words.
+    product_types_words: A list of semantically tokenized product types words.
   Returns:
     A list of matching keywords near the front of the title, a list of matching
     keywords near the back of the title, and a title with the matching keywords
@@ -150,7 +159,7 @@ def _generate_front_and_back_keyword_lists(
 
     # Creates a title for "moved" keywords, i.e. keywords removed from the
     # title and added to the front, used in the case of too-long titles.
-    if keyword in title_words:
+    if keyword in title_words or keyword in description_words or keyword in product_types_words:
       title_without_keywords = title_without_keywords.replace(keyword, '')
       user_visible_text = title_to_process[:_TITLE_CHARS_VISIBLE_TO_USER]
       if keyword in user_visible_text:
