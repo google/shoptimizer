@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# python3
 """Defines the Flask routes (API endpoints) for the Shoptimizer API.
 
 This module acts as the main entry point to the Shoptimizer API.

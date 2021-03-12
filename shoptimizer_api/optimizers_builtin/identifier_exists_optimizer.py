@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# python3
 """A module for Shoptimizer API that fixes identifierExists values.
 
 Reference: https://support.google.com/merchants/answer/6324478

@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# python3
 """Enums for use within the Shoptimizer API."""
 
 import enum

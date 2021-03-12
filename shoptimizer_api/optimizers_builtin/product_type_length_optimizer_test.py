@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# python3
 """Unit tests for product_type_length_optimizer module."""
 
 from typing import List

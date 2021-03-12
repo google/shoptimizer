@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# python3
 """A module that mines size from product data.
 
 This module mines the size from product data when google product category is in

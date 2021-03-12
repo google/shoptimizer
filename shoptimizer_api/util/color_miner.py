@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# python3
 """A module that mines color from product data.
 
 This module mines two color types from product data.

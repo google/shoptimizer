@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# python3
 """Shared constants used for optimizer modules in the Shoptimizer API."""
 from typing import Set, Tuple
 

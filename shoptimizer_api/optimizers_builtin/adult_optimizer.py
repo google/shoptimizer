@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# python3
 """An optimizer that fixes unset adult values.
 
 Reference: https://support.google.com/merchants/answer/6150138

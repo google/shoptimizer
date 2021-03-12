@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# python3
 """A module that removes promotional text from a field of a product.
 
 This modules removes promotional text from a product field that matches patterns

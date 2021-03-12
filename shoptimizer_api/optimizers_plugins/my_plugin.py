@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# python3
 """An plugin for testing. Returns the product data without modifying it."""
 from typing import Any, Dict
 

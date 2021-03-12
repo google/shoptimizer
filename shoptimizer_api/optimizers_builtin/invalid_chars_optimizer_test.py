@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# python3
 """Unit tests for invalid_chars_optimizer.py."""
 import unittest.mock as mock
 

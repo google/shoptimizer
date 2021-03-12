@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# python3
 """Utility module for optimization."""
 import copy
 from typing import Any, Collection, Iterable, List, Sequence

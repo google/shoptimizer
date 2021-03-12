@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# python3
 """A module that mines attributes from products.
 
 This is the top level attribute miner and can be used to call lower level miners
