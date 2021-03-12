@@ -24,7 +24,7 @@ import http
 
 import logging
 import sys
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Sequence, Tuple
 
 import flask
 
@@ -40,6 +40,7 @@ _OPTIMIZERS_BUILTIN_PACKAGE = 'optimizers_builtin'
 _OPTIMIZERS_PLUGINS_PACKAGE = 'optimizers_plugins'
 _OPTIMIZERS_THAT_USE_MINED_ATTRIBUTES = frozenset(
     ['title-optimizer', 'description-optimizer'])
+_OPTIMIZERS_TO_RUN_LAST = ('title-word-order-optimizer',)
 _SUPPORTED_LANGUAGES = frozenset(['en', 'ja'])
 _LANG_QUERY_STRING_KEY = 'lang'
 _COUNTRY_QUERY_STRING_KEY = 'country'
@@ -156,7 +157,7 @@ def _check_request_valid(lang_url_parameter: str) -> (bool, str):
 
   product_dict = flask.request.json
 
-  if not isinstance(product_dict['entries'], List):
+  if not isinstance(product_dict['entries'], list):
     logging.error('Entries did not contain a list of products. %s',
                   product_dict)
     return False, 'Entries must contain a list of products.'
@@ -221,15 +222,16 @@ def _run_optimizers(
   ]
   optimizer_mapping = dict(zip(optimizer_parameters, optimizers))
 
-  for optimizer_url_parameter in _extract_true_optimizer_url_parameters():
-    optimizer = optimizer_mapping.get(optimizer_url_parameter)
+  for optimizer_parameter in _generate_optimizer_parameter_list_to_run(
+      optimizer_parameters_to_run_last=_OPTIMIZERS_TO_RUN_LAST):
+    optimizer = optimizer_mapping.get(optimizer_parameter)
     if optimizer:
       logging.info(
           'Running optimization %s with language %s, country %s, currency %s',
-          optimizer_url_parameter, language, country, currency)
+          optimizer_parameter, language, country, currency)
       optimized_product_batch, result = optimizer.process(
           optimized_product_batch, language, country, currency)
-      optimization_results[optimizer_url_parameter] = result
+      optimization_results[optimizer_parameter] = result
 
   return optimized_product_batch, optimization_results
 
@@ -293,16 +295,27 @@ def _extract_all_url_parameters() -> List[str]:
     return []
 
 
-def _extract_true_optimizer_url_parameters() -> List[str]:
-  """Extracts optimizer parameters whose values are true from query string.
+def _generate_optimizer_parameter_list_to_run(
+    optimizer_parameters_to_run_last: Sequence[str]) -> List[str]:
+  """Generates a list of optimizer parameters whose values are true by extracting from query string.
+
+  Also brings optimizer parameters that should run last to the end of the
+  returning list.
+
+  Args:
+    optimizer_parameters_to_run_last: optimizer parameters that should run last.
 
   Returns:
     Optimizer parameters that exist in query string and are set to true.
   """
-  optimizer_parameters = []
+  optimizer_parameters: List[str] = []
   for parameter_key, parameter_value in flask.request.args.items():
     if isinstance(parameter_value, str) and parameter_value.lower() == 'true':
       optimizer_parameters.append(parameter_key)
+  for optimizer_parameter_to_run_last in optimizer_parameters_to_run_last:
+    if optimizer_parameter_to_run_last in optimizer_parameters:
+      optimizer_parameters.remove(optimizer_parameter_to_run_last)
+      optimizer_parameters.append(optimizer_parameter_to_run_last)
   return optimizer_parameters
 
 

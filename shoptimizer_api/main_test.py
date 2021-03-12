@@ -126,6 +126,24 @@ class MainTest(parameterized.TestCase):
     self.assertEqual(optimizers_to_execute, optimizers_executed)
     self.assertEqual(http.HTTPStatus.OK, response.status_code)
 
+  def test_title_word_order_optimizer_runs_at_the_end_regardless_of_the_order_of_query_string(
+      self):
+    request_body = requests_bodies.VALID_SINGLE_PRODUCT
+    optimizers_to_execute = [
+        'identity-optimizer', 'title-word-order-optimizer', 'title-optimizer'
+    ]
+    query_string = '?' + '=true&'.join(optimizers_to_execute) + '=true'
+
+    response = self.test_client.post(
+        f'{main._V1_BASE_URL}/batch/optimize{query_string}', json=request_body)
+    response_data = response.data.decode('utf-8')
+    response_dict = json.loads(response_data)
+    optimization_results = response_dict['optimization-results']
+
+    optimizers_executed = list(optimization_results.keys())
+    self.assertEqual('title-word-order-optimizer', optimizers_executed[-1])
+    self.assertEqual(http.HTTPStatus.OK, response.status_code)
+
   def test_optimizer_not_run_when_parameter_set_to_false(self):
     request_body = requests_bodies.VALID_SINGLE_PRODUCT
 
