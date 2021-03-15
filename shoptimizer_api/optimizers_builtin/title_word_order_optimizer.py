@@ -286,7 +286,7 @@ def _generate_prepended_title(performant_keywords_to_prepend: List[str],
 
 def _reorder_keywords_by_weight(
     keywords_to_prepend: List[str],
-    sorted_keywords_for_gpc: List[Dict[str, int]]) -> List[str]:
+    sorted_keywords_for_gpc: List[Dict[str, Any]]) -> List[str]:
   """Reorders keywords by weight."""
   sorted_keywords_to_prepend = []
   for weighted_word in sorted_keywords_for_gpc:
