@@ -1,8 +1,24 @@
 {
-   "gpc_id": [
+   "201": [
       {
-         "keyword": "",
-         "weight": 0
+         "keyword":"シャツ",
+         "weight":0.8
+      },
+      {
+         "keyword":"カイナ",
+         "weight":0.7
+      },
+      {
+         "keyword":"エオファース",
+         "weight":0.6
+      },
+      {
+         "keyword":"ツ",
+         "weight":0.5
+      },
+      {
+         "keyword":"セーター",
+         "weight":0.4
       }
    ]
 }
