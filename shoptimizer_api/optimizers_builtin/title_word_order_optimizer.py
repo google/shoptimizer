@@ -82,10 +82,10 @@ class TitleWordOrderOptimizer(base_optimizer.BaseOptimizer):
         continue
 
       keywords_for_gpc = title_word_order_config.get(str(gpc_id), [])
+      allowed_keywords_for_gpc = _remove_keywords_in_blocklist(
+          keywords_for_gpc, keyword_blocklist)
       sorted_keywords_for_gpc = _sort_keywords_for_gpc_by_descending_weight(
-          keywords_for_gpc)
-      sorted_keywords_for_gpc = _remove_keywords_in_blocklist(
-          sorted_keywords_for_gpc, keyword_blocklist)
+          allowed_keywords_for_gpc)
 
       title_to_process = original_title
       title_words = _tokenize_text(title_to_process, language)
@@ -152,13 +152,14 @@ def _sort_keywords_for_gpc_by_descending_weight(
 def _remove_keywords_in_blocklist(
     keywords: List[Dict[str, Any]],
     keyword_blocklist: List[str]) -> List[Dict[str, Any]]:
-  """Removes keywords in the blocklist from the keyword list.
+  """Removes keywords from the keyword list that were found in the blocklist.
 
-  The Check of the existence is case-insensitive.
+  The check for existence is case-insensitive.
 
   Args:
     keywords: List of dictionaries of keywords and weights.
-    keyword_blocklist: Blocklist of keywords in the config file.
+    keyword_blocklist: Blocklist of keywords in the config file. The keywords
+      must be lower case.
 
   Returns:
     List of dictionaries of keywords and weights not in the blocklist.
