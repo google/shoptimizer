@@ -15,6 +15,14 @@
       {
          "keyword":"ツ",
          "weight":0.5
+      },
+      {
+         "keyword":"ブロック",
+         "weight":0.4
+      },
+      {
+         "keyword":"Block",
+         "weight":0.3
       }
    ]
 }

@@ -19,6 +19,14 @@
       {
          "keyword":"セーター",
          "weight":0.4
+      },
+            {
+         "keyword":"ブロック",
+         "weight":0.4
+      },
+      {
+         "keyword":"Block",
+         "weight":0.3
       }
    ]
 }

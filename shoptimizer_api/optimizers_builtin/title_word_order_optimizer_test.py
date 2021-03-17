@@ -36,6 +36,9 @@ _MAX_WMM_MOVE_THRESHOLD = 25
 @mock.patch(
     'optimizers_builtin.title_word_order_optimizer._TITLE_WORD_ORDER_CONFIG_FILE_NAME',
     'title_word_order_config_{}_test')
+@mock.patch(
+    'optimizers_builtin.title_word_order_optimizer._TITLE_WORD_ORDER_BLOCKLIST_FILE_NAME',
+    'title_word_order_blocklist_{}_test')
 class TitleWordOrderOptimizerTest(parameterized.TestCase):
 
   def setUp(self):
@@ -247,7 +250,8 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
 
   def test_wmm_keyword_in_description_should_be_moved_to_front_title(self):
     description = 'とても良い カイナ とても良い'
-    original_title = 'レッド・スニーカー、ブランド： モデル：エオファース、色：レッド'
+    original_title = ('レッド・スニーカー、ブランド： '
+                      'モデル：エオファース、色：レッド')
     original_data = requests_bodies.build_request_body(
         properties_to_be_updated={
             'title': original_title,
@@ -258,19 +262,27 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
     optimized_data, _ = self.optimizer.process(original_data,
                                                constants.LANGUAGE_CODE_JA)
     product = optimized_data['entries'][0]['product']
-    expected_title = '[カイナ][エオファース] レッド・スニーカー、ブランド： モデル：エオファース、色：レッド'
+    expected_title = ('[カイナ][エオファース] '
+                      'レッド・スニーカー、ブランド： '
+                      'モデル：エオファース、色：レッド')
     self.assertEqual(expected_title, product['title'])
 
   @parameterized.named_parameters([{
       'testcase_name': 'wmm_word_in_product_type_should_move_to_front_title',
-      'original_title': 'レッド・スニーカー、ブランド： モデル：エオファース、色：レッド',
+      'original_title': 'レッド・スニーカー、ブランド： '
+                        'モデル：エオファース、色：レッド',
       'product_types': ['シャツ'],
-      'expected_title': '[シャツ][エオファース] レッド・スニーカー、ブランド： モデル：エオファース、色：レッド'
+      'expected_title': '[シャツ][エオファース] '
+                        'レッド・スニーカー、ブランド： '
+                        'モデル：エオファース、色：レッド'
   }, {
       'testcase_name': 'wmm_word_in_product_type_list_move_to_front_title',
-      'original_title': 'レッド・スニーカー、ブランド： モデル：エオファース、色：レッド',
+      'original_title': 'レッド・スニーカー、ブランド： '
+                        'モデル：エオファース、色：レッド',
       'product_types': ['シャツ', 'セーター', 'ジャケット'],
-      'expected_title': '[シャツ][エオファース] レッド・スニーカー、ブランド： モデル：エオファース、色：レッド'
+      'expected_title': '[シャツ][エオファース] '
+                        'レッド・スニーカー、ブランド： '
+                        'モデル：エオファース、色：レッド'
   }])
   def test_wmm_keyword_in_product_type_should_be_moved_to_front_title(
       self, original_title, product_types, expected_title):
@@ -285,3 +297,27 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
                                                constants.LANGUAGE_CODE_JA)
     product = optimized_data['entries'][0]['product']
     self.assertEqual(expected_title, product['title'])
+
+  @parameterized.named_parameters([{
+      'testcase_name':
+          'japanese_title',
+      'original_title':
+          'a' * _MAX_WMM_MOVE_THRESHOLD + 'タイトルブロック'
+  }, {
+      'testcase_name': 'check_case_insensitive',
+      'original_title': 'a' * _MAX_WMM_MOVE_THRESHOLD + 'Title Block'
+  }])
+  def test_wmm_keyword_in_blocklist_is_not_copied_to_front(
+      self, original_title):
+    original_data = requests_bodies.build_request_body(
+        properties_to_be_updated={
+            'title': original_title,
+            'googleProductCategory': _PROPER_GPC_CATEGORY_JA
+        })
+
+    optimized_data, optimization_result = self.optimizer.process(
+        original_data, constants.LANGUAGE_CODE_JA)
+    product = optimized_data['entries'][0]['product']
+
+    self.assertEqual(original_title, product['title'])
+    self.assertEqual(0, optimization_result.num_of_products_optimized)
