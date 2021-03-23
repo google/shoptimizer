@@ -35,12 +35,14 @@ _MAX_TITLE_LENGTH = 150
 _GCP_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME: str = 'gpc_string_to_id_mapping_{}'
 _TITLE_WORD_ORDER_CONFIG_FILE_NAME: str = 'title_word_order_config_{}'
 _TITLE_WORD_ORDER_BLOCKLIST_FILE_NAME: str = 'title_word_order_blocklist_{}'
+_TITLE_WORD_ORDER_OPTIONS_FILE_NAME: str = 'title_word_order_options'
 
 
 class TitleWordOrderOptimizer(base_optimizer.BaseOptimizer):
   """An optimizer that optimizes title word order."""
 
   _OPTIMIZER_PARAMETER = 'title-word-order-optimizer'
+  _title_word_order_options = {}
 
   def _optimize(self, product_batch: Dict[str, Any], language: str,
                 country: str, currency: str) -> int:
@@ -64,6 +66,8 @@ class TitleWordOrderOptimizer(base_optimizer.BaseOptimizer):
     blocklist_config = current_app.config.get('CONFIGS', {}).get(
         _TITLE_WORD_ORDER_BLOCKLIST_FILE_NAME.format(language), {})
     keyword_blocklist = [keyword.lower() for keyword in blocklist_config]
+    self._title_word_order_options = current_app.config.get(
+        'CONFIGS', {}).get(_TITLE_WORD_ORDER_OPTIONS_FILE_NAME)
 
     num_of_products_optimized = 0
 
@@ -89,9 +93,12 @@ class TitleWordOrderOptimizer(base_optimizer.BaseOptimizer):
 
       title_to_process = original_title
       title_words = _tokenize_text(title_to_process, language)
-      description_words = _tokenize_text(description, language)
+      description_words = _tokenize_text(
+          description, language) if self._should_include_description() else []
       joined_product_types = ' '.join(product_types)
-      product_types_words = _tokenize_text(joined_product_types, language)
+      product_types_words = _tokenize_text(
+          joined_product_types,
+          language) if self._should_include_product_types() else []
 
       (keywords_visible_to_user, keywords_not_visible_to_user,
        title_without_keywords) = (
@@ -124,6 +131,14 @@ class TitleWordOrderOptimizer(base_optimizer.BaseOptimizer):
                                                  base_optimizer.OPTIMIZED)
 
     return num_of_products_optimized
+
+  def _should_include_description(self) -> bool:
+    """Returns whether description field should be inspected or not when finding keywords."""
+    return self._title_word_order_options.get('descriptionIncluded', False)
+
+  def _should_include_product_types(self) -> bool:
+    """Returns whether productTypes field should be inspected or not when finding keywords."""
+    return self._title_word_order_options.get('productTypesIncluded', False)
 
 
 def _get_gpc_id(product: Dict[str, Any],

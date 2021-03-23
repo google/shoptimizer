@@ -248,10 +248,14 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
 
     self.assertEqual(expected_title, product['title'])
 
-  def test_wmm_keyword_in_description_should_be_moved_to_front_title(self):
+  @mock.patch(
+      'optimizers_builtin.title_word_order_optimizer.TitleWordOrderOptimizer._should_include_description',
+      return_value=True)
+  def test_wmm_keyword_in_description_is_copied_to_title_when_options_toggle_is_on(
+      self, _):
     description = 'とても良い カイナ とても良い'
     original_title = ('レッド・スニーカー、ブランド： '
-                      'モデル：エオファース、色：レッド')
+                      '色：レッド')
     original_data = requests_bodies.build_request_body(
         properties_to_be_updated={
             'title': original_title,
@@ -262,10 +266,32 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
     optimized_data, _ = self.optimizer.process(original_data,
                                                constants.LANGUAGE_CODE_JA)
     product = optimized_data['entries'][0]['product']
-    expected_title = ('[カイナ][エオファース] '
+    expected_title = ('[カイナ] '
                       'レッド・スニーカー、ブランド： '
-                      'モデル：エオファース、色：レッド')
+                      '色：レッド')
     self.assertEqual(expected_title, product['title'])
+
+  @mock.patch(
+      'optimizers_builtin.title_word_order_optimizer.TitleWordOrderOptimizer._should_include_description',
+      return_value=False)
+  def test_wmm_keyword_in_description_is_not_copied_when_options_toggle_is_off(
+      self, _):
+    description = 'とても良い カイナ とても良い'
+    original_title = ('レッド・スニーカー、ブランド： '
+                      '、色：レッド')
+    original_data = requests_bodies.build_request_body(
+        properties_to_be_updated={
+            'title': original_title,
+            'description': description,
+            'googleProductCategory': _PROPER_GPC_CATEGORY_JA
+        })
+
+    optimized_data, optimization_result = self.optimizer.process(
+        original_data, constants.LANGUAGE_CODE_JA)
+    product = optimized_data['entries'][0]['product']
+
+    self.assertEqual(original_title, product['title'])
+    self.assertEqual(0, optimization_result.num_of_products_optimized)
 
   @parameterized.named_parameters([{
       'testcase_name': 'wmm_word_in_product_type_should_move_to_front_title',
@@ -284,8 +310,11 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
                         'レッド・スニーカー、ブランド： '
                         'モデル：エオファース、色：レッド'
   }])
-  def test_wmm_keyword_in_product_type_should_be_moved_to_front_title(
-      self, original_title, product_types, expected_title):
+  @mock.patch(
+      'optimizers_builtin.title_word_order_optimizer.TitleWordOrderOptimizer._should_include_product_types',
+      return_value=True)
+  def test_wmm_keyword_in_product_type_is_copied_to_title_when_options_toggle_is_on(
+      self, _, original_title, product_types, expected_title):
     original_data = requests_bodies.build_request_body(
         properties_to_be_updated={
             'title': original_title,
@@ -297,6 +326,25 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
                                                constants.LANGUAGE_CODE_JA)
     product = optimized_data['entries'][0]['product']
     self.assertEqual(expected_title, product['title'])
+
+  @mock.patch(
+      'optimizers_builtin.title_word_order_optimizer.TitleWordOrderOptimizer._should_include_product_types',
+      return_value=False)
+  def test_wmm_keyword_in_product_type_is_not_copied_to_title_when_options_toggle_is_off(
+      self, _):
+    original_title = 'レッド・スニーカー、ブランド： 色：レッド'
+    product_types = ['シャツ']
+    original_data = requests_bodies.build_request_body(
+        properties_to_be_updated={
+            'title': original_title,
+            'productTypes': product_types,
+            'googleProductCategory': _PROPER_GPC_CATEGORY_JA
+        })
+
+    optimized_data, _ = self.optimizer.process(original_data,
+                                               constants.LANGUAGE_CODE_JA)
+    product = optimized_data['entries'][0]['product']
+    self.assertEqual(original_title, product['title'])
 
   @parameterized.named_parameters([{
       'testcase_name':
