@@ -27,7 +27,8 @@ import constants
 _PROPER_GPC_CATEGORY_EN = 'Apparel & Accessories > Jewelry > Watches'
 _PROPER_GPC_CATEGORY_JA = (
     'ファッション・アクセサリー > ジュエリー > 腕時計')
-_MAX_WMM_MOVE_THRESHOLD = 25
+_MAX_WMM_MOVE_THRESHOLD_EN = 25
+_MAX_WMM_MOVE_THRESHOLD_JP = 12
 
 
 @mock.patch(
@@ -172,8 +173,8 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
     self.assertEqual(1, optimization_result.num_of_products_optimized)
 
   def test_process_skips_one_character_wmm_keyword(self):
-    original_title = 'a' * _MAX_WMM_MOVE_THRESHOLD + ('Some title with single a'
-                                                      ' character keyword')
+    original_title = 'a' * _MAX_WMM_MOVE_THRESHOLD_EN + (
+        ('Some title with single a character keyword'))
     original_data = requests_bodies.build_request_body(
         properties_to_be_updated={
             'title': original_title,
@@ -191,16 +192,16 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
       'testcase_name':
           'partial_match',
       'original_title':
-          'a' * _MAX_WMM_MOVE_THRESHOLD + '有名ブランドTシャツ',
+          'a' * _MAX_WMM_MOVE_THRESHOLD_JP + '有名ブランドTシャツ',
       'expected_title':
-          'a' * _MAX_WMM_MOVE_THRESHOLD + '有名ブランドTシャツ'
+          'a' * _MAX_WMM_MOVE_THRESHOLD_JP + '有名ブランドTシャツ'
   }, {
       'testcase_name':
           'accurate_match',
       'original_title':
-          'a' * _MAX_WMM_MOVE_THRESHOLD + ' 有名ブランドシャツ',
+          'a' * _MAX_WMM_MOVE_THRESHOLD_JP + ' 有名ブランドシャツ',
       'expected_title':
-          '[シャツ] ' + 'a' * _MAX_WMM_MOVE_THRESHOLD +
+          '[シャツ] ' + 'a' * _MAX_WMM_MOVE_THRESHOLD_JP +
           ' 有名ブランドシャツ'
   }])
   def test_wmm_keyword_is_copied_only_with_accurate_match(
@@ -230,11 +231,18 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
       'testcase_name':
           'keyword_already_inside_no_change_to_title',
       'original_title':
-          'レッド・スニーカー、ブランド：カイナ、色：レッド',
+          'レッド・、カイナ,スニーカー,ブランド：、色：レッド',
       'expected_title':
-          'レッド・スニーカー、ブランド：カイナ、色：レッド'
-  }])
-  def test_scenario_wmm_keyword_in_first_25_char_of_title(
+          'レッド・、カイナ,スニーカー,ブランド：、色：レッド'
+  }, {
+      'testcase_name':
+          'keyword_in_first_12_char_of_the_title_jp',
+      'original_title':
+      'カイナレッド・スニーカー、ブランド： モデル：エオファース、色：レッド',
+      'expected_title':
+          '[エオファース] カイナレッド・スニーカー、ブランド： モデル：エオファース、色：レッド'
+    }])
+  def test_scenario_jp_wmm_keyword_in_first_12_char_of_title(
       self, original_title, expected_title):
     original_data = requests_bodies.build_request_body(
         properties_to_be_updated={
@@ -350,10 +358,10 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
       'testcase_name':
           'japanese_title',
       'original_title':
-          'a' * _MAX_WMM_MOVE_THRESHOLD + 'タイトルブロック'
+          'a' * _MAX_WMM_MOVE_THRESHOLD_JP + 'タイトルブロック'
   }, {
       'testcase_name': 'check_case_insensitive',
-      'original_title': 'a' * _MAX_WMM_MOVE_THRESHOLD + 'Title Block'
+      'original_title': 'a' * _MAX_WMM_MOVE_THRESHOLD_JP + 'Title Block'
   }])
   def test_wmm_keyword_in_blocklist_is_not_copied_to_front(
       self, original_title):

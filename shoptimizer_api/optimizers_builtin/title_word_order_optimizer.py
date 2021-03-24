@@ -28,7 +28,8 @@ from flask import current_app
 import constants
 from optimizers_abstract import base_optimizer
 
-_TITLE_CHARS_VISIBLE_TO_USER = 25
+_TITLE_CHARS_VISIBLE_TO_USER_EN = 25
+_TITLE_CHARS_VISIBLE_TO_USER_JP = 12
 _MAX_KEYWORDS_PER_TITLE = 3
 _MAX_TITLE_LENGTH = 150
 
@@ -105,11 +106,12 @@ class TitleWordOrderOptimizer(base_optimizer.BaseOptimizer):
            _generate_front_and_back_keyword_lists(sorted_keywords_for_gpc,
                                                   title_to_process, title_words,
                                                   description_words,
-                                                  product_types_words))
+                                                  product_types_words,
+                                                  language))
 
       keywords_to_prepend = _generate_list_of_keywords_to_prepend(
           keywords_visible_to_user, keywords_not_visible_to_user,
-          title_to_process)
+          title_to_process, language)
       ordered_keywords_to_prepend = _reorder_keywords_by_weight(
           keywords_to_prepend, sorted_keywords_for_gpc)
 
@@ -228,7 +230,8 @@ def _split_words_in_japanese(text: str) -> List[str]:
 def _generate_front_and_back_keyword_lists(
     sorted_keywords: List[Dict[str, Any]], title_to_process: str,
     title_words: List[str], description_words: List[str],
-    product_types_words: List[str]) -> Tuple[List[str], List[str], str]:
+    product_types_words: List[str],
+    language: str) -> Tuple[List[str], List[str], str]:
   """Generates two lists of keywords: those in the front and back of the title.
 
   Args:
@@ -238,6 +241,7 @@ def _generate_front_and_back_keyword_lists(
     title_words: A list of semantically tokenized words in the title.
     description_words: A list of semantically tokenized description words.
     product_types_words: A list of semantically tokenized product types words.
+    language: The configured language code.
 
   Returns:
     A list of matching keywords near the front of the title, a list of
@@ -262,7 +266,10 @@ def _generate_front_and_back_keyword_lists(
     # title and added to the front, used in the case of too-long titles.
     if keyword in title_words or keyword in description_words or keyword in product_types_words:
       title_without_keywords = title_without_keywords.replace(keyword, '')
-      user_visible_text = title_to_process[:_TITLE_CHARS_VISIBLE_TO_USER]
+      if language == constants.LANGUAGE_CODE_JA:
+        user_visible_text = title_to_process[:_TITLE_CHARS_VISIBLE_TO_USER_JP]
+      else:
+        user_visible_text = title_to_process[:_TITLE_CHARS_VISIBLE_TO_USER_EN]
       if keyword in user_visible_text:
         keywords_visible_to_user.append(keyword)
       else:
@@ -283,7 +290,8 @@ def _num_keywords_to_prepend_meets_or_exceeds_limit(
 
 def _generate_list_of_keywords_to_prepend(
     keywords_visible_to_user: List[str],
-    keywords_not_visible_to_user: List[str], title: str) -> List[str]:
+    keywords_not_visible_to_user: List[str], title: str,
+    language: str) -> List[str]:
   """Determines which performant keywords need to be prepended and sorts them.
 
   Args:
@@ -292,6 +300,7 @@ def _generate_list_of_keywords_to_prepend(
     keywords_not_visible_to_user: keywords that were not found near the front of
       the given title.
     title: the title to append performant keywords to.
+    language: The configured language code.
 
   Returns:
     A list of high-performing keywords.
@@ -300,7 +309,10 @@ def _generate_list_of_keywords_to_prepend(
   for skipped_keyword in keywords_visible_to_user:
     temp_prepended_title = _generate_prepended_title(keywords_to_be_prepended,
                                                      title)
-    front_of_title = temp_prepended_title[:_TITLE_CHARS_VISIBLE_TO_USER]
+    if language == constants.LANGUAGE_CODE_JA:
+      front_of_title = temp_prepended_title[:_TITLE_CHARS_VISIBLE_TO_USER_JP]
+    else:
+      front_of_title = temp_prepended_title[:_TITLE_CHARS_VISIBLE_TO_USER_EN]
 
     # The skipped keyword was pushed out too far due to the prepend, so
     # include it in the list of to-be-prepended keywords.
