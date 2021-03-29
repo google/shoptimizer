@@ -18,8 +18,19 @@
 This module performs the following optimization:
 1. Detects high-performing words.
 2. Moves the high-performing words to the front of the title.
+
+This module loads configurations below from file:
+shoptimizer_api/config/title_word_order_options.json.
+- descriptionIncluded: Finding keywords in description if true.
+- productTypesIncluded: Finding keywords in productTypes if true.
+- optimizationLevel: allowed values are "standard" and "aggressive".
+  When set to "standard" we apply our high performing keywords title
+  optimizations to products with google product category level 3 only.
+  When set to "aggressive we apply our high performing keywords title
+  optimizations to products with google product category level 3, 4 or more.
 """
 
+import enum
 import logging
 from typing import Any, Dict, List, Tuple
 
@@ -37,6 +48,12 @@ _GCP_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME: str = 'gpc_string_to_id_mapping_{}'
 _TITLE_WORD_ORDER_CONFIG_FILE_NAME: str = 'title_word_order_config_{}'
 _TITLE_WORD_ORDER_BLOCKLIST_FILE_NAME: str = 'title_word_order_blocklist_{}'
 _TITLE_WORD_ORDER_OPTIONS_FILE_NAME: str = 'title_word_order_options'
+
+
+class _OptimizationLevel(enum.Enum):
+  """Enums for optimization level."""
+  AGGRESSIVE = 'aggressive'
+  STANDARD = 'standard'
 
 
 class TitleWordOrderOptimizer(base_optimizer.BaseOptimizer):
@@ -70,6 +87,10 @@ class TitleWordOrderOptimizer(base_optimizer.BaseOptimizer):
     self._title_word_order_options = current_app.config.get(
         'CONFIGS', {}).get(_TITLE_WORD_ORDER_OPTIONS_FILE_NAME)
 
+    should_include_description = self._should_include_description()
+    should_include_product_types = self._should_include_product_types()
+    optimization_level = self._get_optimization_level()
+
     num_of_products_optimized = 0
 
     for entry in product_batch['entries']:
@@ -77,12 +98,15 @@ class TitleWordOrderOptimizer(base_optimizer.BaseOptimizer):
       original_title = product.get('title', None)
       description = product.get('description', None)
       product_types = product.get('productTypes', [])
+      gpc_string = product.get('googleProductCategory', '')
 
       if not original_title:
         continue
 
-      gpc_id = _get_gpc_id(product, gpc_string_to_id_mapping)
+      if _should_skip_optimization(gpc_string, optimization_level):
+        continue
 
+      gpc_id = _get_level_3_gpc_id(gpc_string, gpc_string_to_id_mapping)
       if not gpc_id:
         continue
 
@@ -95,11 +119,11 @@ class TitleWordOrderOptimizer(base_optimizer.BaseOptimizer):
       title_to_process = original_title
       title_words = _tokenize_text(title_to_process, language)
       description_words = _tokenize_text(
-          description, language) if self._should_include_description() else []
+          description, language) if should_include_description else []
       joined_product_types = ' '.join(product_types)
       product_types_words = _tokenize_text(
           joined_product_types,
-          language) if self._should_include_product_types() else []
+          language) if should_include_product_types else []
 
       (keywords_visible_to_user, keywords_not_visible_to_user,
        title_without_keywords) = (
@@ -134,6 +158,11 @@ class TitleWordOrderOptimizer(base_optimizer.BaseOptimizer):
 
     return num_of_products_optimized
 
+  def _get_optimization_level(self) -> _OptimizationLevel:
+    """Returns configured optimization level."""
+    return self._title_word_order_options.get(
+        'optimizationLevel', _OptimizationLevel.STANDARD).lower()
+
   def _should_include_description(self) -> bool:
     """Returns whether description field should be inspected or not when finding keywords."""
     return self._title_word_order_options.get('descriptionIncluded', False)
@@ -143,19 +172,45 @@ class TitleWordOrderOptimizer(base_optimizer.BaseOptimizer):
     return self._title_word_order_options.get('productTypesIncluded', False)
 
 
-def _get_gpc_id(product: Dict[str, Any],
-                gpc_string_to_id_mapping: Dict[str, Any]) -> int:
+def _should_skip_optimization(gpc_string: str,
+                              optimization_level: _OptimizationLevel) -> bool:
+  """Returns whether the product should skip the optimization.
+
+  With optimization_level "aggressive", the optimization is always be applied.
+  With optimization_level "standard", the optimization is skipped when the level
+  of Google Product Category is deeper than 3.
+
+  Args:
+    gpc_string: Google Product Category in string format.
+    optimization_level: Configured optimization level.
+
+  Returns:
+    Whether the product should skip the optimization.
+  """
+  if optimization_level == _OptimizationLevel.AGGRESSIVE:
+    return False
+  else:
+    gpc_list = gpc_string.split('>')
+    if len(gpc_list) > 3:
+      return True
+    else:
+      return False
+
+
+def _get_level_3_gpc_id(
+    gpc_string: str,
+    gpc_string_to_id_mapping: Dict[str, Any],
+) -> int:
   """Gets the GPC ID for the given product with a GPC in string format.
 
   Args:
-    product: The product with a GPC to parse and lookup.
+    gpc_string: Google Product Category in string format.
     gpc_string_to_id_mapping: The list of gpc mappings from the config file.
 
   Returns:
     A GPC ID that this product's GPC maps to, if it was found.
   """
-  gpc = product.get('googleProductCategory', '')
-  gpc_list = gpc.split('>')
+  gpc_list = gpc_string.split('>')
   gpc_three_levels = '>'.join(gpc_list[:3]).strip()
   return gpc_string_to_id_mapping.get(gpc_three_levels)
 

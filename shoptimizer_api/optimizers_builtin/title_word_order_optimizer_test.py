@@ -25,8 +25,11 @@ from util import app_util
 import constants
 
 _PROPER_GPC_CATEGORY_EN = 'Apparel & Accessories > Jewelry > Watches'
-_PROPER_GPC_CATEGORY_JA = (
-    'ファッション・アクセサリー > ジュエリー > 腕時計')
+_PROPER_GPC_CATEGORY_JA = ('ファッション・アクセサリー > '
+                           'ジュエリー > 腕時計')
+_GPC_CATEGORY_LEVEL_4_JA = ('ファッション・アクセサリー > '
+                            '衣料品 > アウター > '
+                            'コート・ジャケット')  # GPC is 5598
 _MAX_WMM_MOVE_THRESHOLD_EN = 25
 _MAX_WMM_MOVE_THRESHOLD_JP = 12
 
@@ -40,6 +43,9 @@ _MAX_WMM_MOVE_THRESHOLD_JP = 12
 @mock.patch(
     'optimizers_builtin.title_word_order_optimizer._TITLE_WORD_ORDER_BLOCKLIST_FILE_NAME',
     'title_word_order_blocklist_{}_test')
+@mock.patch(
+    'optimizers_builtin.title_word_order_optimizer._TITLE_WORD_ORDER_OPTIONS_FILE_NAME',
+    'title_word_order_options_test')
 class TitleWordOrderOptimizerTest(parameterized.TestCase):
 
   def setUp(self):
@@ -235,13 +241,15 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
       'expected_title':
           'レッド・、カイナ,スニーカー,ブランド：、色：レッド'
   }, {
-      'testcase_name':
-          'keyword_in_first_12_char_of_the_title_jp',
+      'testcase_name': 'keyword_in_first_12_char_of_the_title_jp',
       'original_title':
-      'カイナレッド・スニーカー、ブランド： モデル：エオファース、色：レッド',
+          'カイナレッド・スニーカー、ブランド： '
+          'モデル：エオファース、色：レッド',
       'expected_title':
-          '[エオファース] カイナレッド・スニーカー、ブランド： モデル：エオファース、色：レッド'
-    }])
+          '[エオファース] '
+          'カイナレッド・スニーカー、ブランド： '
+          'モデル：エオファース、色：レッド'
+  }])
   def test_scenario_jp_wmm_keyword_in_first_12_char_of_title(
       self, original_title, expected_title):
     original_data = requests_bodies.build_request_body(
@@ -340,7 +348,8 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
       return_value=False)
   def test_wmm_keyword_in_product_type_is_not_copied_to_title_when_options_toggle_is_off(
       self, _):
-    original_title = 'レッド・スニーカー、ブランド： 色：レッド'
+    original_title = ('レッド・スニーカー、ブランド： '
+                      '色：レッド')
     product_types = ['シャツ']
     original_data = requests_bodies.build_request_body(
         properties_to_be_updated={
@@ -369,6 +378,45 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
         properties_to_be_updated={
             'title': original_title,
             'googleProductCategory': _PROPER_GPC_CATEGORY_JA
+        })
+
+    optimized_data, optimization_result = self.optimizer.process(
+        original_data, constants.LANGUAGE_CODE_JA)
+    product = optimized_data['entries'][0]['product']
+
+    self.assertEqual(original_title, product['title'])
+    self.assertEqual(0, optimization_result.num_of_products_optimized)
+
+  @mock.patch(
+      'optimizers_builtin.title_word_order_optimizer.TitleWordOrderOptimizer._get_optimization_level',
+      return_value=title_word_order_optimizer._OptimizationLevel.AGGRESSIVE)
+  def test_keywords_in_gpc_level_3_is_copied_to_front_when_gpc_level_is_deeper_than_3_and_optimization_level_is_aggressive(
+      self, _):
+    original_title = '寒い冬からあなたを守る！モデル：ジャケット、カラー：ブラック、防寒仕様ダウンジャケット'
+    original_data = requests_bodies.build_request_body(
+        properties_to_be_updated={
+            'title': original_title,
+            'googleProductCategory': _GPC_CATEGORY_LEVEL_4_JA
+        })
+
+    optimized_data, optimization_result = self.optimizer.process(
+        original_data, constants.LANGUAGE_CODE_JA)
+    product = optimized_data['entries'][0]['product']
+
+    expected_title = f'[防寒][ダウンジャケット] {original_title}'
+    self.assertEqual(expected_title, product['title'])
+    self.assertEqual(1, optimization_result.num_of_products_optimized)
+
+  @mock.patch(
+      'optimizers_builtin.title_word_order_optimizer.TitleWordOrderOptimizer._get_optimization_level',
+      return_value=title_word_order_optimizer._OptimizationLevel.STANDARD)
+  def test_optimization_is_skipped_when_gpc_level_is_deeper_than_3_and_optimization_level_is_standard(
+      self, _):
+    original_title = '寒い冬からあなたを守る！モデル：ジャケット、カラー：ブラック、防寒仕様ダウンジャケット'
+    original_data = requests_bodies.build_request_body(
+        properties_to_be_updated={
+            'title': original_title,
+            'googleProductCategory': _GPC_CATEGORY_LEVEL_4_JA
         })
 
     optimized_data, optimization_result = self.optimizer.process(
