@@ -24,12 +24,16 @@ from util import app_util
 
 import constants
 
+# GPC ID IS 201
 _PROPER_GPC_CATEGORY_EN = 'Apparel & Accessories > Jewelry > Watches'
+
+# GPC ID is 201
 _PROPER_GPC_CATEGORY_JA = ('ファッション・アクセサリー > '
                            'ジュエリー > 腕時計')
+# GPC ID is 5598
 _GPC_CATEGORY_LEVEL_4_JA = ('ファッション・アクセサリー > '
                             '衣料品 > アウター > '
-                            'コート・ジャケット')  # GPC is 5598
+                            'コート・ジャケット')
 _MAX_WMM_MOVE_THRESHOLD_EN = 25
 _MAX_WMM_MOVE_THRESHOLD_JP = 12
 
