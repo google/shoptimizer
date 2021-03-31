@@ -239,20 +239,34 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
           'カイナ、モデル：エオファース、色：レッド'
   }, {
       'testcase_name':
-          'keyword_already_inside_no_change_to_title',
+          'keyword_kaina_already_in_first_12_char_no_change_to_title',
       'original_title':
           'レッド・、カイナ,スニーカー,ブランド：、色：レッド',
       'expected_title':
           'レッド・、カイナ,スニーカー,ブランド：、色：レッド'
   }, {
-      'testcase_name': 'keyword_in_first_12_char_of_the_title_jp',
+      'testcase_name':
+          'keyword_kaina_right_at_the_limit_of_12_char_no_change_to_title',
       'original_title':
-          'カイナレッド・スニーカー、ブランド： '
-          'モデル：エオファース、色：レッド',
+          'レッド・レッド1,カイナ,ブランド：、色：レッド',
       'expected_title':
-          '[エオファース] '
-          'カイナレッド・スニーカー、ブランド： '
-          'モデル：エオファース、色：レッド'
+          'レッド・レッド1,カイナ,ブランド：、色：レッド'
+  }, {
+      'testcase_name':
+          'keyword_kaina_is_partially_in_the_first_12_char_and_partially_out_we_copy_it_to_front_title',
+      'original_title':
+          'レッド2・レッド1,カイナ,ブランド：、色：レッド',
+      'expected_title':
+          '[カイナ] '
+          'レッド2・レッド1,カイナ,ブランド：、色：レッド'
+  }, {
+      'testcase_name':
+          'keyword_kaina_is_right_out_of_the_12_chars_we_copy_it_to_front_title',
+      'original_title':
+          'レッド21・レッド12,カイナ,ブランド：、色：レッド',
+      'expected_title':
+          '[カイナ] '
+          'レッド21・レッド12,カイナ,ブランド：、色：レッド'
   }])
   def test_scenario_jp_wmm_keyword_in_first_12_char_of_title(
       self, original_title, expected_title):
