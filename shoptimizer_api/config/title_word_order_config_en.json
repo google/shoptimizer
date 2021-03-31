@@ -19,6 +19,11 @@
     {
       "keyword": "a",
       "weight": 0.4
+    },
+    {
+      "keyword": "magic",
+      "weight": 0.3
+
     }
   ],
   "632": [
