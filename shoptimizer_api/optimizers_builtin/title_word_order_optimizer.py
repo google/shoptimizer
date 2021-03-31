@@ -40,7 +40,7 @@ import constants
 from optimizers_abstract import base_optimizer
 
 _TITLE_CHARS_VISIBLE_TO_USER_EN = 25
-_TITLE_CHARS_VISIBLE_TO_USER_JP = 12
+_TITLE_CHARS_VISIBLE_TO_USER_JA = 12
 _MAX_KEYWORDS_PER_TITLE = 3
 _MAX_TITLE_LENGTH = 150
 
@@ -322,7 +322,7 @@ def _generate_front_and_back_keyword_lists(
     if keyword in title_words or keyword in description_words or keyword in product_types_words:
       title_without_keywords = title_without_keywords.replace(keyword, '')
       if language == constants.LANGUAGE_CODE_JA:
-        user_visible_text = title_to_process[:_TITLE_CHARS_VISIBLE_TO_USER_JP]
+        user_visible_text = title_to_process[:_TITLE_CHARS_VISIBLE_TO_USER_JA]
       else:
         user_visible_text = title_to_process[:_TITLE_CHARS_VISIBLE_TO_USER_EN]
       if keyword in user_visible_text:
@@ -365,7 +365,7 @@ def _generate_list_of_keywords_to_prepend(
     temp_prepended_title = _generate_prepended_title(keywords_to_be_prepended,
                                                      title)
     if language == constants.LANGUAGE_CODE_JA:
-      front_of_title = temp_prepended_title[:_TITLE_CHARS_VISIBLE_TO_USER_JP]
+      front_of_title = temp_prepended_title[:_TITLE_CHARS_VISIBLE_TO_USER_JA]
     else:
       front_of_title = temp_prepended_title[:_TITLE_CHARS_VISIBLE_TO_USER_EN]
 

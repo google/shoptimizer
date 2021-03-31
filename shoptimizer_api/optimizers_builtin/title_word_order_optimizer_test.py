@@ -35,7 +35,7 @@ _GPC_CATEGORY_LEVEL_4_JA = ('ファッション・アクセサリー > '
                             '衣料品 > アウター > '
                             'コート・ジャケット')
 _MAX_WMM_MOVE_THRESHOLD_EN = 25
-_MAX_WMM_MOVE_THRESHOLD_JP = 12
+_MAX_WMM_MOVE_THRESHOLD_JA = 12
 
 
 @mock.patch(
@@ -202,16 +202,16 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
       'testcase_name':
           'partial_match',
       'original_title':
-          'a' * _MAX_WMM_MOVE_THRESHOLD_JP + '有名ブランドTシャツ',
+          'a' * _MAX_WMM_MOVE_THRESHOLD_JA + '有名ブランドTシャツ',
       'expected_title':
-          'a' * _MAX_WMM_MOVE_THRESHOLD_JP + '有名ブランドTシャツ'
+          'a' * _MAX_WMM_MOVE_THRESHOLD_JA + '有名ブランドTシャツ'
   }, {
       'testcase_name':
           'accurate_match',
       'original_title':
-          'a' * _MAX_WMM_MOVE_THRESHOLD_JP + ' 有名ブランドシャツ',
+          'a' * _MAX_WMM_MOVE_THRESHOLD_JA + ' 有名ブランドシャツ',
       'expected_title':
-          '[シャツ] ' + 'a' * _MAX_WMM_MOVE_THRESHOLD_JP +
+          '[シャツ] ' + 'a' * _MAX_WMM_MOVE_THRESHOLD_JA +
           ' 有名ブランドシャツ'
   }])
   def test_wmm_keyword_is_copied_only_with_accurate_match(
@@ -371,10 +371,10 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
       'testcase_name':
           'japanese_title',
       'original_title':
-          'a' * _MAX_WMM_MOVE_THRESHOLD_JP + 'タイトルブロック'
+          'a' * _MAX_WMM_MOVE_THRESHOLD_JA + 'タイトルブロック'
   }, {
       'testcase_name': 'check_case_insensitive',
-      'original_title': 'a' * _MAX_WMM_MOVE_THRESHOLD_JP + 'Title Block'
+      'original_title': 'a' * _MAX_WMM_MOVE_THRESHOLD_JA + 'Title Block'
   }])
   def test_wmm_keyword_in_blocklist_is_not_copied_to_front(
       self, original_title):
