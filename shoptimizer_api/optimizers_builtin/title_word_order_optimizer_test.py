@@ -283,7 +283,7 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
     self.assertEqual(expected_title, product['title'])
 
   @mock.patch(
-      'optimizers_builtin.title_word_order_optimizer.TitleWordOrderOptimizer._should_include_description',
+      'optimizers_builtin.title_word_order_optimizer.TitleWordOrderOptimizer._optimization_includes_description',
       return_value=True)
   def test_wmm_keyword_in_description_is_copied_to_title_when_options_toggle_is_on(
       self, _):
@@ -306,7 +306,7 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
     self.assertEqual(expected_title, product['title'])
 
   @mock.patch(
-      'optimizers_builtin.title_word_order_optimizer.TitleWordOrderOptimizer._should_include_description',
+      'optimizers_builtin.title_word_order_optimizer.TitleWordOrderOptimizer._optimization_includes_description',
       return_value=False)
   def test_wmm_keyword_in_description_is_not_copied_when_options_toggle_is_off(
       self, _):
@@ -345,9 +345,9 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
                         'モデル：エオファース、色：レッド'
   }])
   @mock.patch(
-      'optimizers_builtin.title_word_order_optimizer.TitleWordOrderOptimizer._should_include_product_types',
+      'optimizers_builtin.title_word_order_optimizer.TitleWordOrderOptimizer._optimization_includes_product_types',
       return_value=True)
-  def test_wmm_keyword_in_product_type_is_copied_to_title_when_options_toggle_is_on(
+  def test_wmm_keyword_in_product_types_is_copied_to_title_when_options_toggle_is_on(
       self, _, original_title, product_types, expected_title):
     original_data = requests_bodies.build_request_body(
         properties_to_be_updated={
@@ -362,9 +362,9 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
     self.assertEqual(expected_title, product['title'])
 
   @mock.patch(
-      'optimizers_builtin.title_word_order_optimizer.TitleWordOrderOptimizer._should_include_product_types',
+      'optimizers_builtin.title_word_order_optimizer.TitleWordOrderOptimizer._optimization_includes_product_types',
       return_value=False)
-  def test_wmm_keyword_in_product_type_is_not_copied_to_title_when_options_toggle_is_off(
+  def test_wmm_keyword_in_product_types_is_not_copied_to_title_when_options_toggle_is_off(
       self, _):
     original_title = ('レッド・スニーカー、ブランド： '
                       '色：レッド')

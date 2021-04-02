@@ -87,8 +87,10 @@ class TitleWordOrderOptimizer(base_optimizer.BaseOptimizer):
     self._title_word_order_options = current_app.config.get(
         'CONFIGS', {}).get(_TITLE_WORD_ORDER_OPTIONS_FILE_NAME)
 
-    should_include_description = self._should_include_description()
-    should_include_product_types = self._should_include_product_types()
+    optimization_includes_description = (
+        self._optimization_includes_description())
+    optimization_includes_product_types = (
+        self._optimization_includes_product_types())
     optimization_level = self._get_optimization_level()
 
     num_of_products_optimized = 0
@@ -119,11 +121,11 @@ class TitleWordOrderOptimizer(base_optimizer.BaseOptimizer):
       title_to_process = original_title
       title_words = _tokenize_text(title_to_process, language)
       description_words = _tokenize_text(
-          description, language) if should_include_description else []
+          description, language) if optimization_includes_description else []
       joined_product_types = ' '.join(product_types)
       product_types_words = _tokenize_text(
           joined_product_types,
-          language) if should_include_product_types else []
+          language) if optimization_includes_product_types else []
 
       (keywords_visible_to_user, keywords_not_visible_to_user,
        title_without_keywords) = (
@@ -163,11 +165,11 @@ class TitleWordOrderOptimizer(base_optimizer.BaseOptimizer):
     return self._title_word_order_options.get(
         'optimizationLevel', _OptimizationLevel.STANDARD).lower()
 
-  def _should_include_description(self) -> bool:
+  def _optimization_includes_description(self) -> bool:
     """Returns whether description field should be inspected or not when finding keywords."""
     return self._title_word_order_options.get('descriptionIncluded', False)
 
-  def _should_include_product_types(self) -> bool:
+  def _optimization_includes_product_types(self) -> bool:
     """Returns whether productTypes field should be inspected or not when finding keywords."""
     return self._title_word_order_options.get('productTypesIncluded', False)
 
