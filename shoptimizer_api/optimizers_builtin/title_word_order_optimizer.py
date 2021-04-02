@@ -32,7 +32,7 @@ shoptimizer_api/config/title_word_order_options.json.
 
 import enum
 import logging
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Text, Tuple, Union
 
 from flask import current_app
 
@@ -100,15 +100,24 @@ class TitleWordOrderOptimizer(base_optimizer.BaseOptimizer):
       original_title = product.get('title', None)
       description = product.get('description', None)
       product_types = product.get('productTypes', [])
-      gpc_string = product.get('googleProductCategory', '')
+      gpc = product.get('googleProductCategory', '')
 
       if not original_title:
         continue
+
+      # Get the string version of the GPC if it was provided as a number ID.
+      if isinstance(gpc, int) or gpc.isdigit():
+        gpc_string = get_gpc_as_string(gpc, gpc_string_to_id_mapping)
+        if not gpc_string:
+          continue
+      else:
+        gpc_string = gpc
 
       if _should_skip_optimization(gpc_string, optimization_level):
         continue
 
       gpc_id = _get_level_3_gpc_id(gpc_string, gpc_string_to_id_mapping)
+
       if not gpc_id:
         continue
 
@@ -410,3 +419,14 @@ def _generate_prepended_title(performant_keywords_to_prepend: List[str],
   ]
   prepended_title = f'{"".join(formatted_keywords)} {title}'
   return ' '.join(prepended_title.split())
+
+
+def get_gpc_as_string(
+    gpc: Union[Text, int],
+    gpc_string_to_id_mapping: Dict[str, int]) -> Optional[Text]:
+  """Returns the text representation of a gpc, or '' if it isn't found."""
+  gpc_string = ''
+  for key, value in gpc_string_to_id_mapping.items():
+    if value == int(gpc):
+      gpc_string = key
+  return gpc_string

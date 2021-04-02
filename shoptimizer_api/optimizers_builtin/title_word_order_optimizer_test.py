@@ -443,3 +443,34 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
 
     self.assertEqual(original_title, product['title'])
     self.assertEqual(0, optimization_result.num_of_products_optimized)
+
+  def test_process_interprets_valid_gpc_id_and_copies_performant_keyword(self):
+    original_data = requests_bodies.build_request_body(
+        properties_to_be_updated={
+            'title': 'Some title with heavy_keyword in the middle',
+            'googleProductCategory': '201',
+        })
+
+    optimized_data, optimization_result = self.optimizer.process(
+        original_data, constants.LANGUAGE_CODE_EN)
+    product = optimized_data['entries'][0]['product']
+
+    expected_title = ('[heavy_keyword] Some title with heavy_keyword in the '
+                      'middle')
+    self.assertEqual(expected_title, product['title'])
+    self.assertEqual(1, optimization_result.num_of_products_optimized)
+
+  def test_process_ignores_invalid_gpc_id_and_does_nothing(self):
+    original_title = 'Some title with heavy_keyword in the middle'
+    original_data = requests_bodies.build_request_body(
+        properties_to_be_updated={
+            'title': original_title,
+            'googleProductCategory': '202',
+        })
+
+    optimized_data, optimization_result = self.optimizer.process(
+        original_data, constants.LANGUAGE_CODE_EN)
+    product = optimized_data['entries'][0]['product']
+
+    self.assertEqual(original_title, product['title'])
+    self.assertEqual(0, optimization_result.num_of_products_optimized)
