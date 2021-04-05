@@ -33,7 +33,7 @@ shoptimizer_api/config/title_word_order_options.json.
 import enum
 import logging
 from typing import Any, Dict, List, Optional, Text, Tuple, Union
-
+from util import promo_text_remover as promo_text_remover_lib
 from flask import current_app
 
 import constants
@@ -91,6 +91,10 @@ class TitleWordOrderOptimizer(base_optimizer.BaseOptimizer):
         self._optimization_includes_description())
     optimization_includes_product_types = (
         self._optimization_includes_product_types())
+
+    promo_text_remover = promo_text_remover_lib.PromoTextRemover(
+        language=language)
+
     optimization_level = self._get_optimization_level()
 
     num_of_products_optimized = 0
@@ -124,6 +128,8 @@ class TitleWordOrderOptimizer(base_optimizer.BaseOptimizer):
       keywords_for_gpc = title_word_order_config.get(str(gpc_id), [])
       allowed_keywords_for_gpc = _remove_keywords_in_blocklist(
           keywords_for_gpc, keyword_blocklist)
+      allowed_keywords_for_gpc = _remove_keywords_with_promo(
+          promo_text_remover, allowed_keywords_for_gpc)
       sorted_keywords_for_gpc = _sort_keywords_for_gpc_by_descending_weight(
           allowed_keywords_for_gpc)
 
@@ -430,3 +436,24 @@ def get_gpc_as_string(
     if value == int(gpc):
       gpc_string = key
   return gpc_string
+
+
+def _remove_keywords_with_promo(
+    promo_text_remover: promo_text_remover_lib,
+    keywords_for_gpc: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+  """Remove elements of keywords_for_gpc that contains promo text as keyword.
+
+  Args:
+    promo_text_remover: a promo_text_remover object.
+    keywords_for_gpc:  A list of dictionaries of keywords and weights.
+
+  Returns:
+    A list of dictionaries of keywords and weights where the keywords does not
+    contain promo text.
+  """
+  keywords_with_promo = [x.get('keyword') for x in keywords_for_gpc]
+  keywords_without_promo = promo_text_remover.remove_keywords_with_promo(
+      keywords_with_promo)
+  return [
+      x for x in keywords_for_gpc if x.get('keyword') in keywords_without_promo
+  ]

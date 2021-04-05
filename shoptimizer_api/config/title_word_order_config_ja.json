@@ -27,6 +27,10 @@
     {
       "keyword": "Block",
       "weight": 0.3
+    },
+    {
+      "keyword": "送料無料",
+      "weight": 0.2
     }
   ],
   "203": [

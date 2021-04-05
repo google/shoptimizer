@@ -49,6 +49,10 @@ class PromoTextRemover(object):
     self._language = language
     self._config = flask.current_app.config.get('CONFIGS', {}).get(
         f'promo_text_removal_optimizer_config_{language}', {})
+    self.promo_text_words = frozenset(self._config.get(
+        'promotional_text_patterns_exact_match', set()))
+    self.promo_regex_patterns = self._config.get(
+        'promotional_text_patterns_regex', [])
 
   def remove_text_from_field(self, product: Dict[str, Any],
                              field_key: str) -> None:
@@ -99,6 +103,32 @@ class PromoTextRemover(object):
       target_text = target_text.replace(text, '')
     target_text = ' '.join(target_text.split())
     return target_text
+
+  def remove_keywords_with_promo(self, keywords: [str]) -> {str}:
+    """Remove elements from the list containing promo text.
+
+    Args:
+      keywords: List of strings containing or not promo text
+    Returns:
+      A set of strings containing no promo text
+    """
+    keywords_with_no_promo_text = set()
+
+    for keyword in keywords:
+      if keyword in self.promo_text_words:
+        continue
+
+      regex_pattern_found = False
+      for regex_pattern in self.promo_regex_patterns:
+        match = re.search(regex_pattern, keyword)
+        if match:
+          regex_pattern_found = True
+          break
+
+      if not regex_pattern_found:
+        keywords_with_no_promo_text.add(keyword)
+
+    return keywords_with_no_promo_text
 
 
 def _clean_up_value(value: str) -> str:

@@ -474,3 +474,22 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
 
     self.assertEqual(original_title, product['title'])
     self.assertEqual(0, optimization_result.num_of_products_optimized)
+
+  def test_promo_text_dont_get_move_to_the_front(self):
+    original_data = requests_bodies.build_request_body(
+        properties_to_be_updated={
+            'title':
+                '寒い冬からあなたを守る！モデル：ジャケット、[送料無料] , カイナ ,カラー：ブラック、防寒仕様ダウンジャケット',
+            'googleProductCategory':
+                _PROPER_GPC_CATEGORY_JA,
+        })
+    optimized_data, optimization_result = self.optimizer.process(
+        original_data, constants.LANGUAGE_CODE_JA)
+    product = optimized_data['entries'][0]['product']
+
+    expected_title = ('[カイナ] '
+                      '寒い冬からあなたを守る！モデル：ジャケット、[送料無料]'
+                      ' , カイナ '
+                      ',カラー：ブラック、防寒仕様ダウンジャケット')
+    self.assertEqual(expected_title, product['title'])
+    self.assertEqual(1, optimization_result.num_of_products_optimized)
