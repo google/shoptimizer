@@ -177,8 +177,11 @@ class TitleWordOrderOptimizer(base_optimizer.BaseOptimizer):
 
   def _get_optimization_level(self) -> _OptimizationLevel:
     """Returns configured optimization level."""
-    return self._title_word_order_options.get(
-        'optimizationLevel', _OptimizationLevel.STANDARD).lower()
+    if self._title_word_order_options.get(
+        'optimizationLevel').lower() == _OptimizationLevel.AGGRESSIVE.value:
+      return _OptimizationLevel.AGGRESSIVE
+    else:
+      return _OptimizationLevel.STANDARD
 
   def _optimization_includes_description(self) -> bool:
     """Returns whether description field should be inspected or not when finding keywords."""
@@ -208,10 +211,9 @@ def _should_skip_optimization(gpc_string: str,
     return False
   else:
     gpc_list = gpc_string.split('>')
-    if len(gpc_list) > 3:
-      return True
-    else:
-      return False
+    # 3 because Mizuyokan config file only contains analysis for GPC
+    # level 1,2 and 3
+    return len(gpc_list) > 3
 
 
 def _get_level_3_gpc_id(
