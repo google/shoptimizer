@@ -31,7 +31,10 @@
     {
       "keyword": "送料無料",
       "weight": 0.2
-    }
+    },
+    {
+      "keyword": "[SALE]",
+      "weight": 0.2    }
   ],
   "203": [
     {
