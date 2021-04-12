@@ -62,7 +62,7 @@ This feature utilizes the "optimizationLevel" configuration setting in the “ti
 
 These levels are explained as follows:
 
-“standard” - Any product GPCs that are 4 levels deep or more skip optimizing the product for title word order.
+“standard” - Any product GPCs that are 4 levels deep or more skip optimizing the product for title word order. Optimizations will be applied to products having GPC depths of 3 or less.
 “aggressive” - The GPCs are matched as-is (any depth).
 
 ### Do not move or copy matching high-performing keywords if they are in a configured list of words to block
