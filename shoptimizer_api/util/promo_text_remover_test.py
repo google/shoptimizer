@@ -123,12 +123,26 @@ class PromoTextRemoverTest(parameterized.TestCase):
 
     self.assertEqual('dummy title', product.get('title'))
 
-  @parameterized.named_parameters([{
-      'testcase_name':
-          'one_promo_text_at_end_list_should_be_removed',
-      'list_with_promo': ['カイナ', '高い', '悪い', 'ポイント消化'],
-      'expected_result': {'カイナ', '高い', '悪い'}
-  }])
+  @parameterized.named_parameters([
+      {
+          'testcase_name':
+              'one_promo_text_at_end_list_exact_match_should_be_removed',
+          'list_with_promo': [
+              'カイナ', '高い', '悪い', 'ポイント消化'
+          ],
+          'expected_result': {'カイナ', '高い', '悪い'}
+      },
+      {
+          'testcase_name': 'promo_text_regex_pattern_pointo_is_removed',
+          'list_with_promo': [
+              'カイナ',
+              '高い',
+              '悪い',
+              '【ポイント】'  # will be detected by our regex and removed
+          ],
+          'expected_result': {'カイナ', '高い', '悪い'}
+      }
+  ])
   def test_remove_keywords_with_promo(self, list_with_promo, expected_result):
     result = self.text_remover.remove_keywords_with_promo(list_with_promo)
     self.assertEqual(result, expected_result)
