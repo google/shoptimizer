@@ -96,7 +96,6 @@ _**Optional:**_
 *   `condition-optimizer=(true/false)`
 *   `description-optimizer=(true/false)`
 *   `free-shipping-optimizer=(true/false)`
-*   `gtin-optimizer=(true/false)`
 *   `identifier-exists-optimizer=(true/false)`
 *   `invalid-chars-optimizer=(true/false)`
 *   `mpn-optimizer=(true/false)`
@@ -486,10 +485,10 @@ def shoptimize(original_product_batch_dictionary: Dict[str, Any]) -> Dict[str, A
 Append `optimizer-key=true` as a URL parameter in your call to Shoptimizer for
 each optimizer you want to run.
 
-For example, to run the mpn-optimizer and gtin-optimizer, use the following
+For example, to run the mpn-optimizer and title-optimizer, use the following
 endpoint:
 
-`.../shoptimizer/v1/batch/optimize?mpn-optimizer=true&gtin-optimizer=true`
+`.../shoptimizer/v1/batch/optimize?mpn-optimizer=true&title-optimizer=true`
 
 ## 6. Writing a Plugin
 
