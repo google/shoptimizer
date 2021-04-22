@@ -17,11 +17,10 @@
 
 Reference: https://support.google.com/merchants/answer/6324484
 
-This module sets free shipping by detecting regex patterns in the config file
-that represents free shipping in the title of a product. It does not set free
-shipping when it detects an exclusion pattern (e.g. Except Okinawa) even if a
-free shipping pattern
-was found in the title.
+This module sets the free shipping attribute to 0 by detecting regex patterns in
+the config file that represents free shipping in the title of a product. It does
+not set free shipping when it detects an exclusion pattern (e.g. Except Okinawa)
+even if a free shipping pattern was found in the title.
 
 This module uses a config file located in
 ./config/free_shipping_optimizer_config_{language code}.json.
