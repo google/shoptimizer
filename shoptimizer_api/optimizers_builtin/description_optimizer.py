@@ -31,6 +31,8 @@ import logging
 from typing import Any, Dict
 
 import constants
+
+from models import optimization_result_counts
 from optimizers_abstract import base_optimizer
 from util import optimization_util
 
@@ -42,8 +44,9 @@ class DescriptionOptimizer(base_optimizer.BaseOptimizer):
 
   _OPTIMIZER_PARAMETER: str = 'description-optimizer'
 
-  def _optimize(self, product_batch: Dict[str, Any], language: str,
-                country: str, currency: str) -> int:
+  def _optimize(
+      self, product_batch: Dict[str, Any], language: str, country: str,
+      currency: str) -> optimization_result_counts.OptimizationResultCounts:
     """Runs the optimization.
 
     Args:
@@ -56,8 +59,15 @@ class DescriptionOptimizer(base_optimizer.BaseOptimizer):
       The number of products affected by this optimization.
     """
     num_of_products_optimized = 0
+    num_of_products_excluded = 0
 
     for entry in product_batch['entries']:
+
+      if (optimization_util.optimization_exclusion_specified(
+          entry, self._OPTIMIZER_PARAMETER)):
+        num_of_products_excluded += 1
+        continue
+
       product = entry['product']
 
       original_description = product.get('description', '')
@@ -71,7 +81,8 @@ class DescriptionOptimizer(base_optimizer.BaseOptimizer):
         _update_product_description(product, optimized_description)
         num_of_products_optimized += 1
 
-    return num_of_products_optimized
+    return optimization_result_counts.OptimizationResultCounts(
+        num_of_products_optimized, num_of_products_excluded)
 
   def _get_fields_to_append_to_description(self,
                                            product_id: str) -> Dict[str, Any]:

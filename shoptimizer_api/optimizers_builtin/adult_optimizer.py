@@ -25,7 +25,9 @@ import logging
 from typing import AbstractSet, Any, Mapping, Sequence
 from flask import current_app
 
+from models import optimization_result_counts
 from optimizers_abstract import base_optimizer
+from util import optimization_util
 
 
 class AdultOptimizer(base_optimizer.BaseOptimizer):
@@ -35,8 +37,9 @@ class AdultOptimizer(base_optimizer.BaseOptimizer):
   _adult_config = None
   _adult_types = None
 
-  def _optimize(self, product_batch: Mapping[str, Any], language: str,
-                country: str, currency: str) -> int:
+  def _optimize(
+      self, product_batch: Mapping[str, Any], language: str, country: str,
+      currency: str) -> optimization_result_counts.OptimizationResultCounts:
     """Runs the optimization.
 
     Fixes invalid adult values.
@@ -55,9 +58,17 @@ class AdultOptimizer(base_optimizer.BaseOptimizer):
         f'adult_optimizer_config_{language}', {})
     self._adult_types = frozenset(
         self._adult_config.get('adult_product_types', []))
+
     num_of_products_optimized = 0
+    num_of_products_excluded = 0
 
     for entry in product_batch['entries']:
+
+      if (optimization_util.optimization_exclusion_specified(
+          entry, self._OPTIMIZER_PARAMETER)):
+        num_of_products_excluded += 1
+        continue
+
       product = entry['product']
       product_types = product.get('productTypes', [])
       product_category = product.get('googleProductCategory', '')
@@ -98,7 +109,8 @@ class AdultOptimizer(base_optimizer.BaseOptimizer):
           base_optimizer.set_optimization_tracking(product,
                                                    base_optimizer.SANITIZED)
 
-    return num_of_products_optimized
+    return optimization_result_counts.OptimizationResultCounts(
+        num_of_products_optimized, num_of_products_excluded)
 
   def _is_product_type_adult(self, product_types: Sequence[str]) -> bool:
     """Checks if the provided product type was found in the adult config dict.

@@ -16,6 +16,7 @@
 """An plugin for testing. Returns the product data without modifying it."""
 from typing import Any, Dict
 
+from models import optimization_result_counts
 from optimizers_abstract import base_optimizer
 
 
@@ -38,9 +39,10 @@ class MyPlugin(base_optimizer.BaseOptimizer):
       currency: The currency to use for this optimizer.
 
     Returns:
-      The number of products affected by this optimization: int
+      The number of products affected and excluded by this optimization.
     """
     num_of_products_optimized = 0
+    num_of_products_excluded = 0
 
     # Logic can be added like this --
     # for entry in data['entries']:
@@ -50,4 +52,5 @@ class MyPlugin(base_optimizer.BaseOptimizer):
     #  base_optimizer.set_optimization_tracking(product,
     #                                           base_optimizer.SANITIZED)
 
-    return num_of_products_optimized
+    return optimization_result_counts.OptimizationResultCounts(
+        num_of_products_optimized, num_of_products_excluded)

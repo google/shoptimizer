@@ -127,11 +127,24 @@ def optimize() -> Tuple[str, http.HTTPStatus]:
       optimized_product_batch, lang_url_parameter, country_url_parameter,
       currency_url_parameter, _plugin_optimizer_cache)
 
+  remove_exclude_optimizers_attributes(optimized_product_batch)
+
   response_dict = _build_response_dict(optimized_product_batch,
                                        builtin_optimizer_results,
                                        plugin_optimizer_results)
 
   return flask.make_response(flask.jsonify(response_dict), http.HTTPStatus.OK)
+
+
+def remove_exclude_optimizers_attributes(
+    optimized_product_batch: Dict[str, Any]) -> None:
+  """Removes any "excludeOptimizers" attributes in the request's "entries" list.
+
+  Args:
+    optimized_product_batch: A batch of product data that has run optimizers.
+  """
+  for entry in optimized_product_batch.get('entries'):
+    entry.pop('excludeOptimizers', None)
 
 
 def _check_request_valid(lang_url_parameter: str) -> (bool, str):

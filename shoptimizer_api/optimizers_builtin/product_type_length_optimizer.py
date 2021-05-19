@@ -26,6 +26,7 @@ limit is 10 as of 20200331)
 import logging
 from typing import Any, Dict
 
+from models import optimization_result_counts
 from optimizers_abstract import base_optimizer
 from util import optimization_util
 
@@ -38,8 +39,9 @@ class ProductTypeLengthOptimizer(base_optimizer.BaseOptimizer):
 
   _OPTIMIZER_PARAMETER = 'product-type-length-optimizer'
 
-  def _optimize(self, product_batch: Dict[str, Any], language: str,
-                country: str, currency: str) -> int:
+  def _optimize(
+      self, product_batch: Dict[str, Any], language: str, country: str,
+      currency: str) -> optimization_result_counts.OptimizationResultCounts:
     """Runs the optimization.
 
     Args:
@@ -52,7 +54,15 @@ class ProductTypeLengthOptimizer(base_optimizer.BaseOptimizer):
       The number of products affected by this optimization.
     """
     num_of_products_optimized = 0
+    num_of_products_excluded = 0
+
     for entry in product_batch['entries']:
+
+      if (optimization_util.optimization_exclusion_specified(
+          entry, self._OPTIMIZER_PARAMETER)):
+        num_of_products_excluded += 1
+        continue
+
       product = entry['product']
       if 'productTypes' in product:
         product_types = product.get('productTypes', [])
@@ -70,4 +80,5 @@ class ProductTypeLengthOptimizer(base_optimizer.BaseOptimizer):
           base_optimizer.set_optimization_tracking(product,
                                                    base_optimizer.SANITIZED)
 
-    return num_of_products_optimized
+    return optimization_result_counts.OptimizationResultCounts(
+        num_of_products_optimized, num_of_products_excluded)

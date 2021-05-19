@@ -43,6 +43,7 @@ class BaseOptimizer(abc.ABC):
       def _optimize(self, data: Dict[str, Any]) -> int:
         # Entry point for optimization logic.
         num_of_products_optimized = 0
+        num_of_products_excluded = 0
 
         for entry in data['entries']:
           product = entry['product']
@@ -51,15 +52,16 @@ class BaseOptimizer(abc.ABC):
           base_optimizer.set_optimization_tracking(
             entry,  base_optimizer.OPTIMIZED)
 
-        return num_of_products_optimized
+        return optimization_result_counts.OptimizationResultCounts(
+          num_of_products_optimized, num_of_products_excluded)
 
   See also identity_optimizer.py and my_plugin.py for example implementations.
   """
 
   _OPTIMIZER_PARAMETER: str
 
-  def __init__(
-      self, mined_attributes: original_types.MinedAttributes = None) -> None:
+  def __init__(self,
+               mined_attributes: original_types.MinedAttributes = None) -> None:
     """Initializes BaseOptimizer.
 
     Args:
@@ -103,8 +105,8 @@ class BaseOptimizer(abc.ABC):
     optimized_product_batch = copy.deepcopy(product_batch)
 
     try:
-      num_products_optimized = self._optimize(optimized_product_batch, language,
-                                              country, currency)
+      optimizer_result_counts = self._optimize(optimized_product_batch,
+                                               language, country, currency)
     except NotImplementedError:
       logging.error('Optimizer %s did not implement base_optimizer correctly.',
                     self._OPTIMIZER_PARAMETER)
@@ -118,9 +120,14 @@ class BaseOptimizer(abc.ABC):
       return product_batch, optimization_result.OptimizationResult(
           'failure', 0, str(error))
     else:
-      logging.info('Finished running %s', self._OPTIMIZER_PARAMETER)
+      logging.info(
+          'Finished running optimizer: %s. %s products were touched by the '
+          'optimizer and %s products were requested to be excluded from being '
+          'run by this optimizer.', self._OPTIMIZER_PARAMETER,
+          optimizer_result_counts.num_of_products_optimized,
+          optimizer_result_counts.num_of_products_excluded)
       return optimized_product_batch, optimization_result.OptimizationResult(
-          'success', num_products_optimized, '')
+          'success', optimizer_result_counts.num_of_products_optimized, '')
 
   @abc.abstractmethod
   def _optimize(self, product_batch: Dict[str, Any], language: str,
@@ -137,7 +144,8 @@ class BaseOptimizer(abc.ABC):
       currency: The currency to use for this optimizer.
 
     Returns:
-      The number of products affected by this optimization: int
+      The number of products affected and excluded by this optimization:
+        OptimizationResultCounts
     """
     raise NotImplementedError('Optimizer must implement the method optimize.')
 

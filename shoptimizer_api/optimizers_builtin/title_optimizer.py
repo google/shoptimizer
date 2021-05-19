@@ -38,6 +38,8 @@ import re
 from typing import Any, Dict, List
 
 import constants
+
+from models import optimization_result_counts
 from optimizers_abstract import base_optimizer
 from util import optimization_util
 from util import size_miner
@@ -51,8 +53,9 @@ class TitleOptimizer(base_optimizer.BaseOptimizer):
 
   _OPTIMIZER_PARAMETER: str = 'title-optimizer'
 
-  def _optimize(self, product_batch: Dict[str, Any], language: str,
-                country: str, currency: str) -> int:
+  def _optimize(
+      self, product_batch: Dict[str, Any], language: str, country: str,
+      currency: str) -> optimization_result_counts.OptimizationResultCounts:
     """Runs the optimization.
 
     Args:
@@ -65,8 +68,15 @@ class TitleOptimizer(base_optimizer.BaseOptimizer):
       The number of products affected by this optimization.
     """
     num_of_products_optimized = 0
+    num_of_products_excluded = 0
 
     for entry in product_batch['entries']:
+
+      if (optimization_util.optimization_exclusion_specified(
+          entry, self._OPTIMIZER_PARAMETER)):
+        num_of_products_excluded += 1
+        continue
+
       product = entry['product']
       original_title = product.get('title', '')
 
@@ -83,7 +93,8 @@ class TitleOptimizer(base_optimizer.BaseOptimizer):
       if product.get('title', '') != original_title:
         num_of_products_optimized += 1
 
-    return num_of_products_optimized
+    return optimization_result_counts.OptimizationResultCounts(
+        num_of_products_optimized, num_of_products_excluded)
 
   def _append_attributes_to_title(self, product: Dict[str, Any],
                                   chars_to_preserve: int, language: str,
@@ -133,8 +144,7 @@ def _create_title_from_description(product: Dict[str, Any]) -> str:
     does not exist.
   """
   if 'description' in product:
-    title =\
-      f'{product["description"][:_CHARS_TO_USE_WHEN_CREATING_TITLE].strip()}…'
+    title = f'{product["description"][:_CHARS_TO_USE_WHEN_CREATING_TITLE].strip()}…'
   else:
     title = ''
 

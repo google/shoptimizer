@@ -19,6 +19,7 @@ import copy
 
 from absl.testing import parameterized
 
+from test_data import requests_bodies
 from util import optimization_util
 
 MAX_LIST_LENGTH = 3
@@ -180,8 +181,7 @@ class OptimizationUtilTest(parameterized.TestCase):
 
     self.assertEqual(original_field, actual_output)
 
-  def test_append_keywords_to_field_only_appends_fields_that_will_fit(
-      self):
+  def test_append_keywords_to_field_only_appends_fields_that_will_fit(self):
     original_field = 'dummy field'
     field_to_append = 'Field to append'
     field_that_is_too_long_to_append = ('Super long field that does not have'
@@ -276,5 +276,35 @@ class OptimizationUtilTest(parameterized.TestCase):
 
     result = optimization_util.is_particular_google_product_category(
         category, [], category_ids)
+
+    self.assertFalse(result)
+
+  def test_optimization_exclusion_specified_returns_true_if_attribute_was_specified_and_optimizer_matches(
+      self):
+    request_body = requests_bodies.VALID_SINGLE_PRODUCT
+    exclude_optimizers = ['title-length-optimizer']
+    request_body['entries'][0]['excludeOptimizers'] = exclude_optimizers
+
+    result = optimization_util.optimization_exclusion_specified(
+        request_body['entries'][0], 'title-length-optimizer')
+
+    self.assertTrue(result)
+
+  def test_optimization_exclusion_specified_returns_false_if_attribute_was_specified_but_optimizer_is_different(
+      self):
+    request_body = requests_bodies.VALID_SINGLE_PRODUCT
+    exclude_optimizers = ['title-length-optimizer']
+    request_body['entries'][0]['excludeOptimizers'] = exclude_optimizers
+
+    result = optimization_util.optimization_exclusion_specified(
+        request_body['entries'][0], 'promo-text-optimizer')
+
+    self.assertFalse(result)
+
+  def test_optimization_exclusion_specified_returns_false_if_attribute_was_not_specified(
+      self):
+    request_body = requests_bodies.VALID_SINGLE_PRODUCT
+    result = optimization_util.optimization_exclusion_specified(
+        request_body['entries'][0], 'title-length-optimizer')
 
     self.assertFalse(result)

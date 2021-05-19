@@ -18,7 +18,9 @@
 import logging
 from typing import Any, Dict
 
+from models import optimization_result_counts
 from optimizers_abstract import base_optimizer
+from util import optimization_util
 from util import promo_text_remover
 
 
@@ -27,8 +29,9 @@ class PromoTextRemovalOptimizer(base_optimizer.BaseOptimizer):
 
   _OPTIMIZER_PARAMETER: str = 'promo-text-removal-optimizer'
 
-  def _optimize(self, product_batch: Dict[str, Any], language: str,
-                country: str, currency: str) -> int:
+  def _optimize(
+      self, product_batch: Dict[str, Any], language: str, country: str,
+      currency: str) -> optimization_result_counts.OptimizationResultCounts:
     """Runs the optimization.
 
     Args:
@@ -41,8 +44,15 @@ class PromoTextRemovalOptimizer(base_optimizer.BaseOptimizer):
       The number of products affected by this optimization.
     """
     num_of_products_optimized = 0
+    num_of_products_excluded = 0
 
     for entry in product_batch['entries']:
+
+      if (optimization_util.optimization_exclusion_specified(
+          entry, self._OPTIMIZER_PARAMETER)):
+        num_of_products_excluded += 1
+        continue
+
       product = entry['product']
       original_title = product.get('title', '')
 
@@ -55,7 +65,8 @@ class PromoTextRemovalOptimizer(base_optimizer.BaseOptimizer):
         base_optimizer.set_optimization_tracking(product,
                                                  base_optimizer.SANITIZED)
 
-    return num_of_products_optimized
+    return optimization_result_counts.OptimizationResultCounts(
+        num_of_products_optimized, num_of_products_excluded)
 
 
 def _remove_unnecessary_text(product: Dict[str, Any], language: str) -> None:

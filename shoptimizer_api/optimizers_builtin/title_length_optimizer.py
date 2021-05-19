@@ -27,7 +27,9 @@ import logging
 import re
 from typing import Any, Dict
 
+from models import optimization_result_counts
 from optimizers_abstract import base_optimizer
+from util import optimization_util
 
 _MAX_TITLE_LENGTH: int = 150
 
@@ -37,8 +39,9 @@ class TitleLengthOptimizer(base_optimizer.BaseOptimizer):
 
   _OPTIMIZER_PARAMETER = 'title-length-optimizer'
 
-  def _optimize(self, product_batch: Dict[str, Any], language: str,
-                country: str, currency: str) -> int:
+  def _optimize(
+      self, product_batch: Dict[str, Any], language: str, country: str,
+      currency: str) -> optimization_result_counts.OptimizationResultCounts:
     """Runs title length optimization.
 
     This method optimizes the title by executing following processes:
@@ -55,10 +58,17 @@ class TitleLengthOptimizer(base_optimizer.BaseOptimizer):
     Returns:
       The number of products affected by this optimization.
     """
-    num_of_products_optimized: int = 0
+    num_of_products_optimized = 0
+    num_of_products_excluded = 0
 
     entry: Dict[str, Any]
     for entry in product_batch['entries']:
+
+      if (optimization_util.optimization_exclusion_specified(
+          entry, self._OPTIMIZER_PARAMETER)):
+        num_of_products_excluded += 1
+        continue
+
       product = entry['product']
       item_id: str = product.get('offerId', '')
       title: str = product.get('title', '')
@@ -84,4 +94,5 @@ class TitleLengthOptimizer(base_optimizer.BaseOptimizer):
         base_optimizer.set_optimization_tracking(product,
                                                  base_optimizer.OPTIMIZED)
 
-    return num_of_products_optimized
+    return optimization_result_counts.OptimizationResultCounts(
+        num_of_products_optimized, num_of_products_excluded)

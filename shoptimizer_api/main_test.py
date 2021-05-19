@@ -209,3 +209,64 @@ class MainTest(parameterized.TestCase):
     self.assertEqual(http.HTTPStatus.OK, response.status_code)
 
   # endregion
+
+  # region excluded optimizer tests
+  def test_optimizers_not_run_when_excluded(self):
+    max_title_length = 150
+    original_title = 'a' * (max_title_length * 2)
+    request_body = requests_bodies.build_request_body(
+        properties_to_be_updated={'title': original_title})
+
+    query_string_params = 'title-length-optimizer=true'
+
+    response_without_exclusion = self.test_client.post(
+        f'{main._V1_BASE_URL}/batch/optimize?{query_string_params}',
+        json=request_body)
+    response_without_exclusion_data = response_without_exclusion.data.decode(
+        'utf-8')
+    response_without_exclusion_dict = json.loads(
+        response_without_exclusion_data)
+    optimization_without_exclusion_results = response_without_exclusion_dict[
+        'optimization-results']
+
+    exclude_optimizers = ['title-length-optimizer']
+    request_body['entries'][0]['excludeOptimizers'] = exclude_optimizers
+    response_with_exclusion = self.test_client.post(
+        f'{main._V1_BASE_URL}/batch/optimize?{query_string_params}',
+        json=request_body)
+    response_with_exclusion_data = response_with_exclusion.data.decode('utf-8')
+    response_with_exclusion_dict = json.loads(response_with_exclusion_data)
+    optimization_with_exclusion_results = response_with_exclusion_dict[
+        'optimization-results']
+    title_from_excluded_response = response_with_exclusion_dict[
+        'optimized-data']['entries'][0]['product']['title']
+
+    self.assertEqual(
+        1,
+        optimization_without_exclusion_results.get(
+            'title-length-optimizer').get('num_of_products_optimized'))
+    self.assertEqual(
+        0,
+        optimization_with_exclusion_results.get('title-length-optimizer').get(
+            'num_of_products_optimized'))
+    self.assertEqual(original_title, title_from_excluded_response)
+
+  def test_excluded_optimizers_attribute_removed_in_response(self):
+    max_title_length = 150
+    request_body = requests_bodies.build_request_body(
+        properties_to_be_updated={'title': 'a' * (max_title_length * 2)})
+
+    query_string_params = 'title-length-optimizer=true'
+
+    exclude_optimizers = ['title-length-optimizer']
+
+    request_body['entries'][0]['excludeOptimizers'] = exclude_optimizers
+    response = self.test_client.post(
+        f'{main._V1_BASE_URL}/batch/optimize?{query_string_params}',
+        json=request_body)
+    response_data = response.data.decode('utf-8')
+    response_dict = json.loads(response_data)
+    self.assertIsNone(
+        response_dict['optimized-data']['entries'][0].get('excludedOptimizers'))
+
+  # endregion

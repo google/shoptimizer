@@ -37,7 +37,10 @@ from util import promo_text_remover as promo_text_remover_lib
 from flask import current_app
 
 import constants
+
+from models import optimization_result_counts
 from optimizers_abstract import base_optimizer
+from util import optimization_util
 
 _TITLE_CHARS_VISIBLE_TO_USER_EN = 25
 _TITLE_CHARS_VISIBLE_TO_USER_JA = 12
@@ -62,8 +65,9 @@ class TitleWordOrderOptimizer(base_optimizer.BaseOptimizer):
   _OPTIMIZER_PARAMETER = 'title-word-order-optimizer'
   _title_word_order_options = {}
 
-  def _optimize(self, product_batch: Dict[str, Any], language: str,
-                country: str, currency: str) -> int:
+  def _optimize(
+      self, product_batch: Dict[str, Any], language: str, country: str,
+      currency: str) -> optimization_result_counts.OptimizationResultCounts:
     """Runs the optimization.
 
     This is called by process() in the base class.
@@ -77,6 +81,9 @@ class TitleWordOrderOptimizer(base_optimizer.BaseOptimizer):
     Returns:
       The number of products affected by this optimization.
     """
+    num_of_products_optimized = 0
+    num_of_products_excluded = 0
+
     gpc_string_to_id_mapping = current_app.config.get('CONFIGS', {}).get(
         _GCP_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME.format(language), {})
     title_word_order_config = current_app.config.get('CONFIGS', {}).get(
@@ -97,9 +104,13 @@ class TitleWordOrderOptimizer(base_optimizer.BaseOptimizer):
 
     optimization_level = self._get_optimization_level()
 
-    num_of_products_optimized = 0
-
     for entry in product_batch['entries']:
+
+      if (optimization_util.optimization_exclusion_specified(
+          entry, self._OPTIMIZER_PARAMETER)):
+        num_of_products_excluded += 1
+        continue
+
       product = entry['product']
       original_title = product.get('title', None)
       description = product.get('description', None)
@@ -173,7 +184,8 @@ class TitleWordOrderOptimizer(base_optimizer.BaseOptimizer):
         base_optimizer.set_optimization_tracking(product,
                                                  base_optimizer.OPTIMIZED)
 
-    return num_of_products_optimized
+    return optimization_result_counts.OptimizationResultCounts(
+        num_of_products_optimized, num_of_products_excluded)
 
   def _get_optimization_level(self) -> _OptimizationLevel:
     """Returns configured optimization level."""

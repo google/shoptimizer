@@ -15,10 +15,18 @@
 
 """Utility module for optimization."""
 import copy
-from typing import Any, Collection, Iterable, List, Sequence
+from typing import Any, Collection, Dict, Iterable, List, Sequence
 
 # Amount of space to leave between product data and appended attributes
 _SEPARATOR_LENGTH = len(' ')
+
+
+def optimization_exclusion_specified(entry: Dict[str, Any],
+                                     optimizer_parameter: str) -> bool:
+  """Returns true if the optimizer exclusion attribute was set and matches the given optimizer parameter."""
+  return (entry.get('excludeOptimizers') and
+          isinstance(entry.get('excludeOptimizers'), list) and
+          optimizer_parameter in entry.get('excludeOptimizers'))
 
 
 def cut_list_to_limit_list_length(target_list: Sequence[Any],
@@ -47,7 +55,7 @@ def cut_list_to_limit_concatenated_str_length(
     A list cut from target_list.
   """
   output_list = list(copy.deepcopy(target_list))
-  # Concatenated string length > max str length..
+  # Concatenated string length > max str length.
   while len(separator.join(output_list)) > max_total_str_length:
     output_list.pop()
   return output_list
@@ -133,9 +141,9 @@ def _get_keywords_text(
   keywords_not_in_field = []
 
   for keyword in keywords:
-    if (keyword in allowlist or keyword.lower(
-    ) not in lowercase_target_field) and (
-        len(keyword) + _SEPARATOR_LENGTH) <= space_left_to_append_keywords:
+    if (keyword in allowlist or
+        keyword.lower() not in lowercase_target_field) and (
+            len(keyword) + _SEPARATOR_LENGTH) <= space_left_to_append_keywords:
       keywords_not_in_field.append(keyword)
       space_left_to_append_keywords -= len(keyword) + _SEPARATOR_LENGTH
       if space_left_to_append_keywords <= 0:
