@@ -18,7 +18,6 @@
 This module acts as the main entry point to the Shoptimizer API.
 """
 
-import copy
 import http
 
 import logging
@@ -218,11 +217,10 @@ def _run_optimizers(
     The results of each optimizer run: Dict[str,
     optimization_result.OptimizationResult]
   """
-  optimized_product_batch = copy.deepcopy(product_batch)
   optimization_results = {}
 
   mined_attributes = _get_mined_attributes(
-      optimized_product_batch, language,
+      product_batch, language,
       country) if _mined_attributes_required() else {}
 
   optimizers = [
@@ -241,11 +239,11 @@ def _run_optimizers(
       logging.info(
           'Running optimization %s with language %s, country %s, currency %s',
           optimizer_parameter, language, country, currency)
-      optimized_product_batch, result = optimizer.process(
-          optimized_product_batch, language, country, currency)
+      product_batch, result = optimizer.process(
+          product_batch, language, country, currency)
       optimization_results[optimizer_parameter] = result
 
-  return optimized_product_batch, optimization_results
+  return product_batch, optimization_results
 
 
 def _mined_attributes_required() -> bool:

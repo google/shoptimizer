@@ -14,8 +14,8 @@
 # limitations under the License.
 
 """The base optimizer that all optimizers must inherit from."""
+import _pickle as pickle
 import abc
-import copy
 import logging
 import os
 from typing import Any, Dict, final
@@ -102,7 +102,7 @@ class BaseOptimizer(abc.ABC):
       The optimized product data: Dict[str, Any]
       The results of this optimization: optimization_result.OptimizationResult
     """
-    optimized_product_batch = copy.deepcopy(product_batch)
+    optimized_product_batch = pickle.loads(pickle.dumps(product_batch))
 
     try:
       optimizer_result_counts = self._optimize(optimized_product_batch,
