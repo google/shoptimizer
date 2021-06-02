@@ -34,7 +34,6 @@ import enum
 import logging
 from typing import Any, Dict, List, Optional, Text, Tuple, Union
 from util import promo_text_remover as promo_text_remover_lib
-from util import app_util
 from flask import current_app
 
 import constants
@@ -352,6 +351,24 @@ def _tokenize_text(text: str, language: str) -> List[str]:
     return text.split()
 
 
+# The `subprocess` and `MeCab` dependencies may need to be resolved if the
+# optimizer is running outside a Flask environment.
+#
+
+def _setup_mecab():
+  """Sets up a MeCab Tagger."""
+  cmd = 'echo `mecab-config --dicdir`"/mecab-ipadic-neologd"'
+  config_path = subprocess.run(
+      cmd, stdout=subprocess.PIPE, shell=True,
+      check=True).stdout.decode('utf-8')
+  try:
+    mecab_tagger = MeCab.Tagger(f'-d {config_path}')
+    return mecab_tagger
+  except RuntimeError as error:
+    logging.exception('Error during initializing MeCab Tagger: %s', error)
+
+
+
 def _split_words_in_japanese(text: str) -> List[str]:
   """Splits Japanese text into words by using MeCab.
 
@@ -364,7 +381,7 @@ def _split_words_in_japanese(text: str) -> List[str]:
   if current_app:
     mecab_tagger = current_app.config.get('MECAB')
   else:
-    mecab_tagger = app_util.setup_mecab()
+    mecab_tagger = _setup_mecab()
 
   if not mecab_tagger:
     logging.warning('Did not parse title because MeCab was not set up.')
