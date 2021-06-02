@@ -18,12 +18,23 @@ import _pickle as pickle
 import abc
 import logging
 import os
-from typing import Any, Dict, final
+from typing import Any, Dict
 
 import constants
 import enums
 from models import optimization_result
 import original_types
+
+# final was moved from typing_extensions to typing in Python 3.8 per:
+# https://mypy.readthedocs.io/en/stable/final_attrs.html
+#
+
+try:
+  from typing import final
+except ImportError:
+  from typing_extensions import final
+
+
 
 OPTIMIZED = enums.TrackingTag.OPTIMIZED
 SANITIZED = enums.TrackingTag.SANITIZED
