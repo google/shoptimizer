@@ -29,7 +29,7 @@ def create_app() -> flask.Flask:
   app = flask.Flask(__name__)
   app.config['JSON_SORT_KEYS'] = False
   app.config['CONFIGS'] = _load_all_configs()
-  app.config['MECAB'] = _setup_mecab()
+  app.config['MECAB'] = setup_mecab()
   return app
 
 
@@ -60,7 +60,7 @@ def _load_all_configs() -> Dict[str, Any]:
   return all_configs
 
 
-def _setup_mecab() -> Optional[MeCab.Tagger]:
+def setup_mecab() -> Optional[MeCab.Tagger]:
   """Sets up Mecab tagger for Japanese language non-whitespace token parsing."""
   cmd = 'echo `mecab-config --dicdir`"/mecab-ipadic-neologd"'
   config_path = subprocess.run(

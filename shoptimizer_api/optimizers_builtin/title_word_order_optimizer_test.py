@@ -493,3 +493,85 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
                       ',カラー：ブラック、防寒仕様ダウンジャケット')
     self.assertEqual(expected_title, product['title'])
     self.assertEqual(1, optimization_result.num_of_products_optimized)
+
+
+def _set_test_variables(module: 'Module'):
+  """Sets the module variables for testing outside a Flask environment."""
+  module.GPC_STRING_TO_ID_MAPPING_CONFIG = {
+      'Apparel & Accessories': 166,
+      'Apparel & Accessories > Jewelry': 188,
+      'Apparel & Accessories > Jewelry > Watches': 201,
+  }
+
+  module.TITLE_WORD_ORDER_CONFIG = {
+      '201': [
+          {
+              'keyword': 'keyword1',
+              'weight': 0.8
+          },
+          {
+              'keyword': 'keyword2',
+              'weight': 0.7
+          },
+          {
+              'keyword': 'heavy_keyword',
+              'weight': 0.5
+          },
+          {
+              'keyword': 'heavy_keyword_2',
+              'weight': 0.6
+          },
+          {
+              'keyword': 'a',
+              'weight': 0.4
+          },
+          {
+              'keyword': 'magic',
+              'weight': 0.3
+
+          }
+      ],
+      '632': [
+          {
+              'keyword': 'keyword1',
+              'weight': 0.5
+          },
+          {
+              'keyword': 'keyword2',
+              'weight': 0.7
+          }
+      ]
+    }
+  module.BLOCKLIST_CONFIG = {}
+
+  module.TITLE_WORD_ORDER_OPTIONS_CONFIG = {
+      'descriptionIncluded': False,
+      'productTypesIncluded': False,
+      'optimizationLevel': 'standard'
+  }
+
+
+class TitleWordOrderOptimizerNoFlaskTest(parameterized.TestCase):
+  """Tests TitleWordOrderOptimizer running outside a Flask context."""
+
+  def setUp(self):
+    super(TitleWordOrderOptimizerNoFlaskTest, self).setUp()
+    # Explicitly no Flask context setup here.
+    _set_test_variables(module=title_word_order_optimizer)
+    self.optimizer = title_word_order_optimizer.TitleWordOrderOptimizer()
+
+  def test_process_copies_highest_performing_keyword_to_front_of_title(self):
+    original_data = requests_bodies.build_request_body(
+        properties_to_be_updated={
+            'title': 'Some title with heavy_keyword in the middle',
+            'googleProductCategory': _PROPER_GPC_CATEGORY_EN,
+        })
+
+    optimized_data, optimization_result = self.optimizer.process(
+        original_data, constants.LANGUAGE_CODE_EN)
+    product = optimized_data['entries'][0]['product']
+
+    expected_title = ('[heavy_keyword] Some title with heavy_keyword in the '
+                      'middle')
+    self.assertEqual(expected_title, product['title'])
+    self.assertEqual(1, optimization_result.num_of_products_optimized)

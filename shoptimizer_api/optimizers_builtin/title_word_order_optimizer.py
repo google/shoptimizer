@@ -34,6 +34,7 @@ import enum
 import logging
 from typing import Any, Dict, List, Optional, Text, Tuple, Union
 from util import promo_text_remover as promo_text_remover_lib
+from util import app_util
 from flask import current_app
 
 import constants
@@ -51,6 +52,65 @@ _GCP_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME: str = 'gpc_string_to_id_mapping_{}'
 _TITLE_WORD_ORDER_CONFIG_FILE_NAME: str = 'title_word_order_config_{}'
 _TITLE_WORD_ORDER_BLOCKLIST_FILE_NAME: str = 'title_word_order_blocklist_{}'
 _TITLE_WORD_ORDER_OPTIONS_FILE_NAME: str = 'title_word_order_options'
+
+# The following constants must be set if Shoptimizer is used outside
+# a Flask context.
+GPC_STRING_TO_ID_MAPPING_CONFIG = None
+TITLE_WORD_ORDER_CONFIG = None
+BLOCKLIST_CONFIG = None
+TITLE_WORD_ORDER_OPTIONS_CONFIG = None
+
+
+def _get_required_configs():
+  """Gets a map of required configs."""
+  return {
+      'gpc_string_to_id_mapping_config': GPC_STRING_TO_ID_MAPPING_CONFIG,
+      'title_word_order_config': TITLE_WORD_ORDER_CONFIG,
+      'blocklist_config': BLOCKLIST_CONFIG,
+      'title_word_order_options_config': TITLE_WORD_ORDER_OPTIONS_CONFIG,
+  }
+
+
+def _get_configs_from_environment(language: str):
+  """Gets optimizer configs from the local environment."""
+  if current_app:
+    # It is running on Flask.
+    gpc_string_to_id_mapping = (
+        current_app.config.get('CONFIGS', {}).get(
+            _GCP_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME.format(language), {}))
+
+    title_word_order_config = (
+        current_app.config.get('CONFIGS', {}).get(
+            _TITLE_WORD_ORDER_CONFIG_FILE_NAME.format(language), {}))
+
+    blocklist_config = (
+        current_app.config.get('CONFIGS', {}).get(
+            _TITLE_WORD_ORDER_BLOCKLIST_FILE_NAME.format(language), {}))
+
+    title_word_order_options = (
+        current_app.config.get(
+            'CONFIGS', {}).get(_TITLE_WORD_ORDER_OPTIONS_FILE_NAME))
+
+    return (
+        gpc_string_to_id_mapping,
+        title_word_order_config,
+        blocklist_config,
+        title_word_order_options)
+  else:
+    # It is not running on Flask.
+    #
+    # Checks all required configs are set.
+    for config_name, config_value in _get_required_configs().items():
+      if config_value is None:
+        raise RuntimeError(
+            'Config `%s` must be set in order to use this optimizer' %
+            config_name)
+
+    return (
+        GPC_STRING_TO_ID_MAPPING_CONFIG,
+        TITLE_WORD_ORDER_CONFIG,
+        BLOCKLIST_CONFIG,
+        TITLE_WORD_ORDER_OPTIONS_CONFIG)
 
 
 class _OptimizationLevel(enum.Enum):
@@ -84,15 +144,15 @@ class TitleWordOrderOptimizer(base_optimizer.BaseOptimizer):
     num_of_products_optimized = 0
     num_of_products_excluded = 0
 
-    gpc_string_to_id_mapping = current_app.config.get('CONFIGS', {}).get(
-        _GCP_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME.format(language), {})
-    title_word_order_config = current_app.config.get('CONFIGS', {}).get(
-        _TITLE_WORD_ORDER_CONFIG_FILE_NAME.format(language), {})
-    blocklist_config = current_app.config.get('CONFIGS', {}).get(
-        _TITLE_WORD_ORDER_BLOCKLIST_FILE_NAME.format(language), {})
-    keyword_blocklist = [keyword.lower() for keyword in blocklist_config]
-    self._title_word_order_options = current_app.config.get(
-        'CONFIGS', {}).get(_TITLE_WORD_ORDER_OPTIONS_FILE_NAME)
+    (gpc_string_to_id_mapping,
+     title_word_order_config,
+     blocklist_config,
+     title_word_order_options) = _get_configs_from_environment(language)
+
+    self._title_word_order_options = title_word_order_options
+
+    keyword_blocklist = (
+        [keyword.lower() for keyword in blocklist_config])
 
     optimization_includes_description = (
         self._optimization_includes_description())
@@ -301,7 +361,11 @@ def _split_words_in_japanese(text: str) -> List[str]:
   Returns:
     The text tokenized into a list of semantically delineated words.
   """
-  mecab_tagger = current_app.config.get('MECAB')
+  if current_app:
+    mecab_tagger = current_app.config.get('MECAB')
+  else:
+    mecab_tagger = app_util.setup_mecab()
+
   if not mecab_tagger:
     logging.warning('Did not parse title because MeCab was not set up.')
     return []

@@ -32,6 +32,14 @@ from typing import Any, Dict, Optional
 
 import flask
 
+# Can be set outside a Flask context; otherwise, no regex patterns are used.
+PROMO_TEXT_REMOVER_CONFIG = {
+    'promotional_text_patterns_regex': [
+    ],
+    'promotional_text_patterns_exact_match': [
+    ]
+}
+
 
 class PromoTextRemover(object):
   """A class that removes text from a field of a product."""
@@ -47,8 +55,14 @@ class PromoTextRemover(object):
     """
     super(PromoTextRemover, self).__init__()
     self._language = language
-    self._config = flask.current_app.config.get('CONFIGS', {}).get(
-        f'promo_text_removal_optimizer_config_{language}', {})
+
+    # Checks if running on Flask.
+    if flask.current_app:
+      self._config = flask.current_app.config.get('CONFIGS', {}).get(
+          f'promo_text_removal_optimizer_config_{language}', {})
+    else:
+      self._config = PROMO_TEXT_REMOVER_CONFIG
+
     self.promo_text_words = frozenset(self._config.get(
         'promotional_text_patterns_exact_match', set()))
     self.promo_regex_patterns = self._config.get(
