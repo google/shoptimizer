@@ -32,10 +32,12 @@ from flask import current_app
 import MeCab
 
 import constants
+from util import gpc_id_to_string_converter
 from util import optimization_util
 
-_CONFIG_FILE_PATH: str = '../config/color_optimizer_config_{}.json'
+_COLOR_OPTIMIZER_CONFIG_FILE_NAME: str = 'color_optimizer_config_{}'
 _COLOR_TERMS_CONFIG_KEY: str = 'color_terms'
+_GPC_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME: str = 'gpc_string_to_id_mapping_{}'
 
 
 class ColorMiner(object):
@@ -43,6 +45,8 @@ class ColorMiner(object):
 
   _language: Optional[str] = None
   _color_config: Optional[Dict[str, Any]] = None
+  _gpc_id_to_string_converter: Optional[
+      gpc_id_to_string_converter.GPCConverter] = None
   _mecab_tagger: Optional[MeCab.Tagger] = None
 
   def __init__(self, language: str) -> None:
@@ -54,7 +58,9 @@ class ColorMiner(object):
     super(ColorMiner, self).__init__()
     self._language = language
     self._color_config = current_app.config.get('CONFIGS', {}).get(
-        f'color_optimizer_config_{language}', {})
+        _COLOR_OPTIMIZER_CONFIG_FILE_NAME.format(language), {})
+    self._gpc_id_to_string_converter = gpc_id_to_string_converter.GPCConverter(
+        _GPC_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME.format(language))
     if self._language == constants.LANGUAGE_CODE_JA:
       self._setup_mecab()
 
@@ -90,8 +96,12 @@ class ColorMiner(object):
     if color_field:
       return [color_field], [color_field]
 
+    google_product_category = product.get('googleProductCategory', '')
+    gpc_string = self._gpc_id_to_string_converter.convert_gpc_id_to_string(
+        google_product_category)
+
     if not optimization_util.is_particular_google_product_category(
-        product.get('googleProductCategory', ''),
+        gpc_string,
         constants.GOOGLE_PRODUCT_CATEGORY_APPAREL_ACCESSORIES_KEYWORDS,
         constants.GOOGLE_PRODUCT_CATEGORY_APPAREL_ACCESSORIES_IDS):
       logging.info(

@@ -22,12 +22,15 @@ the "adult" attribute to be set to True on the Content API request, this
 optimizer will set the "adult" attribute to True for that product.
 """
 import logging
-from typing import AbstractSet, Any, Mapping, Sequence
+from typing import AbstractSet, Any, Mapping, Optional, Sequence
 from flask import current_app
 
 from models import optimization_result_counts
 from optimizers_abstract import base_optimizer
+from util import gpc_id_to_string_converter
 from util import optimization_util
+
+_GPC_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME: str = 'gpc_string_to_id_mapping_{}'
 
 
 class AdultOptimizer(base_optimizer.BaseOptimizer):
@@ -36,6 +39,8 @@ class AdultOptimizer(base_optimizer.BaseOptimizer):
   _OPTIMIZER_PARAMETER = 'adult-optimizer'
   _adult_config = None
   _adult_types = None
+  _gpc_id_to_string_converter: Optional[
+      gpc_id_to_string_converter.GPCConverter] = None
 
   def _optimize(
       self, product_batch: Mapping[str, Any], language: str, country: str,
@@ -58,6 +63,8 @@ class AdultOptimizer(base_optimizer.BaseOptimizer):
         f'adult_optimizer_config_{language}', {})
     self._adult_types = frozenset(
         self._adult_config.get('adult_product_types', []))
+    self._gpc_id_to_string_converter = gpc_id_to_string_converter.GPCConverter(
+        _GPC_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME.format(language))
 
     num_of_products_optimized = 0
     num_of_products_excluded = 0
@@ -71,8 +78,10 @@ class AdultOptimizer(base_optimizer.BaseOptimizer):
 
       product = entry['product']
       product_types = product.get('productTypes', [])
-      product_category = product.get('googleProductCategory', '')
-      category_specific_tokens = self._get_tokens_for_category(product_category)
+      google_product_category = product.get('googleProductCategory', '')
+      gpc_string = self._gpc_id_to_string_converter.convert_gpc_id_to_string(
+          google_product_category)
+      category_specific_tokens = self._get_tokens_for_category(gpc_string)
       is_adult = product.get('adult', False)
 
       # Product Types can directly determine adult category or not.

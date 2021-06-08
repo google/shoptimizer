@@ -32,7 +32,7 @@ shoptimizer_api/config/title_word_order_options.json.
 
 import enum
 import logging
-from typing import Any, Dict, List, Optional, Text, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple
 from util import promo_text_remover as promo_text_remover_lib
 from flask import current_app
 
@@ -40,6 +40,7 @@ import constants
 
 from models import optimization_result_counts
 from optimizers_abstract import base_optimizer
+from util import gpc_id_to_string_converter
 from util import optimization_util
 
 _TITLE_CHARS_VISIBLE_TO_USER_EN = 25
@@ -47,7 +48,7 @@ _TITLE_CHARS_VISIBLE_TO_USER_JA = 12
 _MAX_KEYWORDS_PER_TITLE = 3
 _MAX_TITLE_LENGTH = 150
 
-_GCP_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME: str = 'gpc_string_to_id_mapping_{}'
+_GPC_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME: str = 'gpc_string_to_id_mapping_{}'
 _TITLE_WORD_ORDER_CONFIG_FILE_NAME: str = 'title_word_order_config_{}'
 _TITLE_WORD_ORDER_BLOCKLIST_FILE_NAME: str = 'title_word_order_blocklist_{}'
 _TITLE_WORD_ORDER_OPTIONS_FILE_NAME: str = 'title_word_order_options'
@@ -76,7 +77,7 @@ def _get_configs_from_environment(language: str):
     # It is running on Flask.
     gpc_string_to_id_mapping = (
         current_app.config.get('CONFIGS', {}).get(
-            _GCP_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME.format(language), {}))
+            _GPC_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME.format(language), {}))
 
     title_word_order_config = (
         current_app.config.get('CONFIGS', {}).get(
@@ -87,14 +88,11 @@ def _get_configs_from_environment(language: str):
             _TITLE_WORD_ORDER_BLOCKLIST_FILE_NAME.format(language), {}))
 
     title_word_order_options = (
-        current_app.config.get(
-            'CONFIGS', {}).get(_TITLE_WORD_ORDER_OPTIONS_FILE_NAME))
+        current_app.config.get('CONFIGS',
+                               {}).get(_TITLE_WORD_ORDER_OPTIONS_FILE_NAME))
 
-    return (
-        gpc_string_to_id_mapping,
-        title_word_order_config,
-        blocklist_config,
-        title_word_order_options)
+    return (gpc_string_to_id_mapping, title_word_order_config, blocklist_config,
+            title_word_order_options)
   else:
     # It is not running on Flask.
     #
@@ -105,11 +103,8 @@ def _get_configs_from_environment(language: str):
             'Config `%s` must be set in order to use this optimizer' %
             config_name)
 
-    return (
-        GPC_STRING_TO_ID_MAPPING_CONFIG,
-        TITLE_WORD_ORDER_CONFIG,
-        BLOCKLIST_CONFIG,
-        TITLE_WORD_ORDER_OPTIONS_CONFIG)
+    return (GPC_STRING_TO_ID_MAPPING_CONFIG, TITLE_WORD_ORDER_CONFIG,
+            BLOCKLIST_CONFIG, TITLE_WORD_ORDER_OPTIONS_CONFIG)
 
 
 class _OptimizationLevel(enum.Enum):
@@ -123,6 +118,8 @@ class TitleWordOrderOptimizer(base_optimizer.BaseOptimizer):
 
   _OPTIMIZER_PARAMETER = 'title-word-order-optimizer'
   _title_word_order_options = {}
+  _gpc_id_to_string_converter: Optional[
+      gpc_id_to_string_converter.GPCConverter] = None
 
   def _optimize(
       self, product_batch: Dict[str, Any], language: str, country: str,
@@ -143,15 +140,15 @@ class TitleWordOrderOptimizer(base_optimizer.BaseOptimizer):
     num_of_products_optimized = 0
     num_of_products_excluded = 0
 
-    (gpc_string_to_id_mapping,
-     title_word_order_config,
-     blocklist_config,
+    self._gpc_id_to_string_converter = gpc_id_to_string_converter.GPCConverter(
+        _GPC_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME.format(language))
+
+    (gpc_string_to_id_mapping, title_word_order_config, blocklist_config,
      title_word_order_options) = _get_configs_from_environment(language)
 
     self._title_word_order_options = title_word_order_options
 
-    keyword_blocklist = (
-        [keyword.lower() for keyword in blocklist_config])
+    keyword_blocklist = ([keyword.lower() for keyword in blocklist_config])
 
     optimization_includes_description = (
         self._optimization_includes_description())
@@ -180,12 +177,10 @@ class TitleWordOrderOptimizer(base_optimizer.BaseOptimizer):
         continue
 
       # Get the string version of the GPC if it was provided as a number ID.
-      if isinstance(gpc, int) or gpc.isdigit():
-        gpc_string = get_gpc_as_string(gpc, gpc_string_to_id_mapping)
-        if not gpc_string:
-          continue
-      else:
-        gpc_string = gpc
+      gpc_string = self._gpc_id_to_string_converter.convert_gpc_id_to_string(
+          gpc)
+      if not gpc_string:
+        continue
 
       if _should_skip_optimization(gpc_string, optimization_level):
         continue
@@ -369,6 +364,8 @@ def _setup_mecab():
 
 
 
+
+
 def _split_words_in_japanese(text: str) -> List[str]:
   """Splits Japanese text into words by using MeCab.
 
@@ -520,17 +517,6 @@ def _generate_prepended_title(performant_keywords_to_prepend: List[str],
   ]
   prepended_title = f'{"".join(formatted_keywords)} {title}'
   return ' '.join(prepended_title.split())
-
-
-def get_gpc_as_string(
-    gpc: Union[Text, int],
-    gpc_string_to_id_mapping: Dict[str, int]) -> Optional[Text]:
-  """Returns the text representation of a gpc, or '' if it isn't found."""
-  gpc_string = ''
-  for key, value in gpc_string_to_id_mapping.items():
-    if value == int(gpc):
-      gpc_string = key
-  return gpc_string
 
 
 def _remove_keywords_with_promo(

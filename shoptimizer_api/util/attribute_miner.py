@@ -26,7 +26,11 @@ from flask import current_app
 
 import original_types
 from util import color_miner
+from util import gpc_id_to_string_converter
 from util import size_miner
+
+_GENDER_OPTIMIZER_CONFIG_FILE_NAME: str = 'gender_optimizer_config_{}'
+_GPC_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME: str = 'gpc_string_to_id_mapping_{}'
 
 _MAX_BRAND_LENGTH: int = 70
 
@@ -43,6 +47,8 @@ class AttributeMiner(object):
 
   _brand_blocklist: Set[str] = ()
   _color_miner: Optional[color_miner.ColorMiner] = None
+  _gpc_id_to_string_converter: Optional[
+      gpc_id_to_string_converter.GPCConverter] = None
   _size_miner: Optional[size_miner.SizeMiner] = None
   _gender_config: Optional[Dict[str, Any]] = None
 
@@ -58,8 +64,13 @@ class AttributeMiner(object):
         'brand_blocklist', {})
     self._brand_blocklist = set(
         [brand.lower() for brand in brand_blocklist_config])
+
     self._gender_config = current_app.config.get('CONFIGS', {}).get(
-        f'gender_optimizer_config_{language}', {})
+        _GENDER_OPTIMIZER_CONFIG_FILE_NAME.format(language), {})
+
+    self._gpc_id_to_string_converter = gpc_id_to_string_converter.GPCConverter(
+        _GPC_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME.format(language))
+
     self._color_miner = color_miner.ColorMiner(language)
     self._size_miner = size_miner.SizeMiner(language, country)
 
@@ -157,8 +168,11 @@ class AttributeMiner(object):
     product_types = product.get('productTypes', [])
     description = product.get('description', '')
 
-    age_demographic = self._get_age_demographic_if_category_is_gendered(
+    gpc_string = self._gpc_id_to_string_converter.convert_gpc_id_to_string(
         google_product_category)
+
+    age_demographic = self._get_age_demographic_if_category_is_gendered(
+        gpc_string)
 
     # Only try mining the gender if the product's category was found
     # in either the baby/adult configurations. age_demographic will be unset

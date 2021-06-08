@@ -16,12 +16,16 @@
 """Unit tests for size_miner.py."""
 
 from absl.testing import parameterized
+import unittest.mock as mock
 
 import constants
 from util import app_util
 from util import size_miner
 
 
+@mock.patch(
+    'util.size_miner._GPC_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME',
+    'gpc_string_to_id_mapping_{}_test')
 class SizeMinerTest(parameterized.TestCase):
 
   def setUp(self):
@@ -115,6 +119,42 @@ class SizeMinerTest(parameterized.TestCase):
         'title': title,
         'description': '',
         'googleProductCategory': 'Apparel & Accessories > Clothing',
+        'sizes': [],
+    }
+    miner = size_miner.SizeMiner(
+        language=constants.LANGUAGE_CODE_EN, country=constants.COUNTRY_CODE_US)
+
+    mined_size = miner.mine_size(product)
+
+    self.assertEqual(expected_size, mined_size)
+
+  @parameterized.named_parameters([{
+      'testcase_name': 'empty',
+      'title': '',
+      'expected_size': None,
+  }, {
+      'testcase_name': 'one_word_size',
+      'title': 'T-Shirt L',
+      'expected_size': 'L',
+  }, {
+      'testcase_name': 'multiple_words_size',
+      'title': 'T-Shirt One Size Fits All',
+      'expected_size': 'One size fits all',
+  }, {
+      'testcase_name': 'one_word_size_is_prioritized',
+      'title': 'T-Shirt One Size Fits All L',
+      'expected_size': 'L',
+  }, {
+      'testcase_name': 'size_not_exist',
+      'title': 'T-Shirt',
+      'expected_size': None,
+  }])
+  def test_mine_size_mines_clothing_size_from_title_with_language_en_and_gpc_number(
+      self, title, expected_size):
+    product = {
+        'title': title,
+        'description': '',
+        'googleProductCategory': 1604,
         'sizes': [],
     }
     miner = size_miner.SizeMiner(

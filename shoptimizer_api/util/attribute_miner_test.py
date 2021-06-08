@@ -16,6 +16,7 @@
 """Unit tests for attribute_miner.py."""
 
 import unittest
+import unittest.mock as mock
 
 import constants
 from test_data import requests_bodies
@@ -23,6 +24,10 @@ from util import app_util
 from util import attribute_miner
 
 
+@mock.patch('util.attribute_miner._GENDER_OPTIMIZER_CONFIG_FILE_NAME',
+            'gender_optimizer_config_{}_test')
+@mock.patch('util.attribute_miner._GPC_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME',
+            'gpc_string_to_id_mapping_{}_test')
 class AttributeMinerTest(unittest.TestCase):
 
   def setUp(self):
@@ -38,7 +43,8 @@ class AttributeMinerTest(unittest.TestCase):
             'googleProductCategory': 'Apparel & Accessories > Shoes',
             'gender': 'female'
         })
-    miner = attribute_miner.AttributeMiner('test', constants.DEFAULT_COUNTRY)
+    miner = attribute_miner.AttributeMiner(constants.LANGUAGE_CODE_EN,
+                                           constants.DEFAULT_COUNTRY)
 
     mined_attributes = miner.mine_and_insert_attributes_for_batch(product_data)
 
@@ -53,7 +59,8 @@ class AttributeMinerTest(unittest.TestCase):
             'gender': 'male',
             'googleProductCategory': 'Apparel & Accessories > Shoes'
         })
-    miner = attribute_miner.AttributeMiner('test', constants.DEFAULT_COUNTRY)
+    miner = attribute_miner.AttributeMiner(constants.LANGUAGE_CODE_EN,
+                                           constants.DEFAULT_COUNTRY)
 
     mined_attributes = miner.mine_and_insert_attributes_for_batch(product_data)
 
@@ -69,7 +76,25 @@ class AttributeMinerTest(unittest.TestCase):
             'productTypes': ['Apparel & Accessories', 'Women\'s', 'Shoes']
         },
         properties_to_be_removed=['gender'])
-    miner = attribute_miner.AttributeMiner('test', constants.DEFAULT_COUNTRY)
+    miner = attribute_miner.AttributeMiner(constants.LANGUAGE_CODE_EN,
+                                           constants.DEFAULT_COUNTRY)
+
+    mined_attributes = miner.mine_and_insert_attributes_for_batch(product_data)
+
+    self.assertIn("Women's", mined_attributes['product-1'].get('gender'))
+
+  def test_mine_and_insert_attributes_for_batch_mines_womens_using_gpc_number(
+      self):
+    product_data = requests_bodies.build_request_body(
+        properties_to_be_updated={
+            'offerId': 'product-1',
+            'title': 'dummy title',
+            'googleProductCategory': 187,
+            'productTypes': ['Apparel & Accessories', 'Women\'s', 'Shoes']
+        },
+        properties_to_be_removed=['gender'])
+    miner = attribute_miner.AttributeMiner(constants.LANGUAGE_CODE_EN,
+                                           constants.DEFAULT_COUNTRY)
 
     mined_attributes = miner.mine_and_insert_attributes_for_batch(product_data)
 
@@ -86,7 +111,8 @@ class AttributeMinerTest(unittest.TestCase):
             'productTypes': ['Apparel & Accessories', 'Shoes']
         },
         properties_to_be_removed=['gender'])
-    miner = attribute_miner.AttributeMiner('test', constants.DEFAULT_COUNTRY)
+    miner = attribute_miner.AttributeMiner(constants.LANGUAGE_CODE_EN,
+                                           constants.DEFAULT_COUNTRY)
 
     mined_attributes = miner.mine_and_insert_attributes_for_batch(product_data)
 
@@ -103,7 +129,8 @@ class AttributeMinerTest(unittest.TestCase):
             'productTypes': ['Apparel & Accessories', 'Shoes']
         },
         properties_to_be_removed=['gender'])
-    miner = attribute_miner.AttributeMiner('test', constants.DEFAULT_COUNTRY)
+    miner = attribute_miner.AttributeMiner(constants.LANGUAGE_CODE_EN,
+                                           constants.DEFAULT_COUNTRY)
 
     mined_attributes = miner.mine_and_insert_attributes_for_batch(product_data)
 
@@ -120,7 +147,8 @@ class AttributeMinerTest(unittest.TestCase):
             'productTypes': ['Apparel & Accessories', 'Shoes']
         },
         properties_to_be_removed=['gender'])
-    miner = attribute_miner.AttributeMiner('test', constants.DEFAULT_COUNTRY)
+    miner = attribute_miner.AttributeMiner(constants.LANGUAGE_CODE_EN,
+                                           constants.DEFAULT_COUNTRY)
 
     mined_attributes = miner.mine_and_insert_attributes_for_batch(product_data)
 
@@ -137,7 +165,8 @@ class AttributeMinerTest(unittest.TestCase):
             'productTypes': ['Apparel & Accessories', 'Shoes']
         },
         properties_to_be_removed=['gender'])
-    miner = attribute_miner.AttributeMiner('test', constants.DEFAULT_COUNTRY)
+    miner = attribute_miner.AttributeMiner(constants.LANGUAGE_CODE_EN,
+                                           constants.DEFAULT_COUNTRY)
 
     mined_attributes = miner.mine_and_insert_attributes_for_batch(product_data)
 
@@ -153,7 +182,8 @@ class AttributeMinerTest(unittest.TestCase):
             'googleProductCategory': 'Apparel & Accessories > Shoes',
             'productTypes': ['Apparel & Accessories', 'Shoes']
         })
-    miner = attribute_miner.AttributeMiner('test', constants.DEFAULT_COUNTRY)
+    miner = attribute_miner.AttributeMiner(constants.LANGUAGE_CODE_EN,
+                                           constants.DEFAULT_COUNTRY)
 
     mined_attributes = miner.mine_and_insert_attributes_for_batch(product_data)
 
@@ -174,7 +204,8 @@ class AttributeMinerTest(unittest.TestCase):
             'googleProductCategory':
                 'Apparel & Accessories > Clothing > Baby & Toddler Clothing'
         })
-    miner = attribute_miner.AttributeMiner('test', constants.DEFAULT_COUNTRY)
+    miner = attribute_miner.AttributeMiner(constants.LANGUAGE_CODE_EN,
+                                           constants.DEFAULT_COUNTRY)
 
     mined_attributes = miner.mine_and_insert_attributes_for_batch(product_data)
 
@@ -195,7 +226,8 @@ class AttributeMinerTest(unittest.TestCase):
                 'Apparel & Accessories > Clothing > Baby & Toddler Clothing'
         },
         properties_to_be_removed=['color', 'sizes'])
-    miner = attribute_miner.AttributeMiner('test', constants.DEFAULT_COUNTRY)
+    miner = attribute_miner.AttributeMiner(constants.LANGUAGE_CODE_EN,
+                                           constants.DEFAULT_COUNTRY)
 
     _ = miner.mine_and_insert_attributes_for_batch(product_data)
     product = product_data['entries'][0]['product']
@@ -217,7 +249,8 @@ class AttributeMinerTest(unittest.TestCase):
             'googleProductCategory':
                 'Apparel & Accessories > Clothing > Baby & Toddler Clothing'
         })
-    miner = attribute_miner.AttributeMiner('test', constants.DEFAULT_COUNTRY)
+    miner = attribute_miner.AttributeMiner(constants.LANGUAGE_CODE_EN,
+                                           constants.DEFAULT_COUNTRY)
 
     _ = miner.mine_and_insert_attributes_for_batch(product_data)
     product = product_data['entries'][0]['product']
@@ -240,7 +273,8 @@ class AttributeMinerTest(unittest.TestCase):
                 'Vehicles & Parts > Vehicle Parts & Accessories',
             'productTypes': ['Vehicles & Parts', 'Men\'s Cars']
         })
-    miner = attribute_miner.AttributeMiner('test', constants.DEFAULT_COUNTRY)
+    miner = attribute_miner.AttributeMiner(constants.LANGUAGE_CODE_EN,
+                                           constants.DEFAULT_COUNTRY)
 
     mined_attributes = miner.mine_and_insert_attributes_for_batch(product_data)
 
@@ -283,7 +317,8 @@ class AttributeMinerTest(unittest.TestCase):
         'offerId': 'product-1',
         'brand': 'Gucci'
     })
-    miner = attribute_miner.AttributeMiner('test', constants.DEFAULT_COUNTRY)
+    miner = attribute_miner.AttributeMiner(constants.LANGUAGE_CODE_EN,
+                                           constants.DEFAULT_COUNTRY)
 
     mined_attributes = miner.mine_and_insert_attributes_for_batch(product_data)
 
@@ -296,7 +331,8 @@ class AttributeMinerTest(unittest.TestCase):
         'offerId': 'product-1',
         'brand': invalid_brand
     })
-    miner = attribute_miner.AttributeMiner('test', constants.DEFAULT_COUNTRY)
+    miner = attribute_miner.AttributeMiner(constants.LANGUAGE_CODE_EN,
+                                           constants.DEFAULT_COUNTRY)
 
     mined_attributes = miner.mine_and_insert_attributes_for_batch(product_data)
 
@@ -308,7 +344,8 @@ class AttributeMinerTest(unittest.TestCase):
         'offerId': 'product-1',
         'brand': blocklisted_brand,
     })
-    miner = attribute_miner.AttributeMiner('test', constants.DEFAULT_COUNTRY)
+    miner = attribute_miner.AttributeMiner(constants.LANGUAGE_CODE_EN,
+                                           constants.DEFAULT_COUNTRY)
 
     mined_attributes = miner.mine_and_insert_attributes_for_batch(product_data)
 
@@ -323,7 +360,8 @@ class AttributeMinerTest(unittest.TestCase):
             'productTypes': ['Apparel & Accessories', 'Women\'s', 'Shoes']
         },
         properties_to_be_removed=['gender'])
-    miner = attribute_miner.AttributeMiner('test', constants.DEFAULT_COUNTRY)
+    miner = attribute_miner.AttributeMiner(constants.LANGUAGE_CODE_EN,
+                                           constants.DEFAULT_COUNTRY)
 
     _ = miner.mine_and_insert_attributes_for_batch(product_data)
     product = product_data['entries'][0]['product']
@@ -340,7 +378,8 @@ class AttributeMinerTest(unittest.TestCase):
             'productTypes': ['Apparel & Accessories', 'Women\'s', 'Shoes'],
             'gender': 'unisex'
         })
-    miner = attribute_miner.AttributeMiner('test', constants.DEFAULT_COUNTRY)
+    miner = attribute_miner.AttributeMiner(constants.LANGUAGE_CODE_EN,
+                                           constants.DEFAULT_COUNTRY)
 
     _ = miner.mine_and_insert_attributes_for_batch(product_data)
     product = product_data['entries'][0]['product']
@@ -383,7 +422,8 @@ class AttributeMinerTest(unittest.TestCase):
     product_data = requests_bodies.build_request_body(
         properties_to_be_updated={'offerId': 'product-1'},
         properties_to_be_removed=['brand', 'color', 'gender', 'sizes'])
-    miner = attribute_miner.AttributeMiner('test', constants.DEFAULT_COUNTRY)
+    miner = attribute_miner.AttributeMiner(constants.LANGUAGE_CODE_EN,
+                                           constants.DEFAULT_COUNTRY)
 
     mined_attributes = miner.mine_and_insert_attributes_for_batch(product_data)
 

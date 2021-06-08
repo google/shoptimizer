@@ -16,12 +16,16 @@
 """Unit tests for adult_optimizer.py."""
 
 from absl.testing import parameterized
+import unittest.mock as mock
 
 from optimizers_builtin import adult_optimizer
 from test_data import requests_bodies
 from util import app_util
 
 
+@mock.patch(
+    'optimizers_builtin.adult_optimizer._GPC_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME',
+    'gpc_string_to_id_mapping_{}_test')
 class AdultOptimizerTest(parameterized.TestCase):
 
   def setUp(self) -> None:
@@ -79,9 +83,12 @@ class AdultOptimizerTest(parameterized.TestCase):
       'test_google_product_category': '成人向け',
       'test_title': 'No suspicious tokens',
   }, {
-      'testcase_name': 'Another Adult GPC',
-      'test_google_product_category': '成人向け > アダルト > アダルト雑誌',
-      'test_title': 'No suspicious tokens',
+      'testcase_name':
+          'Another Adult GPC',
+      'test_google_product_category':
+          '成人向け > アダルト > アダルト雑誌',
+      'test_title':
+          'No suspicious tokens',
   }])
   def test_adult_optimizer_sets_adult_to_true_if_gpc_is_adult_and_tokens_are_wildcard(
       self, test_google_product_category, test_title):
@@ -96,6 +103,30 @@ class AdultOptimizerTest(parameterized.TestCase):
     product = optimized_data['entries'][0]['product']
 
     self.assertEqual(True, product['adult'])
+    self.assertEqual(1, optimization_result.num_of_products_optimized)
+
+  @parameterized.named_parameters([{
+      'testcase_name': 'Adult GPC as ID',
+      'test_google_product_category': 772,
+      'test_title': 'No suspicious tokens',
+  }, {
+      'testcase_name': 'Another Adult GPC as ID',
+      'test_google_product_category': 4060,
+      'test_title': 'No suspicious tokens',
+  }])
+  def test_adult_optimizer_sets_adult_to_true_if_gpc_is_adult_as_an_id_number(
+      self, test_google_product_category, test_title):
+    original_data = requests_bodies.build_request_body(
+        properties_to_be_updated={
+            'title': test_title,
+            'googleProductCategory': test_google_product_category
+        })
+
+    optimized_data, optimization_result = self.optimizer.process(
+        original_data, 'ja')
+    product = optimized_data['entries'][0]['product']
+
+    self.assertEqual(True, product.get('adult', ''))
     self.assertEqual(1, optimization_result.num_of_products_optimized)
 
   @parameterized.named_parameters([{

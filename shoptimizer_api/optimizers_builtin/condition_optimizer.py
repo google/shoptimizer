@@ -22,12 +22,13 @@ product imply that the condition is otherwise, this optimizer will reset
 the condition value to "used".
 """
 import logging
-from typing import Any, Dict, List, Set
+from typing import Any, Dict, List, Optional, Set
 
 from flask import current_app
 
 from models import optimization_result_counts
 from optimizers_abstract import base_optimizer
+from util import gpc_id_to_string_converter
 from util import optimization_util
 
 _NEW = 'new'
@@ -39,6 +40,8 @@ class ConditionOptimizer(base_optimizer.BaseOptimizer):
 
   _OPTIMIZER_PARAMETER = 'condition-optimizer'
   _condition_config = None
+  _gpc_id_to_string_converter: Optional[
+      gpc_id_to_string_converter.GPCConverter] = None
 
   def _optimize(
       self, product_batch: Dict[str, Any], language: str, country: str,
@@ -63,6 +66,9 @@ class ConditionOptimizer(base_optimizer.BaseOptimizer):
     self._condition_config = current_app.config.get('CONFIGS', {}).get(
         f'condition_optimizer_config_{language}', {})
 
+    self._gpc_id_to_string_converter = gpc_id_to_string_converter.GPCConverter(
+        language)
+
     for entry in product_batch['entries']:
 
       if (optimization_util.optimization_exclusion_specified(
@@ -72,11 +78,12 @@ class ConditionOptimizer(base_optimizer.BaseOptimizer):
 
       product = entry['product']
       google_product_category = product.get('googleProductCategory', '')
-      if self._is_google_product_category_excluded(google_product_category):
+      gpc_string = self._gpc_id_to_string_converter.convert_gpc_id_to_string(
+          google_product_category)
+      if self._is_google_product_category_excluded(gpc_string):
         logging.info(
             'Product ID: %s With Category %s was flagged for exclusion '
-            ' of the condition check', product.get('offerId', ''),
-            google_product_category)
+            ' of the condition check', product.get('offerId', ''), gpc_string)
         continue
 
       used_tokens = set(
@@ -85,7 +92,7 @@ class ConditionOptimizer(base_optimizer.BaseOptimizer):
       if product.get('condition', '') == _NEW:
         # Category format must follow the official spec to be converted a list.
         # Ref: https://support.google.com/merchants/answer/6324436?hl=en.
-        product_categories = google_product_category.split(' > ')
+        product_categories = gpc_string.split(' > ')
         if isinstance(product_categories, list) and product_categories:
           lowest_level_category = product_categories[-1]
           category_specific_tokens = self._get_tokens_for_category(

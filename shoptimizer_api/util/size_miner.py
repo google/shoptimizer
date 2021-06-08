@@ -34,9 +34,12 @@ import jaconv
 import MeCab
 
 import constants
+from util import gpc_id_to_string_converter
 from util import optimization_util
 
 _ATTRIBUTES_TO_INSPECT = ('title', 'description')
+
+_GPC_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME: str = 'gpc_string_to_id_mapping_{}'
 
 _NUMERIC_SIZE_INDICATORS = ('size', 'サイズ')
 
@@ -49,6 +52,8 @@ _SUPPORTED_LANGUAGES = (constants.LANGUAGE_CODE_JA, constants.LANGUAGE_CODE_EN)
 class SizeMiner(object):
   """A class that mines size from product data."""
 
+  _gpc_id_to_string_converter: Optional[
+      gpc_id_to_string_converter.GPCConverter] = None
   _language: Optional[str] = None
   _mecab_tagger: Optional[MeCab.Tagger] = None
 
@@ -60,8 +65,10 @@ class SizeMiner(object):
       country: The configured country code.
     """
     super(SizeMiner, self).__init__()
-    self._language = language
     self._country = country
+    self._gpc_id_to_string_converter = gpc_id_to_string_converter.GPCConverter(
+        _GPC_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME.format(language))
+    self._language = language
     self._mecab_tagger = current_app.config.get('MECAB')
 
   def mine_size(self, product: Dict[str, Any]) -> Optional[str]:
@@ -77,18 +84,20 @@ class SizeMiner(object):
       return product['sizes'][0]
 
     google_product_category = product.get('googleProductCategory', '')
+    gpc_string = self._gpc_id_to_string_converter.convert_gpc_id_to_string(
+        google_product_category)
 
     if self._language in _SUPPORTED_LANGUAGES:
       # Mines clothing size.
       if optimization_util.is_particular_google_product_category(
-          google_product_category, constants
+          gpc_string, constants
           .GOOGLE_PRODUCT_CATEGORY_APPAREL_ACCESSORIES_CLOTHING_KEYWORDS,
           constants.GOOGLE_PRODUCT_CATEGORY_APPAREL_ACCESSORIES_CLOTHING_IDS):
         return self._mine_clothing_size(product)
 
       # Mines shoes size.
       if optimization_util.is_particular_google_product_category(
-          google_product_category,
+          gpc_string,
           constants.GOOGLE_PRODUCT_CATEGORY_APPAREL_ACCESSORIES_SHOES_KEYWORDS,
           constants.GOOGLE_PRODUCT_CATEGORY_APPAREL_ACCESSORIES_SHOES_IDS):
         return self._mine_shoe_size(product)
@@ -110,11 +119,13 @@ class SizeMiner(object):
       Whether the size is in the attribute.
     """
     google_product_category = product.get('googleProductCategory', '')
+    gpc_string = self._gpc_id_to_string_converter.convert_gpc_id_to_string(
+        google_product_category)
 
     if self._language == constants.LANGUAGE_CODE_JA:
       # Mines clothing size.
       if optimization_util.is_particular_google_product_category(
-          google_product_category, constants
+          gpc_string, constants
           .GOOGLE_PRODUCT_CATEGORY_APPAREL_ACCESSORIES_CLOTHING_KEYWORDS,
           constants.GOOGLE_PRODUCT_CATEGORY_APPAREL_ACCESSORIES_CLOTHING_IDS):
         if self._mine_clothing_size_from_attribute(product.get(attribute, '')):
@@ -124,7 +135,7 @@ class SizeMiner(object):
 
       # Mines shoes size.
       elif optimization_util.is_particular_google_product_category(
-          google_product_category,
+          gpc_string,
           constants.GOOGLE_PRODUCT_CATEGORY_APPAREL_ACCESSORIES_SHOES_KEYWORDS,
           constants.GOOGLE_PRODUCT_CATEGORY_APPAREL_ACCESSORIES_SHOES_IDS):
         if self._mine_shoe_size_from_attribute(product.get(attribute, '')):

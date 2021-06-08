@@ -20,6 +20,7 @@ import unittest.mock as mock
 
 from absl.testing import parameterized
 
+import constants
 from util import app_util
 from util import color_miner
 
@@ -57,8 +58,11 @@ def _build_dummy_product(
   return product
 
 
-@mock.patch('util.color_miner._CONFIG_FILE_PATH',
-            '../config/color_optimizer_config_{}_test.json')
+@mock.patch('util.color_miner._COLOR_OPTIMIZER_CONFIG_FILE_NAME',
+            'color_optimizer_config_{}_test')
+@mock.patch(
+    'util.color_miner._GPC_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME',
+    'gpc_string_to_id_mapping_{}_test')
 class ColorMinerTest(parameterized.TestCase):
 
   def setUp(self):
@@ -183,7 +187,7 @@ class ColorMinerTest(parameterized.TestCase):
   def test_mine_color_mines_color_with_language_en(self, product,
                                                    expected_standard_colors,
                                                    expected_unique_colors):
-    miner = color_miner.ColorMiner(language='en')
+    miner = color_miner.ColorMiner(language=constants.LANGUAGE_CODE_EN)
 
     mined_standard_color, mined_unique_color = miner.mine_color(product)
 
@@ -281,5 +285,5 @@ class ColorMinerTest(parameterized.TestCase):
 
     mined_standard_color, mined_unique_color = miner.mine_color(product)
 
-    self.assertEqual(None, mined_standard_color)
-    self.assertEqual(None, mined_unique_color)
+    self.assertIsNone(mined_standard_color)
+    self.assertIsNone(mined_unique_color)

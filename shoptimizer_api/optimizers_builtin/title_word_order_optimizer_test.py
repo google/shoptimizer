@@ -39,7 +39,7 @@ _MAX_WMM_MOVE_THRESHOLD_JA = 12
 
 
 @mock.patch(
-    'optimizers_builtin.title_word_order_optimizer._GCP_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME',
+    'optimizers_builtin.title_word_order_optimizer._GPC_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME',
     'gpc_string_to_id_mapping_{}_test')
 @mock.patch(
     'optimizers_builtin.title_word_order_optimizer._TITLE_WORD_ORDER_CONFIG_FILE_NAME',
