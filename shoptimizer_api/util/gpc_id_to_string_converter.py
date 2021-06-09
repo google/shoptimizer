@@ -16,8 +16,10 @@
 """Utility module that converts GPCs as ID numbers into their mapped strings."""
 
 
-from typing import Union
+from __future__ import annotations
+from typing import Dict, Union
 from flask import current_app
+
 
 _GPC_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME: str = 'gpc_string_to_id_mapping_{}'
 
@@ -25,15 +27,31 @@ _GPC_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME: str = 'gpc_string_to_id_mapping_{}'
 class GPCConverter(object):
   """A class that handles conversion from GPC ID to String."""
 
-  def __init__(self, gpc_string_to_id_mapping_file_name: str) -> None:
+  def __init__(self, gpc_string_to_id_mapping_file_name: str = None) -> None:
     """Initializes GPCConverter.
 
     Args:
       gpc_string_to_id_mapping_file_name: The name of the config file.
     """
-    self._gpc_string_to_id_mapping = (
-        current_app.config.get('CONFIGS',
-                               {}).get(gpc_string_to_id_mapping_file_name, {}))
+    if gpc_string_to_id_mapping_file_name:
+      self._gpc_string_to_id_mapping = (
+          current_app.config.get('CONFIGS',
+                                 {}).get(gpc_string_to_id_mapping_file_name,
+                                         {}))
+
+  @classmethod
+  def from_dictionary(
+      cls, gpc_string_to_id_mapping: Dict[str, int]) -> GPCConverter:
+    """Initializes GPCConverter.
+
+    Args:
+      gpc_string_to_id_mapping: A map of gpc_strings to gpc_ids.
+
+    Returns:
+      An instance of the GPCConverter class.
+    """
+    cls._gpc_string_to_id_mapping = gpc_string_to_id_mapping
+    return cls()
 
   def convert_gpc_id_to_string(self, gpc: Union[str, int]) -> str:
     """Looks up and returns the string format of the GPC if it is a number."""

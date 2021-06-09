@@ -23,6 +23,10 @@ from util import gpc_id_to_string_converter
 
 _GPC_STRING_TO_ID_MAPPING_CONFIG_TEST_FILE_NAME = 'gpc_string_to_id_mapping_{}_test'
 
+_GPC_STRING_TO_ID_MAPPING_CONFIG_TEST_DICT = {
+    'Animals & Pet Supplies > Pet Supplies > Cat Supplies > Cat Food': 3367,
+}
+
 
 class GPCIDToStringConverterTest(unittest.TestCase):
 
@@ -34,6 +38,16 @@ class GPCIDToStringConverterTest(unittest.TestCase):
     test_gpc_converter = gpc_id_to_string_converter.GPCConverter(
         _GPC_STRING_TO_ID_MAPPING_CONFIG_TEST_FILE_NAME.format(
             constants.LANGUAGE_CODE_EN))
+    gpc_string = test_gpc_converter.convert_gpc_id_to_string(3367)
+    self.assertEqual(
+        'Animals & Pet Supplies > Pet Supplies > Cat Supplies > Cat Food',
+        gpc_string)
+
+  def test_gpc_id_to_string_converter_correctly_converts_using_dict_constructor(
+      self):
+    test_gpc_converter = (
+        gpc_id_to_string_converter.GPCConverter.from_dictionary(
+            _GPC_STRING_TO_ID_MAPPING_CONFIG_TEST_DICT))
     gpc_string = test_gpc_converter.convert_gpc_id_to_string(3367)
     self.assertEqual(
         'Animals & Pet Supplies > Pet Supplies > Cat Supplies > Cat Food',

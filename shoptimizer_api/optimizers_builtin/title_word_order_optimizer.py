@@ -140,11 +140,20 @@ class TitleWordOrderOptimizer(base_optimizer.BaseOptimizer):
     num_of_products_optimized = 0
     num_of_products_excluded = 0
 
-    self._gpc_id_to_string_converter = gpc_id_to_string_converter.GPCConverter(
-        _GPC_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME.format(language))
-
     (gpc_string_to_id_mapping, title_word_order_config, blocklist_config,
      title_word_order_options) = _get_configs_from_environment(language)
+
+    # Initialize the dependency on GPCConverter depending on the runtime.
+    if current_app:
+      # It is running on Flask.
+      self._gpc_id_to_string_converter = (
+          gpc_id_to_string_converter.GPCConverter(
+              _GPC_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME.format(language)))
+    else:
+      # It is not running on Flask.
+      self._gpc_id_to_string_converter = (
+          gpc_id_to_string_converter.GPCConverter.from_dictionary(
+              gpc_string_to_id_mapping))
 
     self._title_word_order_options = title_word_order_options
 
