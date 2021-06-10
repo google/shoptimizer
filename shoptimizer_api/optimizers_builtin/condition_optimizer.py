@@ -31,6 +31,7 @@ from optimizers_abstract import base_optimizer
 from util import gpc_id_to_string_converter
 from util import optimization_util
 
+_GPC_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME: str = 'gpc_string_to_id_mapping_{}'
 _NEW = 'new'
 _USED = 'used'
 
@@ -67,7 +68,7 @@ class ConditionOptimizer(base_optimizer.BaseOptimizer):
         f'condition_optimizer_config_{language}', {})
 
     self._gpc_id_to_string_converter = gpc_id_to_string_converter.GPCConverter(
-        language)
+        _GPC_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME.format(language))
 
     for entry in product_batch['entries']:
 
@@ -88,7 +89,6 @@ class ConditionOptimizer(base_optimizer.BaseOptimizer):
 
       used_tokens = set(
           token.lower() for token in self._condition_config['used_tokens'])
-      logging.info('Used tokens were %s', used_tokens)
       if product.get('condition', '') == _NEW:
         # Category format must follow the official spec to be converted a list.
         # Ref: https://support.google.com/merchants/answer/6324436?hl=en.

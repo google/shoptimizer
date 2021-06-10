@@ -19,12 +19,16 @@ import unittest.mock as mock
 
 from absl.testing import parameterized
 
+import constants
 from optimizers_builtin import condition_optimizer
 from test_data import requests_bodies
 from util import app_util
 
 
 @mock.patch.dict('os.environ', {'LANGUAGE': 'TEST'})
+@mock.patch(
+    'optimizers_builtin.condition_optimizer._GPC_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME',
+    'gpc_string_to_id_mapping_{}_test')
 class ConditionOptimizerTest(parameterized.TestCase):
 
   def setUp(self) -> None:
@@ -93,7 +97,7 @@ class ConditionOptimizerTest(parameterized.TestCase):
         properties_to_be_updated={'title': test_title})
 
     optimized_data, optimization_result = self.optimizer.process(
-        original_data, 'test')
+        original_data, constants.LANGUAGE_CODE_JA)
     product = optimized_data['entries'][0]['product']
 
     self.assertEqual('used', product['condition'])
@@ -160,7 +164,7 @@ class ConditionOptimizerTest(parameterized.TestCase):
         properties_to_be_updated={'description': test_description})
 
     optimized_data, optimization_result = self.optimizer.process(
-        original_data, 'test')
+        original_data, constants.LANGUAGE_CODE_JA)
     product = optimized_data['entries'][0]['product']
 
     self.assertEqual('used', product['condition'])
@@ -192,7 +196,37 @@ class ConditionOptimizerTest(parameterized.TestCase):
         })
 
     optimized_data, optimization_result = self.optimizer.process(
-        original_data, 'test')
+        original_data, constants.LANGUAGE_CODE_JA)
+    product = optimized_data['entries'][0]['product']
+
+    self.assertEqual('used', product['condition'])
+    self.assertEqual(1, optimization_result.num_of_products_optimized)
+
+  @parameterized.named_parameters([{
+      'testcase_name':
+          'trading cards',
+      'test_category':
+          6997,
+      'test_title':
+          'カード名: 新しい商品だよ？'
+  }, {
+      'testcase_name':
+          'smartphones',
+      'test_category':
+          267,
+      'test_title':
+          'ロック解除済: 新しい商品だよ？'
+  }])
+  def test_condition_optimizer_sets_new_to_used_based_on_gpc_id_and_title(
+      self, test_category, test_title):
+    original_data = requests_bodies.build_request_body(
+        properties_to_be_updated={
+            'title': test_title,
+            'googleProductCategory': test_category
+        })
+
+    optimized_data, optimization_result = self.optimizer.process(
+        original_data, 'ja')
     product = optimized_data['entries'][0]['product']
 
     self.assertEqual('used', product['condition'])
@@ -224,7 +258,7 @@ class ConditionOptimizerTest(parameterized.TestCase):
         })
 
     optimized_data, optimization_result = self.optimizer.process(
-        original_data, 'test')
+        original_data, constants.LANGUAGE_CODE_JA)
     product = optimized_data['entries'][0]['product']
 
     self.assertEqual('used', product['condition'])
@@ -276,7 +310,7 @@ class ConditionOptimizerTest(parameterized.TestCase):
         properties_to_be_updated={'title': test_title})
 
     optimized_data, optimization_result = self.optimizer.process(
-        original_data, 'test')
+        original_data, constants.LANGUAGE_CODE_JA)
     product = optimized_data['entries'][0]['product']
 
     self.assertEqual('new', product['condition'])
@@ -328,7 +362,7 @@ class ConditionOptimizerTest(parameterized.TestCase):
         properties_to_be_updated={'description': test_description})
 
     optimized_data, optimization_result = self.optimizer.process(
-        original_data, 'test')
+        original_data, constants.LANGUAGE_CODE_JA)
     product = optimized_data['entries'][0]['product']
 
     self.assertEqual('new', product['condition'])
@@ -360,7 +394,7 @@ class ConditionOptimizerTest(parameterized.TestCase):
         })
 
     optimized_data, optimization_result = self.optimizer.process(
-        original_data, 'test')
+        original_data, constants.LANGUAGE_CODE_JA)
     product = optimized_data['entries'][0]['product']
 
     self.assertEqual('new', product['condition'])
@@ -390,7 +424,7 @@ class ConditionOptimizerTest(parameterized.TestCase):
         })
 
     optimized_data, optimization_result = self.optimizer.process(
-        original_data, 'test')
+        original_data, constants.LANGUAGE_CODE_JA)
     product = optimized_data['entries'][0]['product']
 
     self.assertEqual('new', product['condition'])
@@ -410,7 +444,7 @@ class ConditionOptimizerTest(parameterized.TestCase):
         })
 
     optimized_data, optimization_result = self.optimizer.process(
-        original_data, 'test')
+        original_data, constants.LANGUAGE_CODE_JA)
     product = optimized_data['entries'][0]['product']
 
     self.assertEqual('new', product['condition'])
