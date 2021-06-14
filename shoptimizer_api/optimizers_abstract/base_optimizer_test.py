@@ -20,6 +20,7 @@ import unittest.mock as mock
 
 from absl.testing import parameterized
 
+from models import optimization_result_counts
 from optimizers_abstract import base_optimizer
 from test_data import requests_bodies
 
@@ -28,28 +29,32 @@ class DummyOptimizer(base_optimizer.BaseOptimizer):
   """A dummy optimizer for testing (marks all products optimized)."""
   _OPTIMIZER_PARAMETER = 'dummy-optimizer'
 
-  def _optimize(self, product_batch: Dict[str, Any], language: str,
-                country: str, currency: str) -> int:
+  def _optimize(
+      self, product_batch: Dict[str, Any], language: str, country: str,
+      currency: str) -> optimization_result_counts.OptimizationResultCounts:
     for entry in product_batch['entries']:
       product = entry['product']
       base_optimizer.set_optimization_tracking(product,
                                                base_optimizer.OPTIMIZED)
 
-    return len(product_batch)  # Number of items Optimized.
+    return optimization_result_counts.OptimizationResultCounts(
+        len(product_batch), 0)
 
 
 class DummySanitizer(base_optimizer.BaseOptimizer):
   """A dummy sanitizer for testing (marks all products sanitized)."""
   _OPTIMIZER_PARAMETER = 'dummy-sanitizer'
 
-  def _optimize(self, product_batch: Dict[str, Any], language: str,
-                country: str, currency: str) -> int:
+  def _optimize(
+      self, product_batch: Dict[str, Any], language: str, country: str,
+      currency: str) -> optimization_result_counts.OptimizationResultCounts:
     for entry in product_batch['entries']:
       product = entry['product']
       base_optimizer.set_optimization_tracking(product,
                                                base_optimizer.SANITIZED)
 
-    return len(product_batch)  # Number of items Sanitized.
+    return optimization_result_counts.OptimizationResultCounts(
+        len(product_batch), 0)
 
 
 class BaseOptimizerTest(parameterized.TestCase):

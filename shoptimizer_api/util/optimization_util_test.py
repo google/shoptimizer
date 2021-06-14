@@ -281,7 +281,7 @@ class OptimizationUtilTest(parameterized.TestCase):
 
   def test_optimization_exclusion_specified_returns_true_if_attribute_was_specified_and_optimizer_matches(
       self):
-    request_body = requests_bodies.VALID_SINGLE_PRODUCT
+    request_body = requests_bodies.build_request_body()
     exclude_optimizers = ['title-length-optimizer']
     request_body['entries'][0]['excludeOptimizers'] = exclude_optimizers
 
@@ -292,7 +292,7 @@ class OptimizationUtilTest(parameterized.TestCase):
 
   def test_optimization_exclusion_specified_returns_false_if_attribute_was_specified_but_optimizer_is_different(
       self):
-    request_body = requests_bodies.VALID_SINGLE_PRODUCT
+    request_body = requests_bodies.build_request_body()
     exclude_optimizers = ['title-length-optimizer']
     request_body['entries'][0]['excludeOptimizers'] = exclude_optimizers
 
@@ -303,7 +303,7 @@ class OptimizationUtilTest(parameterized.TestCase):
 
   def test_optimization_exclusion_specified_returns_false_if_attribute_was_not_specified(
       self):
-    request_body = requests_bodies.VALID_SINGLE_PRODUCT
+    request_body = requests_bodies.build_request_body()
     result = optimization_util.optimization_exclusion_specified(
         request_body['entries'][0], 'title-length-optimizer')
 

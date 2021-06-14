@@ -18,7 +18,7 @@ import copy
 import json
 from typing import Any, Dict, List, Optional
 
-VALID_SINGLE_PRODUCT = json.loads("""{
+_VALID_SINGLE_PRODUCT = json.loads("""{
     "entries": [
         {
             "batchId": 1111,
@@ -161,7 +161,7 @@ def build_request_body(
     properties_to_be_removed: Optional[List[str]] = None) -> Dict[str, Any]:
   """Builds a dummy request body of 1 product.
 
-  This function creates a request body from VALID_SINGLE_PRODUCT by
+  This function creates a request body from _VALID_SINGLE_PRODUCT by
   updating/removing given properties.
 
   Args:
@@ -173,7 +173,7 @@ def build_request_body(
   Returns:
     A dummy request body of 1 product.
   """
-  body = copy.deepcopy(VALID_SINGLE_PRODUCT)
+  body = copy.deepcopy(_VALID_SINGLE_PRODUCT)
   product = body['entries'][0]['product']
 
   if properties_to_be_updated:

@@ -23,7 +23,7 @@ from test_data import requests_bodies
 class IdentityOptimizerTest(parameterized.TestCase):
 
   def test_process_does_not_transform_data(self):
-    original_data = requests_bodies.VALID_SINGLE_PRODUCT
+    original_data = requests_bodies.build_request_body()
     optimizer = identity_optimizer.IdentityOptimizer()
 
     optimized_data, _ = optimizer.process(original_data)

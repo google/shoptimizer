@@ -23,6 +23,7 @@ from typing import Any, Dict
 import constants
 import enums
 from models import optimization_result
+from models import optimization_result_counts
 import original_types
 
 # final was moved from typing_extensions to typing in Python 3.8 per:
@@ -33,7 +34,6 @@ try:
   from typing import final
 except ImportError:
   from typing_extensions import final
-
 
 
 OPTIMIZED = enums.TrackingTag.OPTIMIZED
@@ -141,8 +141,9 @@ class BaseOptimizer(abc.ABC):
           'success', optimizer_result_counts.num_of_products_optimized, '')
 
   @abc.abstractmethod
-  def _optimize(self, product_batch: Dict[str, Any], language: str,
-                country: str, currency: str) -> int:
+  def _optimize(
+      self, product_batch: Dict[str, Any], language: str, country: str,
+      currency: str) -> optimization_result_counts.OptimizationResultCounts:
     """Implement optimization logic in this method.
 
     Subclasses must call base_optimizer.set_optimization_tracking(...)

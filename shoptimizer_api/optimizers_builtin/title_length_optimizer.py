@@ -61,11 +61,10 @@ class TitleLengthOptimizer(base_optimizer.BaseOptimizer):
     num_of_products_optimized = 0
     num_of_products_excluded = 0
 
-    entry: Dict[str, Any]
     for entry in product_batch['entries']:
 
-      if (optimization_util.optimization_exclusion_specified(
-          entry, self._OPTIMIZER_PARAMETER)):
+      if optimization_util.optimization_exclusion_specified(
+          entry, self._OPTIMIZER_PARAMETER):
         num_of_products_excluded += 1
         continue
 

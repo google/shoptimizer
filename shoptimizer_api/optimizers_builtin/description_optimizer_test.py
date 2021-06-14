@@ -148,15 +148,14 @@ class DescriptionOptimizerTest(parameterized.TestCase):
             'description': original_description,
             'brand': brand_to_append
         },
-        properties_to_be_removed=['color', 'sizes'])
+        properties_to_be_removed=['color', 'sizes', 'gender'])
     mined_attrs = attribute_miner.AttributeMiner(
         constants.LANGUAGE_CODE_EN,
         constants.DEFAULT_COUNTRY).mine_and_insert_attributes_for_batch(
             original_data)
     optimizer = description_optimizer.DescriptionOptimizer(mined_attrs)
 
-    _, optimization_result = optimizer.process(
-        original_data, 'test')
+    _, optimization_result = optimizer.process(original_data, 'test')
 
     self.assertEqual(0, optimization_result.num_of_products_optimized)
 
@@ -185,11 +184,14 @@ class DescriptionOptimizerTest(parameterized.TestCase):
     brand_to_append = 'Cool Company'
     color_to_append = 'Black'
     sizes_to_append = ['Large']
+    gender = 'male'
+    gender_title_replacement = "Men's"
     original_data = requests_bodies.build_request_body(
         properties_to_be_updated={
             'brand': brand_to_append,
             'color': color_to_append,
-            'sizes': sizes_to_append
+            'sizes': sizes_to_append,
+            'gender': gender
         },
         properties_to_be_removed=['description'])
     mined_attrs = attribute_miner.AttributeMiner(
@@ -197,8 +199,9 @@ class DescriptionOptimizerTest(parameterized.TestCase):
         constants.DEFAULT_COUNTRY).mine_and_insert_attributes_for_batch(
             original_data)
     optimizer = description_optimizer.DescriptionOptimizer(mined_attrs)
-    expected_description = (f'{sizes_to_append[0]} {brand_to_append} '
-                            f'{color_to_append}')
+    expected_description = (
+        f'{gender_title_replacement} {sizes_to_append[0]} {brand_to_append} '
+        f'{color_to_append}')
 
     optimized_data, optimization_result = optimizer.process(
         original_data, 'test')

@@ -362,18 +362,21 @@ class TitleOptimizerTest(parameterized.TestCase):
     color = 'black'
     description = 'Product that is missing a title but has a description'
     sizes = ['Large']
+    gender = 'male'
+    gender_title_replacement = "Men's"
     original_data = requests_bodies.build_request_body(
         properties_to_be_updated={
             'brand': brand,
             'color': color,
             'description': description,
-            'sizes': sizes
+            'sizes': sizes,
+            'gender': gender
         },
-        properties_to_be_removed=['title'])
-    expected_title = f'{description}… {sizes[0]} {brand} {color}'
+        properties_to_be_removed=['title', ''])
+    expected_title = f'{description}… {gender_title_replacement} {sizes[0]} {brand} {color}'
     mined_attrs = attribute_miner.AttributeMiner(
-        constants.LANGUAGE_CODE_JA,
-        constants.COUNTRY_CODE_JP).mine_and_insert_attributes_for_batch(
+        constants.LANGUAGE_CODE_EN,
+        constants.COUNTRY_CODE_US).mine_and_insert_attributes_for_batch(
             original_data)
     optimizer = title_optimizer.TitleOptimizer(mined_attrs)
 
@@ -389,14 +392,17 @@ class TitleOptimizerTest(parameterized.TestCase):
     brand = 'Nike'
     color = 'black'
     sizes = ['Large']
+    gender = 'male'
+    gender_title_replacement = "Men's"
     original_data = requests_bodies.build_request_body(
         properties_to_be_updated={
             'brand': brand,
             'color': color,
-            'sizes': sizes
+            'sizes': sizes,
+            'gender': gender
         },
         properties_to_be_removed=['description', 'title'])
-    expected_title = f'{sizes[0]} {brand} {color}'
+    expected_title = f'{gender_title_replacement} {sizes[0]} {brand} {color}'
     mined_attrs = attribute_miner.AttributeMiner(
         constants.LANGUAGE_CODE_EN,
         constants.COUNTRY_CODE_US).mine_and_insert_attributes_for_batch(
@@ -415,6 +421,8 @@ class TitleOptimizerTest(parameterized.TestCase):
     color = 'black'
     description = 'Product that is missing a title but has a description'
     sizes = ['Large']
+    gender = 'male'
+    gender_title_replacement = "Men's"
     original_title = 'Product Title'
     original_data = requests_bodies.build_request_body(
         properties_to_be_updated={
@@ -422,12 +430,13 @@ class TitleOptimizerTest(parameterized.TestCase):
             'color': color,
             'description': description,
             'title': original_title,
-            'sizes': sizes
+            'sizes': sizes,
+            'gender': gender
         })
-    expected_title = f'{original_title}… {sizes[0]} {brand} {color}'
+    expected_title = f'{original_title}… {gender_title_replacement} {sizes[0]} {brand} {color}'
     mined_attrs = attribute_miner.AttributeMiner(
-        constants.LANGUAGE_CODE_JA,
-        constants.COUNTRY_CODE_JP).mine_and_insert_attributes_for_batch(
+        constants.LANGUAGE_CODE_EN,
+        constants.COUNTRY_CODE_US).mine_and_insert_attributes_for_batch(
             original_data)
     optimizer = title_optimizer.TitleOptimizer(mined_attrs)
 
@@ -641,8 +650,8 @@ class TitleOptimizerBrandTest(parameterized.TestCase):
       self.assertEqual(1, optimization_result.num_of_products_optimized)
 
 
-@mock.patch('util.color_miner._CONFIG_FILE_PATH',
-            '../config/color_optimizer_config_{}_test.json')
+@mock.patch('util.color_miner._COLOR_OPTIMIZER_CONFIG_FILE_NAME',
+            'color_optimizer_config_{}_test')
 class TitleOptimizerColorTest(parameterized.TestCase):
 
   def setUp(self):
@@ -1151,8 +1160,6 @@ class TitleOptimizerGenderTest(parameterized.TestCase):
     self.assertEqual(0, optimization_result.num_of_products_optimized)
 
 
-@mock.patch('util.color_miner._CONFIG_FILE_PATH',
-            '../config/color_optimizer_config_{}_test.json')
 class TitleOptimizerSizeTest(parameterized.TestCase):
 
   def setUp(self):

@@ -79,7 +79,7 @@ class MainTest(parameterized.TestCase):
     self.assertEqual(http.HTTPStatus.NOT_FOUND, response.status_code)
 
   def test_invalid_query_string_param_returns_bad_request(self):
-    request_body = requests_bodies.VALID_SINGLE_PRODUCT
+    request_body = requests_bodies.build_request_body()
 
     response = self.test_client.post(
         f'{main._V1_BASE_URL}/batch/optimize?invalid-parameter=true',
@@ -96,7 +96,7 @@ class MainTest(parameterized.TestCase):
 
   # region builtin optimizer tests
   def test_optimizer_run_when_parameter_set_to_true(self):
-    request_body = requests_bodies.VALID_SINGLE_PRODUCT
+    request_body = requests_bodies.build_request_body()
 
     response = self.test_client.post(
         f'{main._V1_BASE_URL}/batch/optimize?identity-optimizer=true',
@@ -109,7 +109,7 @@ class MainTest(parameterized.TestCase):
     self.assertEqual(http.HTTPStatus.OK, response.status_code)
 
   def test_optimizers_run_in_the_same_order_as_query_string(self):
-    request_body = requests_bodies.VALID_SINGLE_PRODUCT
+    request_body = requests_bodies.build_request_body()
     optimizers_to_execute = [
         'identity-optimizer', 'adult-optimizer', 'title-optimizer'
     ]
@@ -127,7 +127,7 @@ class MainTest(parameterized.TestCase):
 
   def test_title_word_order_optimizer_runs_at_the_end_regardless_of_the_order_of_query_string(
       self):
-    request_body = requests_bodies.VALID_SINGLE_PRODUCT
+    request_body = requests_bodies.build_request_body()
     optimizers_to_execute = [
         'identity-optimizer', 'title-word-order-optimizer', 'title-optimizer'
     ]
@@ -144,7 +144,7 @@ class MainTest(parameterized.TestCase):
     self.assertEqual(http.HTTPStatus.OK, response.status_code)
 
   def test_optimizer_not_run_when_parameter_set_to_false(self):
-    request_body = requests_bodies.VALID_SINGLE_PRODUCT
+    request_body = requests_bodies.build_request_body()
 
     response = self.test_client.post(
         f'{main._V1_BASE_URL}/batch/optimize?identity-optimizer=false',
@@ -157,7 +157,7 @@ class MainTest(parameterized.TestCase):
     self.assertEqual(http.HTTPStatus.OK, response.status_code)
 
   def test_optimizer_not_run_when_parameter_missing(self):
-    request_body = requests_bodies.VALID_SINGLE_PRODUCT
+    request_body = requests_bodies.build_request_body()
 
     response = self.test_client.post(
         f'{main._V1_BASE_URL}/batch/optimize', json=request_body)
@@ -172,7 +172,7 @@ class MainTest(parameterized.TestCase):
 
   # region plugin optimizer tests
   def test_plugin_run_when_parameter_set_to_true(self):
-    request_body = requests_bodies.VALID_SINGLE_PRODUCT
+    request_body = requests_bodies.build_request_body()
 
     response = self.test_client.post(
         f'{main._V1_BASE_URL}/batch/optimize?my-plugin=true', json=request_body)
@@ -184,7 +184,7 @@ class MainTest(parameterized.TestCase):
     self.assertEqual(http.HTTPStatus.OK, response.status_code)
 
   def test_plugin_not_run_when_parameter_set_to_false(self):
-    request_body = requests_bodies.VALID_SINGLE_PRODUCT
+    request_body = requests_bodies.build_request_body()
 
     response = self.test_client.post(
         f'{main._V1_BASE_URL}/batch/optimize?my-plugin=false',
@@ -197,7 +197,7 @@ class MainTest(parameterized.TestCase):
     self.assertEqual(http.HTTPStatus.OK, response.status_code)
 
   def test_plugin_not_run_when_parameter_missing(self):
-    request_body = requests_bodies.VALID_SINGLE_PRODUCT
+    request_body = requests_bodies.build_request_body()
 
     response = self.test_client.post(
         f'{main._V1_BASE_URL}/batch/optimize', json=request_body)
