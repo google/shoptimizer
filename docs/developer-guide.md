@@ -30,7 +30,7 @@ usage in connection with your business, if at all._
       - [4.4.1 Bad Requests](#441-bad-requests)
       - [4.4.2 Optimizer Errors](#442-optimizer-errors)
     + [4.5 Complete Code Sample](#45-complete-code-sample)
-  * [5. Activating Optimizers](#5-activating-optimizers)
+  * [5. Excluding Optimizers for Specific Items](#5-excluding-optimizers)
   * [6. Writing a Plugin](#6-writing-a-plugin)
     + [6.1 Create a New Module](#61-create-a-new-module)
     + [6.2 Implement from BaseOptimizer](#62-implement-from-baseoptimizer)
@@ -265,11 +265,22 @@ format as
 
 `OPTIMIZATION-QUERY-STRING` is a list of query parameters in the format
 `{optimizer-key}={true/false}` that determines which optimizers Shoptimizer will
-run. If you exclude an optimizer completely from the query string, it will not
-be run.
+run.
 
-See section 4. 'Available Optimizers' for a list of available default optimizer
+Append `optimizer-key=true` as a URL parameter in your call to Shoptimizer for
+each optimizer you want to run.
+
+For example, to run the mpn-optimizer and title-optimizer, use the following
+endpoint:
+
+`.../shoptimizer/v1/batch/optimize?mpn-optimizer=true&title-optimizer=true`
+
+See section 2.2 'API Specification' for a list of available default optimizer
 keys.
+
+If you don't specify an optimizer in the query string, it will not
+be run, unless an item in the body specifies that it should be excluded.
+See section 5 'Excluding Optimizers for Specific Items' for details.
 
 Consider creating a config file for your Content API client so that you can
 easily toggle optimizers on and off.
@@ -480,15 +491,38 @@ def shoptimize(original_product_batch_dictionary: Dict[str, Any]) -> Dict[str, A
   return shoptimizer_response_dict.get('optimized-data')
 ```
 
-## 5. Activating Optimizers
+## 5. Excluding Optimizers for Specific Items
+In the request body's list of entries, it is possible to set for each entry a special (optional) attribute called `excludeOptimizers` that allows the specified optimizers in that attribute to be skipped over only for that specific entry.
 
-Append `optimizer-key=true` as a URL parameter in your call to Shoptimizer for
-each optimizer you want to run.
+`excludeOptimizers` can be added to the top level of each entry in the request body as a comma-separated list of optimizer query strings.
 
-For example, to run the mpn-optimizer and title-optimizer, use the following
-endpoint:
+An example request to exclude one optimizer would look like:
 
-`.../shoptimizer/v1/batch/optimize?mpn-optimizer=true&title-optimizer=true`
+```
+{
+    "entries": [
+        {
+            "batchId": 1,
+            "merchantId": 1234567,
+            "method": "insert",
+            "excludeOptimizers": ["promo-text-removal-optimizer"],
+            "product": {
+               ...
+            }
+        }
+    ]
+}
+```
+
+The result would be that even if the request's query string contained "promo-text-removal-optimizer=true", e.g.:
+
+`.../shoptimizer/v1/batch/optimize?promo-text-removal-optimizer=true&title-optimizer=true`
+
+then the `promo-text-optimizer` would not be applied to that specific product, but the `title-optimizer` would be applied as normal.
+
+Importantly, the returned Shoptimizer API response will never contain `excludeOptimizers` attributes in the entries, so that the desired Content API format will be unaffected.
+
+This will allow, if desired, for more granular control of a batch request, in the case that some specific products in that request are not intended to be processed through a subset of the request query's optimizers list.
 
 ## 6. Writing a Plugin
 
@@ -646,4 +680,3 @@ pipenv install --dev
 ```
 From the pipenv virtual environment, you can now run all of the unit tests in
  the solution by running `python test_runner.py`.
-
