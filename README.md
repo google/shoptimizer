@@ -16,8 +16,8 @@ usage in connection with your business, if at all._
 
 ## Overview
 
-Shoptimizer is a REST API for automating improvements to product data for Google
-Shopping.
+Shoptimizer is a REST API for automating improvements to product data for
+Shopping Ads.
 
 Shoptimizer accepts a JSON payload of product data in the same format as a
 Content API for Shopping
