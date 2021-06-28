@@ -34,8 +34,6 @@ _PROPER_GPC_CATEGORY_JA = ('ファッション・アクセサリー > '
 _GPC_CATEGORY_LEVEL_4_JA = ('ファッション・アクセサリー > '
                             '衣料品 > アウター > '
                             'コート・ジャケット')
-_MAX_WMM_MOVE_THRESHOLD_EN = 25
-_MAX_WMM_MOVE_THRESHOLD_JA = 12
 
 
 @mock.patch(
@@ -183,7 +181,7 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
     self.assertEqual(1, optimization_result.num_of_products_optimized)
 
   def test_process_skips_one_character_wmm_keyword(self):
-    original_title = 'a' * _MAX_WMM_MOVE_THRESHOLD_EN + (
+    original_title = 'a' * constants.TITLE_CHARS_VISIBLE_TO_USER_EN + (
         ('Some title with single a character keyword'))
     original_data = requests_bodies.build_request_body(
         properties_to_be_updated={
@@ -202,16 +200,16 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
       'testcase_name':
           'partial_match',
       'original_title':
-          'a' * _MAX_WMM_MOVE_THRESHOLD_JA + '有名ブランドTシャツ',
+          'a' * constants.TITLE_CHARS_VISIBLE_TO_USER_JA + '有名ブランドTシャツ',
       'expected_title':
-          'a' * _MAX_WMM_MOVE_THRESHOLD_JA + '有名ブランドTシャツ'
+          'a' * constants.TITLE_CHARS_VISIBLE_TO_USER_JA + '有名ブランドTシャツ'
   }, {
       'testcase_name':
           'accurate_match',
       'original_title':
-          'a' * _MAX_WMM_MOVE_THRESHOLD_JA + ' 有名ブランドシャツ',
+          'a' * constants.TITLE_CHARS_VISIBLE_TO_USER_JA + ' 有名ブランドシャツ',
       'expected_title':
-          '[シャツ] ' + 'a' * _MAX_WMM_MOVE_THRESHOLD_JA +
+          '[シャツ] ' + 'a' * constants.TITLE_CHARS_VISIBLE_TO_USER_JA +
           ' 有名ブランドシャツ'
   }])
   def test_wmm_keyword_is_copied_only_with_accurate_match(
@@ -239,36 +237,36 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
           'カイナ、モデル：エオファース、色：レッド'
   }, {
       'testcase_name':
-          'keyword_kaina_already_in_first_12_char_no_change_to_title',
+          'keyword_kaina_already_within_japanese_threshold_chars_no_change_to_title',
       'original_title':
           'レッド・、カイナ,スニーカー,ブランド：、色：レッド',
       'expected_title':
           'レッド・、カイナ,スニーカー,ブランド：、色：レッド'
   }, {
       'testcase_name':
-          'keyword_kaina_right_at_the_limit_of_12_char_no_change_to_title',
+          'keyword_kaina_right_at_the_limit_of_japanese_threshold_chars_no_change_to_title',
       'original_title':
-          'レッド・レッド1,カイナ,ブランド：、色：レッド',
+          'レッド・レッド123レッド1,カイナ,ブランド：、色：レッド',
       'expected_title':
-          'レッド・レッド1,カイナ,ブランド：、色：レッド'
+          'レッド・レッド123レッド1,カイナ,ブランド：、色：レッド'
   }, {
       'testcase_name':
-          'keyword_kaina_is_partially_in_the_first_12_char_and_partially_out_we_copy_it_to_front_title',
+          'keyword_kaina_is_partially_in_the_japanese_threshold_chars_and_partially_out_we_copy_it_to_front_title',
       'original_title':
-          'レッド2・レッド1,カイナ,ブランド：、色：レッド',
+          'レッド2・レッド1,レッド321,カイナ,ブランド：、色：レッド',
       'expected_title':
           '[カイナ] '
-          'レッド2・レッド1,カイナ,ブランド：、色：レッド'
+          'レッド2・レッド1,レッド321,カイナ,ブランド：、色：レッド'
   }, {
       'testcase_name':
-          'keyword_kaina_is_right_out_of_the_12_chars_we_copy_it_to_front_title',
+          'keyword_kaina_is_right_out_of_the_japanese_threshold_chars_we_copy_it_to_front_title',
       'original_title':
-          'レッド21・レッド12,カイナ,ブランド：、色：レッド',
+          'レッド21・レッド12,レッド12,カイナ,ブランド：、色：レッド',
       'expected_title':
           '[カイナ] '
-          'レッド21・レッド12,カイナ,ブランド：、色：レッド'
+          'レッド21・レッド12,レッド12,カイナ,ブランド：、色：レッド'
   }])
-  def test_scenario_jp_wmm_keyword_in_first_12_char_of_title(
+  def test_scenario_jp_wmm_keyword_in_first_18_char_of_title(
       self, original_title, expected_title):
     original_data = requests_bodies.build_request_body(
         properties_to_be_updated={
@@ -385,10 +383,12 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
       'testcase_name':
           'japanese_title',
       'original_title':
-          'a' * _MAX_WMM_MOVE_THRESHOLD_JA + 'タイトルブロック'
+          'a' * constants.TITLE_CHARS_VISIBLE_TO_USER_JA + 'タイトルブロック'
   }, {
-      'testcase_name': 'check_case_insensitive',
-      'original_title': 'a' * _MAX_WMM_MOVE_THRESHOLD_JA + 'Title Block'
+      'testcase_name':
+          'check_case_insensitive',
+      'original_title':
+          'a' * constants.TITLE_CHARS_VISIBLE_TO_USER_JA + 'Title Block'
   }])
   def test_wmm_keyword_in_blocklist_is_not_copied_to_front(
       self, original_title):

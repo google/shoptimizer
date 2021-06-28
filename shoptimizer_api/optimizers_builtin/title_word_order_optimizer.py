@@ -43,8 +43,7 @@ from optimizers_abstract import base_optimizer
 from util import gpc_id_to_string_converter
 from util import optimization_util
 
-_TITLE_CHARS_VISIBLE_TO_USER_EN = 25
-_TITLE_CHARS_VISIBLE_TO_USER_JA = 12
+
 _MAX_KEYWORDS_PER_TITLE = 3
 _MAX_TITLE_LENGTH = 150
 
@@ -440,9 +439,11 @@ def _generate_front_and_back_keyword_lists(
     if keyword in title_words or keyword in description_words or keyword in product_types_words:
       title_without_keywords = title_without_keywords.replace(keyword, '')
       if language == constants.LANGUAGE_CODE_JA:
-        user_visible_text = title_to_process[:_TITLE_CHARS_VISIBLE_TO_USER_JA]
+        user_visible_text = title_to_process[:constants
+                                             .TITLE_CHARS_VISIBLE_TO_USER_JA]
       else:
-        user_visible_text = title_to_process[:_TITLE_CHARS_VISIBLE_TO_USER_EN]
+        user_visible_text = title_to_process[:constants
+                                             .TITLE_CHARS_VISIBLE_TO_USER_EN]
       if keyword in user_visible_text:
         keywords_visible_to_user.append(keyword)
       else:
@@ -483,9 +484,11 @@ def _generate_list_of_keywords_to_prepend(
     temp_prepended_title = _generate_prepended_title(keywords_to_be_prepended,
                                                      title)
     if language == constants.LANGUAGE_CODE_JA:
-      front_of_title = temp_prepended_title[:_TITLE_CHARS_VISIBLE_TO_USER_JA]
+      front_of_title = temp_prepended_title[:constants
+                                            .TITLE_CHARS_VISIBLE_TO_USER_JA]
     else:
-      front_of_title = temp_prepended_title[:_TITLE_CHARS_VISIBLE_TO_USER_EN]
+      front_of_title = temp_prepended_title[:constants
+                                            .TITLE_CHARS_VISIBLE_TO_USER_EN]
 
     # The skipped keyword was pushed out too far due to the prepend, so
     # include it in the list of to-be-prepended keywords.
