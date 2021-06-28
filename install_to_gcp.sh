@@ -102,7 +102,7 @@ CreateTrigger() {
   gcloud alpha builds triggers create cloud-source-repositories \
   --build-config=cicd/"$TARGET_TRIGGER" \
   --repo="$SOURCE_REPO" \
-  --branch-pattern=master \
+  --branch-pattern=main \
   --description="$DESCRIPTION" \
   --substitutions ^::^"$ENV_VARIABLES"
 }
