@@ -15,9 +15,11 @@
 
 """Unit tests for promo_text_remover.py."""
 from typing import Any, Dict
+import unittest.mock as mock
 
 from absl.testing import parameterized
 
+import constants
 from util import app_util
 from util import promo_text_remover
 
@@ -36,17 +38,20 @@ def _build_dummy_product(title: str = '') -> Dict[str, Any]:
   }
 
 
+@mock.patch('util.promo_text_remover._PROMO_TEXT_REMOVAL_CONFIG_FILE_NAME',
+            'promo_text_removal_optimizer_config_{}_test')
 class PromoTextRemoverTest(parameterized.TestCase):
 
   def setUp(self):
     super(PromoTextRemoverTest, self).setUp()
     app_util.setup_test_app()
-    self.text_remover = promo_text_remover.PromoTextRemover(language='test')
 
   def test_text_remover_does_not_change_empty_string(self):
     product = _build_dummy_product(title='')
 
-    self.text_remover.remove_text_from_field(product, 'title')
+    text_remover = promo_text_remover.PromoTextRemover(
+        language=constants.LANGUAGE_CODE_JA)
+    text_remover.remove_text_from_field(product, 'title')
 
     self.assertEqual('', product.get('title'))
 
@@ -72,14 +77,18 @@ class PromoTextRemoverTest(parameterized.TestCase):
       'expected_title': '【test】Tシャツ'
   }, {
       'testcase_name': 'ja_multiple_bracket_types_mixed_with_exact_terms',
-      'original_title': '【限定クーポン配布中】 はんこ 【 送料無料 】ポイント消化 (TEST)',
+      'original_title':
+          '【限定クーポン配布中】 はんこ 【 送料無料 '
+          '】ポイント消化 (TEST)',
       'expected_title': 'はんこ (TEST)'
   }])
   def test_text_remover_removes_text_by_regex(self, original_title,
                                               expected_title):
     product = _build_dummy_product(title=original_title)
 
-    self.text_remover.remove_text_from_field(product, 'title')
+    text_remover = promo_text_remover.PromoTextRemover(
+        language=constants.LANGUAGE_CODE_JA)
+    text_remover.remove_text_from_field(product, 'title')
 
     self.assertEqual(expected_title, product.get('title'))
 
@@ -96,7 +105,9 @@ class PromoTextRemoverTest(parameterized.TestCase):
                                                     expected_title):
     product = _build_dummy_product(title=original_title)
 
-    self.text_remover.remove_text_from_field(product, 'title')
+    text_remover = promo_text_remover.PromoTextRemover(
+        language=constants.LANGUAGE_CODE_JA)
+    text_remover.remove_text_from_field(product, 'title')
 
     self.assertEqual(expected_title, product.get('title'))
 
@@ -112,14 +123,18 @@ class PromoTextRemoverTest(parameterized.TestCase):
       self, original_title, expected_title):
     product = _build_dummy_product(title=original_title)
 
-    self.text_remover.remove_text_from_field(product, 'title')
+    text_remover = promo_text_remover.PromoTextRemover(
+        language=constants.LANGUAGE_CODE_JA)
+    text_remover.remove_text_from_field(product, 'title')
 
     self.assertEqual(expected_title, product.get('title'))
 
   def test_text_remover_cleans_up_field_value(self):
     product = _build_dummy_product(title=' dummy title ')
 
-    self.text_remover.remove_text_from_field(product, 'title')
+    text_remover = promo_text_remover.PromoTextRemover(
+        language=constants.LANGUAGE_CODE_JA)
+    text_remover.remove_text_from_field(product, 'title')
 
     self.assertEqual('dummy title', product.get('title'))
 
@@ -144,5 +159,7 @@ class PromoTextRemoverTest(parameterized.TestCase):
       }
   ])
   def test_remove_keywords_with_promo(self, list_with_promo, expected_result):
-    result = self.text_remover.remove_keywords_with_promo(list_with_promo)
+    text_remover = promo_text_remover.PromoTextRemover(
+        language=constants.LANGUAGE_CODE_JA)
+    result = text_remover.remove_keywords_with_promo(list_with_promo)
     self.assertEqual(result, expected_result)

@@ -18,12 +18,15 @@
 from absl.testing import parameterized
 import unittest.mock as mock
 
+import constants
 import enums
 from optimizers_builtin import promo_text_removal_optimizer
 from test_data import requests_bodies
 from util import app_util
 
 
+@mock.patch('util.promo_text_remover._PROMO_TEXT_REMOVAL_CONFIG_FILE_NAME',
+            'promo_text_removal_optimizer_config_{}_test')
 class PromoTextRemovalOptimizerTest(parameterized.TestCase):
 
   def setUp(self):
@@ -63,7 +66,7 @@ class PromoTextRemovalOptimizerTest(parameterized.TestCase):
     with mock.patch.dict('os.environ',
                          {'PRODUCT_TRACKING_FIELD': tracking_field}):
       optimized_data, optimization_result = optimizer.process(
-          original_data, 'test')
+          original_data, constants.LANGUAGE_CODE_JA)
 
       product = optimized_data['entries'][0]['product']
       self.assertEqual(expected_title, product['title'])
@@ -94,7 +97,7 @@ class PromoTextRemovalOptimizerTest(parameterized.TestCase):
     with mock.patch.dict('os.environ',
                          {'PRODUCT_TRACKING_FIELD': tracking_field}):
       optimized_data, optimization_result = optimizer.process(
-          original_data, 'test')
+          original_data, constants.LANGUAGE_CODE_JA)
 
       product = optimized_data['entries'][0]['product']
       self.assertEqual(expected_title, product['title'])
@@ -127,7 +130,7 @@ class PromoTextRemovalOptimizerTest(parameterized.TestCase):
     with mock.patch.dict('os.environ',
                          {'PRODUCT_TRACKING_FIELD': tracking_field}):
       optimized_data, optimization_result = optimizer.process(
-          original_data, 'test')
+          original_data, constants.LANGUAGE_CODE_JA)
 
       product = optimized_data['entries'][0]['product']
       self.assertEqual(expected_title, product['title'])

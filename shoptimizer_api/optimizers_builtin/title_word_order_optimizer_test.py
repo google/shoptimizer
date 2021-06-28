@@ -36,6 +36,8 @@ _GPC_CATEGORY_LEVEL_4_JA = ('ファッション・アクセサリー > '
                             'コート・ジャケット')
 
 
+@mock.patch('util.promo_text_remover._PROMO_TEXT_REMOVAL_CONFIG_FILE_NAME',
+            'promo_text_removal_optimizer_config_{}_test')
 @mock.patch(
     'optimizers_builtin.title_word_order_optimizer._GPC_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME',
     'gpc_string_to_id_mapping_{}_test')
@@ -487,10 +489,11 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
         original_data, constants.LANGUAGE_CODE_JA)
     product = optimized_data['entries'][0]['product']
 
-    expected_title = ('[カイナ] '
-                      '寒い冬からあなたを守る！モデル：ジャケット、[送料無料]'
-                      ' , カイナ '
-                      ',カラー：ブラック、防寒仕様ダウンジャケット')
+    expected_title = (
+        '[カイナ] '
+        '寒い冬からあなたを守る！モデル：ジャケット、[送料無料]'
+        ' , カイナ '
+        ',カラー：ブラック、防寒仕様ダウンジャケット')
     self.assertEqual(expected_title, product['title'])
     self.assertEqual(1, optimization_result.num_of_products_optimized)
 
@@ -504,44 +507,33 @@ def _set_test_variables(module: 'Module'):
   }
 
   module.TITLE_WORD_ORDER_CONFIG = {
-      '201': [
-          {
-              'keyword': 'keyword1',
-              'weight': 0.8
-          },
-          {
-              'keyword': 'keyword2',
-              'weight': 0.7
-          },
-          {
-              'keyword': 'heavy_keyword',
-              'weight': 0.5
-          },
-          {
-              'keyword': 'heavy_keyword_2',
-              'weight': 0.6
-          },
-          {
-              'keyword': 'a',
-              'weight': 0.4
-          },
-          {
-              'keyword': 'magic',
-              'weight': 0.3
-
-          }
-      ],
-      '632': [
-          {
-              'keyword': 'keyword1',
-              'weight': 0.5
-          },
-          {
-              'keyword': 'keyword2',
-              'weight': 0.7
-          }
-      ]
-    }
+      '201': [{
+          'keyword': 'keyword1',
+          'weight': 0.8
+      }, {
+          'keyword': 'keyword2',
+          'weight': 0.7
+      }, {
+          'keyword': 'heavy_keyword',
+          'weight': 0.5
+      }, {
+          'keyword': 'heavy_keyword_2',
+          'weight': 0.6
+      }, {
+          'keyword': 'a',
+          'weight': 0.4
+      }, {
+          'keyword': 'magic',
+          'weight': 0.3
+      }],
+      '632': [{
+          'keyword': 'keyword1',
+          'weight': 0.5
+      }, {
+          'keyword': 'keyword2',
+          'weight': 0.7
+      }]
+  }
   module.BLOCKLIST_CONFIG = {}
 
   module.TITLE_WORD_ORDER_OPTIONS_CONFIG = {

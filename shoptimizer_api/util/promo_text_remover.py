@@ -32,12 +32,12 @@ from typing import Any, Dict, Optional
 
 import flask
 
+_PROMO_TEXT_REMOVAL_CONFIG_FILE_NAME: str = 'promo_text_removal_optimizer_config_{}'
+
 # Can be set outside a Flask context; otherwise, no regex patterns are used.
 PROMO_TEXT_REMOVER_CONFIG = {
-    'promotional_text_patterns_regex': [
-    ],
-    'promotional_text_patterns_exact_match': [
-    ]
+    'promotional_text_patterns_regex': [],
+    'promotional_text_patterns_exact_match': []
 }
 
 
@@ -59,12 +59,12 @@ class PromoTextRemover(object):
     # Checks if running on Flask.
     if flask.current_app:
       self._config = flask.current_app.config.get('CONFIGS', {}).get(
-          f'promo_text_removal_optimizer_config_{language}', {})
+          _PROMO_TEXT_REMOVAL_CONFIG_FILE_NAME.format(language), {})
     else:
       self._config = PROMO_TEXT_REMOVER_CONFIG
 
-    self.promo_text_words = frozenset(self._config.get(
-        'promotional_text_patterns_exact_match', set()))
+    self.promo_text_words = frozenset(
+        self._config.get('promotional_text_patterns_exact_match', set()))
     self.promo_regex_patterns = self._config.get(
         'promotional_text_patterns_regex', [])
 
@@ -123,6 +123,7 @@ class PromoTextRemover(object):
 
     Args:
       keywords: List of strings containing or not promo text
+
     Returns:
       A set of strings containing no promo text
     """

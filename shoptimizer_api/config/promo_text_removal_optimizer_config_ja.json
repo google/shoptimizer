@@ -11,7 +11,7 @@
     "\\[\\s*\\]",
     "「\\s*」",
     "（\\s*）",
-    "(\\s*)",
+    "\\(\\s*\\)",
     "【\\s*】"
   ],
   "promotional_text_patterns_exact_match": [
