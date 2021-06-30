@@ -30,7 +30,7 @@ usage in connection with your business, if at all._
       - [4.4.1 Bad Requests](#441-bad-requests)
       - [4.4.2 Optimizer Errors](#442-optimizer-errors)
     + [4.5 Complete Code Sample](#45-complete-code-sample)
-  * [5. Excluding Optimizers for Specific Items](#5-excluding-optimizers)
+  * [5. Excluding Optimizers for Specific Items](#5-excluding-optimizers-for-specific-items)
   * [6. Writing a Plugin](#6-writing-a-plugin)
     + [6.1 Create a New Module](#61-create-a-new-module)
     + [6.2 Implement from BaseOptimizer](#62-implement-from-baseoptimizer)
@@ -523,6 +523,8 @@ then the `promo-text-optimizer` would not be applied to that specific product, b
 Importantly, the returned Shoptimizer API response will never contain `excludeOptimizers` attributes in the entries, so that the desired Content API format will be unaffected.
 
 This will allow, if desired, for more granular control of a batch request, in the case that some specific products in that request are not intended to be processed through a subset of the request query's optimizers list.
+
+Additionally, the number of excluded items is logged per optimizer. In the case of Cloud Run, this will be shown in Cloud Logging.
 
 ## 6. Writing a Plugin
 
