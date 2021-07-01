@@ -162,3 +162,20 @@ class TitleLengthOptimizerTest(parameterized.TestCase):
 
       self.assertEqual('', optimized_product[tracking_field])
       self.assertEqual(original_data, optimized_data)
+
+  def test_process_does_not_set_product_tracking_field_when_title_equals_description_but_has_ellipsis_removed(
+      self):
+    original_data = requests_bodies.build_request_body(
+        properties_to_be_updated={
+            'title': 'Beauty product...test',
+            'description': 'Beauty product...test'
+        })
+    tracking_field = 'customLabel4'
+
+    with mock.patch.dict('os.environ',
+                         {'PRODUCT_TRACKING_FIELD': tracking_field}):
+      optimized_data, _ = self.optimizer.process(original_data)
+      optimized_product = optimized_data['entries'][0]['product']
+
+      self.assertEqual('', optimized_product[tracking_field])
+      self.assertEqual(original_data, optimized_data)

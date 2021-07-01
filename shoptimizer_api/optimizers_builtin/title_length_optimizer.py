@@ -75,15 +75,20 @@ class TitleLengthOptimizer(base_optimizer.BaseOptimizer):
       description: str = product.get('description', '')
 
       if len(title) > _MAX_TITLE_LENGTH:
+        # The case where the title is too long (optimize it).
         product['title'] = title[:_MAX_TITLE_LENGTH]
         logging.info('Modified item %s: Truncating title: %s', item_id,
                      product['title'])
         num_of_products_optimized += 1
         base_optimizer.set_optimization_tracking(product,
                                                  base_optimizer.SANITIZED)
+      elif title == description:
+        # The case where title and description are the same (no action taken).
+        continue
 
-      elif trailing_dots_removed_title != description and description.startswith(
-          trailing_dots_removed_title):
+      elif (trailing_dots_removed_title != description and
+            description.startswith(trailing_dots_removed_title)):
+        # The case where the title is a truncated form of the description.
         product['title'] = description[:_MAX_TITLE_LENGTH]
         logging.info(
             'Modified item %s: Populating title with '
