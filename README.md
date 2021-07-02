@@ -15,9 +15,9 @@ respect to your deployment of any portion of this solution in your systems, or
 usage in connection with your business, if at all._
 
 -   [Shoptimizer API README](#shoptimizer-api-readme)
-    *   [0. Overview](#0-overview)
-    *   [1. Glossary of Terms](#1-glossary-of-terms)
-    *   [2. Optimizer Explanations](#2-optimizer-explanations)
+    *   [Overview](#overview)
+    *   [Glossary of Terms](#glossary-of-terms)
+    *   [Optimizer Explanations](#optimizer-explanations)
 
 ## Overview
 

@@ -15,7 +15,7 @@ respect to your deployment of any portion of this solution in your systems, or
 usage in connection with your business, if at all._
 
 - [Shoptimizer API Developer Guide](#shoptimizer-api-developer-guide)
-  * [0. About](#0-about)
+  * [About](#about)
   * [1. Prerequisites](#1-prerequisites)
   * [2. Architecture Overview](#2-architecture-overview)
     + [2.1 Shoptimizer Workflow](#21-shoptimizer-workflow)
@@ -25,7 +25,7 @@ usage in connection with your business, if at all._
   * [4. Integrating Shoptimizer with your Content API Client](#4-integrating-shoptimizer-with-your-content-api-client)
     + [4.1 Authentication](#41-authentication)
     + [4.2 Calling Shoptimizer](#42-calling-shoptimizer)
-    + [4.3 Recommended Order to Run Optimizers](#43-recommended-optimizer-order)
+    + [4.3 Recommended Order to Run Optimizers](#43-recommended-order-to-run-optimizers)
     + [4.4 Parsing the Response](#44-parsing-the-response)
     + [4.5 Checking for Errors](#45-checking-for-errors)
       - [4.4.1 Bad Requests](#451-bad-requests)
