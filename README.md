@@ -14,6 +14,11 @@ accept all risks, known and unknown, associated with its usage, including with
 respect to your deployment of any portion of this solution in your systems, or
 usage in connection with your business, if at all._
 
+-   [Shoptimizer API README](#shoptimizer-api-readme)
+    *   [0. Overview](#0-overview)
+    *   [1. Glossary of Terms](#1-glossary-of-terms)
+    *   [2. Optimizer Explanations](#2-optimizer-explanations)
+
 ## Overview
 
 Shoptimizer is a REST API for automating improvements to product data for
@@ -49,7 +54,7 @@ Sanitization                                                                | Co
 
 Shoptimizer contains the following built-in optimizers. Note: some of these
 optimizers rely on configuration files to execute their business logic. Please
-see the section on [Config Files](./docs/developer-guide.md#3_Config-Files) to
+see the section on [Config Files](./docs/developer-guide.md#3-config-files) to
 understand how to configure these properly.
 
 Optimizer Key                 | Type                        | Potentially Modified Attributes            | Description

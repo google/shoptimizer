@@ -25,11 +25,12 @@ usage in connection with your business, if at all._
   * [4. Integrating Shoptimizer with your Content API Client](#4-integrating-shoptimizer-with-your-content-api-client)
     + [4.1 Authentication](#41-authentication)
     + [4.2 Calling Shoptimizer](#42-calling-shoptimizer)
-    + [4.3 Parsing the Response](#43-parsing-the-response)
-    + [4.4 Checking for Errors](#44-checking-for-errors)
-      - [4.4.1 Bad Requests](#441-bad-requests)
-      - [4.4.2 Optimizer Errors](#442-optimizer-errors)
-    + [4.5 Complete Code Sample](#45-complete-code-sample)
+    + [4.3 Recommended Order to Run Optimizers](#43-recommended-optimizer-order)
+    + [4.4 Parsing the Response](#44-parsing-the-response)
+    + [4.5 Checking for Errors](#45-checking-for-errors)
+      - [4.4.1 Bad Requests](#451-bad-requests)
+      - [4.4.2 Optimizer Errors](#452-optimizer-errors)
+    + [4.6 Complete Code Sample](#46-complete-code-sample)
   * [5. Excluding Optimizers for Specific Items](#5-excluding-optimizers-for-specific-items)
   * [6. Writing a Plugin](#6-writing-a-plugin)
     + [6.1 Create a New Module](#61-create-a-new-module)
@@ -120,8 +121,12 @@ default value is "us" for "country" and "usd" for "currency".
 
 Apart from "lang", "country" and "currency", setting any of the other parameters
 to true will run the associated optimizer. If any of these parameters are not
-provided in the request, they will default to false. See section 4.
-'Available Optimizers' for descriptions of the available optimizers.
+provided in the request, they will default to false.
+
+See the [OptimizerExplanations](../README.md#2-optimizer-explanations) section
+in the README for a description of the available optimizers, and refer to
+[section 4.3](./developer-guide.md#43-recommended-optimizer-order) 'Recommended
+Order to Run Optimizers' for running multiple optimizers in sequence.
 
 **Request Body**
 
@@ -265,7 +270,8 @@ format as
 
 `OPTIMIZATION-QUERY-STRING` is a list of query parameters in the format
 `{optimizer-key}={true/false}` that determines which optimizers Shoptimizer will
-run.
+run. __The order of these query string parameters determines which
+order the optimizers will be run, from left to right. See [section 4.3](./developer-guide.md#43-recommended-optimizer-order) for the default recommended order if you are running multiple optimizers.__
 
 Append `optimizer-key=true` as a URL parameter in your call to Shoptimizer for
 each optimizer you want to run.
@@ -275,12 +281,11 @@ endpoint:
 
 `.../shoptimizer/v1/batch/optimize?mpn-optimizer=true&title-optimizer=true`
 
-See section 2.2 'API Specification' for a list of available default optimizer
-keys.
+See [section 2.2](./developer-guide.md#22-api-specification) for a list of available default optimizer keys.
 
 If you don't specify an optimizer in the query string, it will not
 be run, unless an item in the body specifies that it should be excluded.
-See section 5 'Excluding Optimizers for Specific Items' for details.
+See [section 5](./developer-guide.md#22-api-specification#5-excluding-optimizers-for-specific-items) 'Excluding Optimizers for Specific Items' for details.
 
 Consider creating a config file for your Content API client so that you can
 easily toggle optimizers on and off.
@@ -315,7 +320,75 @@ response = requests.request(
       params=optimizers_to_run)
 ```
 
-### 4.3 Parsing the Response
+### 4.3 Recommended Order to Run Optimizers
+
+In the case that multiple or all optimizers are turned on in the request, in
+this section we provide a recommended order that the optimizers can be run in.
+Since this is only a suggestion, the order could be changed if needed, but care
+should be taken to account for dependencies in the changes in data.
+
+__1. mpn-optimizer__
+
+Recommended to be run before identifier-exists-optimizer (see below for reasoning).
+
+
+__2. identifier-exists-optimizer__
+
+This can run after mpn optimization, because even though mpn can be changed, it is recommended to first optimize that attribute to correctly reflect how identifier-exists should behave.
+
+
+__3. invalid-chars-optimize__
+
+This modifies description and title, but should be run earlier in order for title-optimizer, description-optimizer, etc. to operate on pre-sanitized data.
+
+
+__4. condition-optimizer__
+
+This checks title and description, but should be run before the title and description optimizers so that it makes decisions about the condition, based on the user-provided text, rather than post-modified text which could result in unexpected results.
+
+
+__5. adult-optimizer__
+
+Same reasoning as condition-optimizer.
+
+
+__6. color-length-optimizer__
+
+Color and size are mined before optimizers are run, so order won’t matter.
+
+
+__7. size-length-optimizer__
+
+Color and size are mined before optimizers are run, so order won’t matter.
+
+
+__8. product-type-length-optimizer__
+
+This is not used as a mined attribute, however, this should be run after adult-optimizer, since that optimizer may need to check values in productTypes before any truncation happens via this optimizer. Also, while title and description optimizers do use the productTypes attribute, since their logic is based on its mined copy, the order will not depend on title or description optimizers.
+
+
+__9. description-optimizer__
+
+This is OK to run before the length optimizers since those don’t affect this optimizer.
+
+
+__10. title-optimizer__
+
+This is OK to run before the length optimizers since those don’t affect this optimizer.
+
+
+__11. title-length-optimizer__
+
+This is a subset of title-optimizer, so it would be recommended to be used if title-optimizer was not used, and only if the user deems it necessary to fix long titles.
+
+
+__12. title-word-order-optimizer__
+
+This specific optimizer will be forced to be the last to run despite its order in the query string parameters.
+
+
+
+### 4.4 Parsing the Response
 
 A successful call to Shoptimizer will return a `200` HTTP status code and JSON
 in the following format:
@@ -385,9 +458,9 @@ shoptimizer_response_dict = json.loads(response.text)
 optimized_product_batch = shoptimizer_response_dict.get('optimized-data')
 ```
 
-### 4.4 Checking for Errors
+### 4.5 Checking for Errors
 
-#### 4.4.1 Bad Requests
+#### 4.5.1 Bad Requests
 
 If Shoptimizer receives a bad request, it will return a `400` HTTP response code
 and JSON in the following format:
@@ -411,7 +484,7 @@ if shoptimizer_response_dict.get('error-msg', ''):
   return original_product_batch_dictionary
 ```
 
-#### 4.4.2 Optimizer Errors
+#### 4.5.2 Optimizer Errors
 
 Each optimizer runs within an isolation block that will prevent the Shoptimizer
 container from crashing if an unexpected error is encountered. This means that
@@ -436,7 +509,7 @@ for optimizer_name, optimizer_results in optimization_results.items():
 
 ```
 
-### 4.5 Complete Code Sample
+### 4.6 Complete Code Sample
 
 ```python
 def shoptimize(original_product_batch_dictionary: Dict[str, Any]) -> Dict[str, Any]:
@@ -651,8 +724,8 @@ optimizer result contains a field `num_of_products_optimized` that contains a
 count of the number of products that were affected. Log or store this result on
 your infrastructure to keep track of how effective specific optimizers are.
 
-Section 4.3 'Parsing the Response' details the format of the Shoptimizer
-response.
+See [Section 4.4](./developer-guide.md#44-parsing-the-response) 'Parsing the Response'
+for details on the format of the Shoptimizer response.
 
 ### 7.2 View customLabel Fields in Google Ads
 
@@ -668,8 +741,7 @@ products will have one of 3 values set in their customLabel field:
 You can filter by these values in Google Ads to view data about the performance
 of the optimized products.
 
-See section 4.3 'Run the Container' in the [install guide](./install-guide.md)
-for details on configuring the environment variables.
+See section 2.3.3 'Run the Container' in the [install guide](./install-guide.md#233-run-the-container) for details on configuring the environment variables.
 
 ## 8. Run Unit Tests
 
