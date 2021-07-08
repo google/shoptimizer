@@ -20,6 +20,7 @@ import unittest.mock as mock
 
 from optimizers_builtin import title_word_order_optimizer
 from test_data import requests_bodies
+from typing import List
 from util import app_util
 
 import constants
@@ -55,6 +56,7 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
   def setUp(self):
     super(TitleWordOrderOptimizerTest, self).setUp()
     app_util.setup_test_app()
+    title_word_order_optimizer.CUSTOM_TEXT_TOKENIZER = None
     self.optimizer = title_word_order_optimizer.TitleWordOrderOptimizer()
 
   def test_process_copies_highest_performing_keyword_to_front_of_title(self):
@@ -567,3 +569,26 @@ class TitleWordOrderOptimizerNoFlaskTest(parameterized.TestCase):
                       'middle')
     self.assertEqual(expected_title, product['title'])
     self.assertEqual(1, optimization_result.num_of_products_optimized)
+
+  def test_process_uses_custom_text_tokenizer(self):
+    title_word_order_optimizer.CUSTOM_TEXT_TOKENIZER = _custom_text_tokenizer
+    original_data = requests_bodies.build_request_body(
+        properties_to_be_updated={
+            'title': 'Some,title,with,heavy_keyword,with,commas',
+            'googleProductCategory': _PROPER_GPC_CATEGORY_EN,
+        })
+
+    optimized_data, optimization_result = self.optimizer.process(
+        original_data, constants.LANGUAGE_CODE_EN)
+    product = optimized_data['entries'][0]['product']
+
+    expected_title = (
+        '[heavy_keyword] Some,title,with,heavy_keyword,with,commas')
+    self.assertEqual(expected_title, product['title'])
+    self.assertEqual(1, optimization_result.num_of_products_optimized)
+
+
+def _custom_text_tokenizer(text: str, lang: str) -> List[str]:
+  """Helper function to split text by a comma."""
+  del lang
+  return text.split(',')

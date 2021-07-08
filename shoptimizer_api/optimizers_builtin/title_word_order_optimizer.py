@@ -32,7 +32,7 @@ shoptimizer_api/config/title_word_order_options.json.
 
 import enum
 import logging
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 from util import promo_text_remover as promo_text_remover_lib
 from flask import current_app
 
@@ -58,6 +58,7 @@ GPC_STRING_TO_ID_MAPPING_CONFIG = None
 TITLE_WORD_ORDER_CONFIG = None
 BLOCKLIST_CONFIG = None
 TITLE_WORD_ORDER_OPTIONS_CONFIG = None
+CUSTOM_TEXT_TOKENIZER: Callable[[str, str], List[str]] = None
 
 
 def _get_required_configs():
@@ -348,30 +349,13 @@ def _tokenize_text(text: str, language: str) -> List[str]:
   Returns:
     The text tokenized into a list of words.
   """
-  if language == constants.LANGUAGE_CODE_JA:
+  if CUSTOM_TEXT_TOKENIZER:
+    
+    return CUSTOM_TEXT_TOKENIZER(text, language)
+  elif language == constants.LANGUAGE_CODE_JA:
     return _split_words_in_japanese(text)
   else:
     return text.split()
-
-
-# The `subprocess` and `MeCab` dependencies may need to be resolved if the
-# optimizer is running outside a Flask environment.
-#
-
-def _setup_mecab():
-  """Sets up a MeCab Tagger."""
-  cmd = 'echo `mecab-config --dicdir`"/mecab-ipadic-neologd"'
-  config_path = subprocess.run(
-      cmd, stdout=subprocess.PIPE, shell=True,
-      check=True).stdout.decode('utf-8')
-  try:
-    mecab_tagger = MeCab.Tagger(f'-d {config_path}')
-    return mecab_tagger
-  except RuntimeError as error:
-    logging.exception('Error during initializing MeCab Tagger: %s', error)
-
-
-
 
 
 def _split_words_in_japanese(text: str) -> List[str]:
@@ -383,10 +367,7 @@ def _split_words_in_japanese(text: str) -> List[str]:
   Returns:
     The text tokenized into a list of semantically delineated words.
   """
-  if current_app:
-    mecab_tagger = current_app.config.get('MECAB')
-  else:
-    mecab_tagger = _setup_mecab()
+  mecab_tagger = current_app.config.get('MECAB')
 
   if not mecab_tagger:
     logging.warning('Did not parse title because MeCab was not set up.')
