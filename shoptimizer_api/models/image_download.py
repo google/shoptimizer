@@ -27,5 +27,5 @@ class ImageDownload(object):
   """
   original_index: int
   url: str
-  response_invalid: Optional[bool] = None
+  image_invalid: bool = False
   content: Optional[bytes] = None

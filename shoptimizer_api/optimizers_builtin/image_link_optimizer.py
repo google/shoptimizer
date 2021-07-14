@@ -25,16 +25,18 @@ Products that have invalid image_link attributes will be disapproved. Those with
 import concurrent.futures
 import logging
 import os
+import sys
 from typing import Any, Mapping, Iterable, List, Tuple
 import urllib.error
 
+import constants
 from models import image_download
 from models import optimization_result_counts
 from optimizers_abstract import base_optimizer
 from util import networking
 from util import optimization_util
+from util import url_util
 
-_MAX_ALT_IMAGES: int = 10
 _THREAD_NAME_PREFIX: str = 'shoptimizer-image-optimizer'
 
 
@@ -114,13 +116,14 @@ class ImageLinkOptimizer(base_optimizer.BaseOptimizer):
           product['additionalImageLink'] = [image.url for image in images]
           logging.info('Modified item `%s`: Truncating additionalImageLink '
                        'to %s images (Removed %s images).',
-                       product_id, _MAX_ALT_IMAGES, num_images_removed)
+                       product_id, constants.MAX_ALTERNATE_IMAGE_URLS,
+                       num_images_removed)
           product_optimized = True
           base_optimizer.set_optimization_tracking(product,
                                                    base_optimizer.SANITIZED)
 
-        if original_image.response_invalid and any(
-            not(alt_image.response_invalid) for alt_image in images):
+        if original_image.image_invalid and any(
+            not(alt_image.image_invalid) for alt_image in images):
           product = _swap_original_image_with_best_alternative(
               product, original_image, images)
           product_optimized = True
@@ -162,7 +165,8 @@ def _download_images_in_parallel(
       thread_name_prefix=_THREAD_NAME_PREFIX
       ) as thread_executor:
 
-    images_futures = {thread_executor.submit(_download_image, image): image
+    images_futures = {thread_executor.submit(_score_and_download_image,
+                                             image): image
                       for image in images}
 
     for future in concurrent.futures.as_completed(images_futures):
@@ -173,26 +177,46 @@ def _download_images_in_parallel(
   return images
 
 
-def _download_image(image: image_download.ImageDownload
-                    ) -> image_download.ImageDownload:
-  """Downloads the file indicated in the provided ImageDownload.
+def _score_and_download_image(image: image_download.ImageDownload
+                              ) -> image_download.ImageDownload:
+  """Scores and downloads the file indicated in the provided ImageDownload.
 
   Mutates the ImageDownload provided as the image parameter
-  (sets `content` and `response_invalid` attributes).
+  (sets `content` and `image_invalid` attributes) according to:
+
+    * `content` is filled with image file content if the URL is valid,
+      excepting any network errors.
+    * `image_invalid` is set to True if any of the following criteria are met:
+      - The URL does not meet the criteria for image_link at
+        https://support.google.com/merchants/answer/7052112.
+      - The image is larger than 16MB.
+      - The image cannot be downloaded due to a networking error.
+
+  Image scoring does not yet occur.
 
   Args:
-    image: The file to download.
+    image: The file to download and score.
 
   Returns:
-    A mutated version of the image parameter, containing the file content
-    if the download was successful, or a flag indicating an error if not.
+    A mutated version of the image parameter containing the file content if the
+    download was successful, and a flag indicating if there is anything that
+    would cause the image to be invalid.
   """
+  if not url_util.is_valid_image_url(image.url, constants.MAX_IMAGE_URL_LENGTH):
+    image.image_invalid = True
+    return image
+
   try:
     image.content = networking.load_bytes_at_url(image.url)
-    image.response_invalid = False
   except urllib.error.URLError:
-    image.response_invalid = True
+    image.image_invalid = True
     return image
+
+  if sys.getsizeof(image.content) > constants.MAX_IMAGE_FILE_SIZE_BYTES:
+    image.image_invalid = True
+    return image
+
+  # TODO(douglassanders): Add Image Scoring
   return image
 
 
@@ -203,7 +227,7 @@ def _log_download_status(future: concurrent.futures.Future) -> None:
     future: Resolved future containing an ImageDownload from the HTTP response.
   """
   image = future.result()
-  if image.response_invalid:
+  if image.image_invalid:
     logging.debug('Could not resolve file `%s`.', image.url)
   else:
     logging.debug('Resolved `%s` (%s bytes).', image.url, len(image.content))
@@ -211,7 +235,7 @@ def _log_download_status(future: concurrent.futures.Future) -> None:
 
 def _truncate_excess_images(images: List[image_download.ImageDownload]
                             ) -> Tuple[List[image_download.ImageDownload], int]:
-  """Truncates the list of ImageDownloads to a length of _MAX_ALT_IMAGES.
+  """Truncates the list of ImageDownloads to the maximum length allowed.
 
   First, removes any images with errors, starting from the end of the list.
   Next removes images by index, starting from the end of the list as needed.
@@ -219,7 +243,8 @@ def _truncate_excess_images(images: List[image_download.ImageDownload]
   first elements of the array (compared with those at the end) since a typical
   product has images in decreasing order of importance.
 
-  Only truncates enough images to meet the _MAX_ALT_IMAGES length requirement.
+  Only truncates enough images to meet the MAX_ALTERNATE_IMAGE_URLS length
+  requirement.
   Mutates the list of images provided as a parameter
   (removes some images from the list).
 
@@ -229,19 +254,19 @@ def _truncate_excess_images(images: List[image_download.ImageDownload]
   Returns:
     A tuple of the updated images and the number of images removed.
   """
-  num_to_remove = max(0, len(images) - _MAX_ALT_IMAGES)
+  num_to_remove = max(0, len(images) - constants.MAX_ALTERNATE_IMAGE_URLS)
 
   reversed_images = list(reversed(images))
   for image in reversed_images:
-    if len(images) <= _MAX_ALT_IMAGES:
+    if len(images) <= constants.MAX_ALTERNATE_IMAGE_URLS:
       break
-    if image.response_invalid:
+    if image.image_invalid:
       logging.debug('Removing excess additionalImageLink due to download error:'
                     ' Removing `%s`.', image.url)
       images.remove(image)
 
-  # Removes any remaining images if images is still longer than _MAX_ALT_IMAGES
-  images = images[:_MAX_ALT_IMAGES]
+  # Removes any remaining images if `images` is still longer than the maximum.
+  images = images[:constants.MAX_ALTERNATE_IMAGE_URLS]
   return (images, num_to_remove)
 
 
@@ -267,7 +292,7 @@ def _swap_original_image_with_best_alternative(
   """
 
   # ImageDownload has attributes in priority order, so sorting finds the "best"
-  best_images = sorted(x for x in alternative_images if not x.response_invalid)
+  best_images = sorted(x for x in alternative_images if not x.image_invalid)
 
   product['imageLink'] = best_images[0].url
 

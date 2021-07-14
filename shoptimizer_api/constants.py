@@ -29,6 +29,13 @@ DEFAULT_LANG: str = LANGUAGE_CODE_EN
 DEFAULT_COUNTRY: str = COUNTRY_CODE_US
 DEFAULT_CURRENCY: str = CURRENCY_CODE_USD
 
+MAX_ALTERNATE_IMAGE_URLS: int = 10
+MAX_IMAGE_URL_LENGTH: int = 2000
+MAX_IMAGE_FILE_SIZE_BYTES: int = 16000000  # 16MB
+VALID_IMAGE_URL_FILE_SUFFIXES: Tuple[str,
+                                     ...] = ('.JPG', '.JPEG', '.WEBP', '.PNG',
+                                             '.GIF', '.BMP', '.TIF', '.TIFF')
+
 MAX_COLOR_COUNT: int = 3
 MAX_COLOR_STR_LENGTH_FOR_EACH: int = 40
 MAX_COLOR_STR_LENGTH_IN_TOTAL: int = 100
