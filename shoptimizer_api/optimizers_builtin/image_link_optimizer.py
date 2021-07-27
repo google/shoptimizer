@@ -33,9 +33,11 @@ import constants
 from models import image_download
 from models import optimization_result_counts
 from optimizers_abstract import base_optimizer
+from util import image_util
 from util import networking
 from util import optimization_util
 from util import url_util
+
 
 _THREAD_NAME_PREFIX: str = 'shoptimizer-image-optimizer'
 
@@ -156,7 +158,8 @@ def _download_images_in_parallel(
     List of ImageDownload objects populated with either image contents or
     a flag indicating a response error.
   """
-  images = [image_download.ImageDownload(url=url, original_index=index)
+  images = [image_download.ImageDownload(
+      image_invalid=False, score=float('inf'), original_index=index, url=url)
             for index, url in enumerate(image_urls)]
 
   num_threads = min(len(image_urls), max_threads)
@@ -182,7 +185,7 @@ def _score_and_download_image(image: image_download.ImageDownload
   """Scores and downloads the file indicated in the provided ImageDownload.
 
   Mutates the ImageDownload provided as the image parameter
-  (sets `content` and `image_invalid` attributes) according to:
+  (sets `content`, `image_invalid`, and `score` attributes) according to:
 
     * `content` is filled with image file content if the URL is valid,
       excepting any network errors.
@@ -191,8 +194,7 @@ def _score_and_download_image(image: image_download.ImageDownload
         https://support.google.com/merchants/answer/7052112.
       - The image is larger than 16MB.
       - The image cannot be downloaded due to a networking error.
-
-  Image scoring does not yet occur.
+    * score is a number, where lower numbers represent higher quality images.
 
   Args:
     image: The file to download and score.
@@ -204,19 +206,30 @@ def _score_and_download_image(image: image_download.ImageDownload
   """
   if not url_util.is_valid_image_url(image.url, constants.MAX_IMAGE_URL_LENGTH):
     image.image_invalid = True
+    logging.info('Image at `%s` is invalid (URL is not valid).', image.url)
     return image
 
   try:
     image.content = networking.load_bytes_at_url(image.url)
   except urllib.error.URLError:
     image.image_invalid = True
+    logging.info('Image at `%s` is invalid (could not reach URL).', image.url)
     return image
 
-  if sys.getsizeof(image.content) > constants.MAX_IMAGE_FILE_SIZE_BYTES:
+  image_memory_size = sys.getsizeof(image.content)
+  if image_memory_size > constants.MAX_IMAGE_FILE_SIZE_BYTES:
     image.image_invalid = True
+    logging.info('Image at `%s` is invalid (%s bytes is larger than the'
+                 ' maximum %s bytes).',
+                 image.url,
+                 image_memory_size,
+                 constants.MAX_IMAGE_FILE_SIZE_BYTES)
     return image
 
-  # TODO(douglassanders): Add Image Scoring
+  if image.content:
+    image.score = image_util.score_image(image.content)
+    logging.debug('Scored image at `%s`; score=`%s`', image.url, image.score)
+
   return image
 
 
@@ -230,7 +243,8 @@ def _log_download_status(future: concurrent.futures.Future) -> None:
   if image.image_invalid:
     logging.debug('Could not resolve file `%s`.', image.url)
   else:
-    logging.debug('Resolved `%s` (%s bytes).', image.url, len(image.content))
+    logging.debug('Resolved `%s` (%s bytes).',
+                  image.url, sys.getsizeof(image.content))
 
 
 def _truncate_excess_images(images: List[image_download.ImageDownload]
@@ -300,5 +314,8 @@ def _swap_original_image_with_best_alternative(
       'additionalImageLink'].index(best_images[0].url)
   product['additionalImageLink'][
       best_alternative_image_index] = original_image.url
+
+  logging.info('Swapped primary image with additional image link at index=%s.',
+               best_alternative_image_index)
 
   return product

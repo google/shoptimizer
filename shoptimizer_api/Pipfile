@@ -13,6 +13,7 @@ requests = "==2.22.0"
 absl-py = "==0.9.0"
 mecab-python3 = "==0.996.5"
 jaconv = "==0.2.4"
+tensorflow = '==2.2'
 
 [requires]
 python_version = "==3.8"

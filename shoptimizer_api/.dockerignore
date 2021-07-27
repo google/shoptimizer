@@ -8,4 +8,5 @@ Dockerfile
 __pycache__
 */postman*
 */docs*
+*.jpg
 BUILD

@@ -19,10 +19,11 @@ from typing import Any, Dict, Iterable, List
 from unittest import mock
 import urllib.error
 
-from absl.testing import parameterized
+from absl.testing import absltest
 import constants
 from optimizers_builtin import image_link_optimizer
 from test_data import requests_bodies
+from util import image_util
 from util import networking
 
 
@@ -39,7 +40,7 @@ def _request_body_from_image_links(links: Iterable[str]) -> Dict[str, Any]:
   })
 
 
-class ImageLinkOptimizerTest(parameterized.TestCase):
+class ImageLinkOptimizerTest(absltest.TestCase):
 
   def setUp(self):
     super().setUp()
@@ -47,6 +48,11 @@ class ImageLinkOptimizerTest(parameterized.TestCase):
     # By default, mock load_bytes_at_url to return empty bytes
     self.mock_urlopen = self.enter_context(
         mock.patch.object(networking, 'load_bytes_at_url', return_value=b'',
+                          autospec=True))
+
+    # By default, mock the ML model to avoid scoring each image
+    self.mock_model = self.enter_context(
+        mock.patch.object(image_util, 'score_image', return_value=float('inf'),
                           autospec=True))
 
     self.optimizer = image_link_optimizer.ImageLinkOptimizer()
@@ -143,6 +149,44 @@ class ImageLinkOptimizerTest(parameterized.TestCase):
       self.assertEqual(image_links[0], product['imageLink'])
       self.assertEqual(image_links[1:], product['additionalImageLink'])
       self.assertEqual(0, optimization_result.num_of_products_optimized)
+
+  def test_scores_all_valid_images(self):
+    image_links = _build_list_of_image_links(3)
+    responses = bytearray('ABCDEF', 'ASCII')
+
+    with mock.patch.object(networking, 'load_bytes_at_url') as mock_request:
+      mock_request.side_effect = responses
+
+      self.optimizer.process(_request_body_from_image_links(image_links))
+
+      self.mock_model.assert_has_calls([
+          mock.call(responses[0]),
+          mock.call(responses[1]),
+          mock.call(responses[2])
+      ], any_order=True)
+
+  def test_does_not_score_images_with_no_content(self):
+    image_links = _build_list_of_image_links(3)
+    responses = [b''] * len(image_links)
+
+    with mock.patch.object(networking, 'load_bytes_at_url') as mock_request:
+      mock_request.side_effect = responses
+
+      self.optimizer.process(_request_body_from_image_links(image_links))
+
+      self.mock_model.assert_not_called()
+
+  def test_does_not_score_images_with_url_errors(self):
+    image_links = _build_list_of_image_links(3)
+    responses = [urllib.error.HTTPError(link, 500, 'Internal Error', {}, None)
+                 for link in image_links]
+
+    with mock.patch.object(networking, 'load_bytes_at_url') as mock_request:
+      mock_request.side_effect = responses
+
+      self.optimizer.process(_request_body_from_image_links(image_links))
+
+      self.mock_model.assert_not_called()
 
   def test_preferentially_removes_images_with_invalid_urls(self):
     image_links = _build_list_of_image_links(
@@ -256,10 +300,34 @@ class ImageLinkOptimizerTest(parameterized.TestCase):
       product = optimized_data['entries'][0]['product']
 
       self.assertEqual(image_links[2], product['imageLink'])
-      # Swaps imageLink with the second alternate, since the first is an error
+      # Ensure imageLink swapped with 2nd alternate, since the 1st is an error
       expected_links = [image_links[1], image_links[0]]
       self.assertEqual(expected_links, product['additionalImageLink'])
       self.assertEqual(1, optimization_result.num_of_products_optimized)
+
+  def test_preferentially_chooses_lowest_scoring_image(self):
+    image_links = _build_list_of_image_links(5)
+    image_responses = [b'101010'] * len(image_links)
+    image_responses[0] = urllib.error.HTTPError(image_links[0], 500,
+                                                'Internal Error', {}, None)
+    score_responses = [0.75, 0.5, 0.25, 1.0]
+
+    with mock.patch.object(networking, 'load_bytes_at_url') as mock_network:
+      mock_network.side_effect = image_responses
+
+      with mock.patch.object(image_util, 'score_image') as mock_model:
+        mock_model.side_effect = score_responses
+
+        optimized_data, optimization_result = self.optimizer.process(
+            _request_body_from_image_links(image_links))
+        product = optimized_data['entries'][0]['product']
+
+        # Ensure imageLink swapped with 3rd alternate; that has the lowest score
+        self.assertEqual(image_links[3], product['imageLink'])
+        expected_links = [image_links[1], image_links[2],
+                          image_links[0], image_links[4]]
+        self.assertEqual(expected_links, product['additionalImageLink'])
+        self.assertEqual(1, optimization_result.num_of_products_optimized)
 
   def test_does_not_swap_on_primary_image_error_if_no_alternate_available(self):
     image_links = _build_list_of_image_links(3)

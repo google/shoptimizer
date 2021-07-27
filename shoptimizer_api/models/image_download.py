@@ -25,7 +25,8 @@ class ImageDownload(object):
 
   Sorting ImageDownload in ascending order should return them in priority order.
   """
+  image_invalid: bool
+  score: float
   original_index: int
   url: str
-  image_invalid: bool = False
   content: Optional[bytes] = None
