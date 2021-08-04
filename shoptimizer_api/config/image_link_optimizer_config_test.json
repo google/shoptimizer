@@ -1,0 +1,4 @@
+{
+  "require_image_can_be_downloaded": false,
+  "require_image_score_quality_better_than": 0.5
+}

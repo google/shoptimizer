@@ -14,6 +14,7 @@
 # limitations under the License.
 
 """Tests for image_link_optimizer.py."""
+import json
 import time
 from typing import Any, Dict, Iterable, List
 from unittest import mock
@@ -21,8 +22,10 @@ import urllib.error
 
 from absl.testing import absltest
 import constants
+import flask
 from optimizers_builtin import image_link_optimizer
 from test_data import requests_bodies
+from util import app_util
 from util import image_util
 from util import networking
 
@@ -40,10 +43,19 @@ def _request_body_from_image_links(links: Iterable[str]) -> Dict[str, Any]:
   })
 
 
+def _setup_flask_with_configs_only():
+  app = flask.Flask(__name__)
+  app.config['CONFIGS'] = app_util._load_all_configs()
+  app.app_context().push()
+
+
+@mock.patch.object(image_link_optimizer, '_CONFIG_FILE_NAME',
+                   new='image_link_optimizer_config_test')
 class ImageLinkOptimizerTest(absltest.TestCase):
 
   def setUp(self):
     super().setUp()
+    _setup_flask_with_configs_only()
 
     # By default, mock load_bytes_at_url to return empty bytes
     self.mock_urlopen = self.enter_context(
@@ -55,7 +67,59 @@ class ImageLinkOptimizerTest(absltest.TestCase):
         mock.patch.object(image_util, 'score_image', return_value=float('inf'),
                           autospec=True))
 
-    self.optimizer = image_link_optimizer.ImageLinkOptimizer()
+    self.optimizer = image_link_optimizer.ImageLinkOptimizer(
+        image_link_optimizer.CONFIGURATION_DEFAULTS)
+
+  def test_config_uses_defaults_if_no_config_file_or_assignment(self):
+    with mock.patch.object(image_link_optimizer, '_CONFIG_FILE_NAME', 'file'):
+      optimizer = image_link_optimizer.ImageLinkOptimizer()
+      self.assertEqual(
+          image_link_optimizer
+          .CONFIGURATION_DEFAULTS['require_image_can_be_downloaded'],
+          optimizer.require_image_can_be_downloaded)
+      self.assertEqual(
+          image_link_optimizer
+          .CONFIGURATION_DEFAULTS['require_image_score_quality_better_than'],
+          optimizer.require_image_score_quality_better_than)
+
+  def test_config_uses_config_file_if_no_assignment(self):
+    with open(f'config/{image_link_optimizer._CONFIG_FILE_NAME}.json') as f:
+      file_config = json.load(f)
+      optimizer = image_link_optimizer.ImageLinkOptimizer()
+
+      self.assertEqual(
+          file_config['require_image_can_be_downloaded'],
+          optimizer.require_image_can_be_downloaded)
+      self.assertEqual(
+          file_config['require_image_score_quality_better_than'],
+          optimizer.require_image_score_quality_better_than)
+
+  def test_config_uses_assignment_if_available(self):
+    assignments = {
+        'require_image_can_be_downloaded': True,
+        'require_image_score_quality_better_than': float('inf')
+    }
+    optimizer = image_link_optimizer.ImageLinkOptimizer(assignments)
+
+    self.assertEqual(
+        assignments['require_image_can_be_downloaded'],
+        optimizer.require_image_can_be_downloaded)
+    self.assertEqual(
+        assignments['require_image_score_quality_better_than'],
+        optimizer.require_image_score_quality_better_than)
+
+  def test_negative_require_image_score_quality_better_than_set_to_zero(self):
+    optimizer = image_link_optimizer.ImageLinkOptimizer({
+        'require_image_score_quality_better_than': -1
+    })
+
+    self.assertEqual(0, optimizer.require_image_score_quality_better_than)
+
+  def test_raises_if_invalid_require_image_score_quality_better_than(self):
+    with self.assertRaises(ValueError):
+      image_link_optimizer.ImageLinkOptimizer({
+          'require_image_score_quality_better_than': 'some string'
+      })
 
   def test_optimizer_does_nothing_when_alternate_image_links_missing(self):
     original_data = requests_bodies.build_request_body(
@@ -113,6 +177,26 @@ class ImageLinkOptimizerTest(absltest.TestCase):
          mock.call(image_links[1]),
          mock.call(image_links[2])],
         any_order=True)
+
+  def test_doesnt_download_urls_if_not_require_image_can_be_downloaded(self):
+    image_links = _build_list_of_image_links(3)
+    optimizer = image_link_optimizer.ImageLinkOptimizer({
+        'require_image_can_be_downloaded': False
+    })
+
+    optimizer.process(_request_body_from_image_links(image_links))
+
+    self.mock_urlopen.assert_not_called()
+
+  def test_doesnt_attempt_scoring_if_not_require_image_can_be_downloaded(self):
+    image_links = _build_list_of_image_links(3)
+    optimizer = image_link_optimizer.ImageLinkOptimizer({
+        'require_image_can_be_downloaded': False
+    })
+
+    optimizer.process(_request_body_from_image_links(image_links))
+
+    self.mock_model.assert_not_called()
 
   def test_optimizer_does_not_request_from_nonhttp_urls(self):
     image_links = _build_list_of_image_links(2)
@@ -173,6 +257,23 @@ class ImageLinkOptimizerTest(absltest.TestCase):
       mock_request.side_effect = responses
 
       self.optimizer.process(_request_body_from_image_links(image_links))
+
+      self.mock_model.assert_not_called()
+
+  def test_does_not_score_images_if_minimum_score_is_infinite(self):
+    image_links = _build_list_of_image_links(3)
+
+    assignments = {
+        'require_image_can_be_downloaded': True,
+        'require_image_score_quality_better_than': float('inf')
+    }
+    optimizer = image_link_optimizer.ImageLinkOptimizer(assignments)
+    responses = bytearray('ABCDEF', 'ASCII')
+
+    with mock.patch.object(networking, 'load_bytes_at_url') as mock_request:
+      mock_request.side_effect = responses
+
+      optimizer.process(_request_body_from_image_links(image_links))
 
       self.mock_model.assert_not_called()
 
@@ -328,6 +429,56 @@ class ImageLinkOptimizerTest(absltest.TestCase):
                           image_links[0], image_links[4]]
         self.assertEqual(expected_links, product['additionalImageLink'])
         self.assertEqual(1, optimization_result.num_of_products_optimized)
+
+  def test_images_scoring_below_threshold_are_considered_invalid(self):
+    image_links = _build_list_of_image_links(3)
+    image_responses = [b'101010'] * len(image_links)
+    score_responses = [0.75, 0.25, 1.0]
+    assignments = {
+        'require_image_can_be_downloaded': True,
+        'require_image_score_quality_better_than': 0.5
+    }
+    optimizer = image_link_optimizer.ImageLinkOptimizer(assignments)
+
+    with mock.patch.object(networking, 'load_bytes_at_url') as mock_network:
+      mock_network.side_effect = image_responses
+
+      with mock.patch.object(image_util, 'score_image') as mock_model:
+        mock_model.side_effect = score_responses
+
+        optimized_data, optimization_result = optimizer.process(
+            _request_body_from_image_links(image_links))
+        product = optimized_data['entries'][0]['product']
+
+        # Ensure imageLink swapped with 1st alternate; that has the lowest score
+        self.assertEqual(image_links[1], product['imageLink'])
+        expected_links = [image_links[0], image_links[2]]
+        self.assertEqual(expected_links, product['additionalImageLink'])
+        self.assertEqual(1, optimization_result.num_of_products_optimized)
+
+  def test_do_not_swap_images_if_better_alternates_score_below_threshold(self):
+    image_links = _build_list_of_image_links(3)
+    image_responses = [b'101010'] * len(image_links)
+    score_responses = [0.75, 0.6, 0.7]
+    assignments = {
+        'require_image_can_be_downloaded': True,
+        'require_image_score_quality_better_than': 0.5
+    }
+    optimizer = image_link_optimizer.ImageLinkOptimizer(assignments)
+
+    with mock.patch.object(networking, 'load_bytes_at_url') as mock_network:
+      mock_network.side_effect = image_responses
+
+      with mock.patch.object(image_util, 'score_image') as mock_model:
+        mock_model.side_effect = score_responses
+
+        optimized_data, optimization_result = optimizer.process(
+            _request_body_from_image_links(image_links))
+        product = optimized_data['entries'][0]['product']
+
+      self.assertEqual(image_links[0], product['imageLink'])
+      self.assertEqual(image_links[1:], product['additionalImageLink'])
+      self.assertEqual(0, optimization_result.num_of_products_optimized)
 
   def test_does_not_swap_on_primary_image_error_if_no_alternate_available(self):
     image_links = _build_list_of_image_links(3)

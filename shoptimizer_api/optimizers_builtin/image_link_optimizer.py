@@ -24,12 +24,14 @@ Products that have invalid image_link attributes will be disapproved. Those with
 
 import concurrent.futures
 import logging
+import math
 import os
 import sys
-from typing import Any, Mapping, Iterable, List, Tuple
+from typing import Any, Iterable, List, Mapping, Tuple
 import urllib.error
 
 import constants
+import flask
 from models import image_download
 from models import optimization_result_counts
 from optimizers_abstract import base_optimizer
@@ -38,8 +40,13 @@ from util import networking
 from util import optimization_util
 from util import url_util
 
-
+_CONFIG_FILE_NAME: str = 'image_link_optimizer_config'
 _THREAD_NAME_PREFIX: str = 'shoptimizer-image-optimizer'
+
+CONFIGURATION_DEFAULTS = {
+    'require_image_can_be_downloaded': True,
+    'require_image_score_quality_better_than': 0.95
+}
 
 
 class ImageLinkOptimizer(base_optimizer.BaseOptimizer):
@@ -50,19 +57,70 @@ class ImageLinkOptimizer(base_optimizer.BaseOptimizer):
    * at least one image in additional_image_link is not likely to be disapproved
 
   then swaps the image_link image with the best additional_image_link image.
+
+  Attributes below are configuration options that affect images referred to in
+  the image_link and additional_image_link fields within each product.
+
+  Attributes:
+    require_image_can_be_downloaded: (bool) If True, image URLs must be
+      reachable by this optimizer; image file size is also validated.
+      Required for image scoring.
+      If False, do not try to download this image.
+    require_image_score_quality_better_than: (float) Consider images likely to
+      be diapproved if their quality score is worse than this value.
+      Requires images to be downloaded.
+      Normal scores range from 0.0 (best) to 1.0 (worst). Set to 'inf' to
+      disable scoring. Read the documentation for more complete guidance on this
+      attribute.
   """
 
   _OPTIMIZER_PARAMETER = 'image-link-optimizer'
 
-  def __init__(self) -> None:
+  def __init__(self, configuration_options: Mapping[str, Any] = None) -> None:
     """Initializes ImageLinkOptimizer.
+
+    Populates configuration information.
 
     Sets the number max number of available threads according to the default
     for ThreadPoolExecutor, since this is expected to be IO bound:
     https://docs.python.org/3/library/concurrent.futures.html#concurrent.futures.ThreadPoolExecutor
+
+    Args:
+      configuration_options: Optionally specified overrides for the attributes
+      of this class; will override the default configuration file options.
     """
     super(ImageLinkOptimizer, self).__init__()
     self._max_available_threads = min(32, os.cpu_count() + 4)
+
+    self._load_configuration_with_defaults(configuration_options)
+
+  def _load_configuration_with_defaults(self,
+                                        override_config: Mapping[str,
+                                                                 Any] = None
+                                       ) -> Mapping[str, Any]:
+    """Loads the configuration for this Optimizer considering defaults.
+
+    Loads the configuration from override_config if provided, then
+    configuration file (if available), and sets conservative defaults if no
+    other configuration is available.
+
+    Args:
+      override_config: Optionally specified configuration options that will
+      override the config-file and default configuration options if present.
+    """
+    file_config = flask.current_app.config.get('CONFIGS', {}).get(
+        _CONFIG_FILE_NAME, {})
+
+    loaded_config = dict()
+    for config, default in CONFIGURATION_DEFAULTS.items():
+      loaded_config[config] = file_config.get(config, default)
+      if override_config and config in override_config:
+        loaded_config[config] = override_config[config]
+
+    self.require_image_can_be_downloaded = bool(
+        loaded_config.get('require_image_can_be_downloaded'))
+    self.require_image_score_quality_better_than = max(0, float(
+        loaded_config.get('require_image_score_quality_better_than')))
 
   def _optimize(
       self,
@@ -109,8 +167,7 @@ class ImageLinkOptimizer(base_optimizer.BaseOptimizer):
         # Combine original and alternate images for parallel processing,
         # then split up again afterwards.
         image_links = [original_image_link] + alt_image_links
-        images = _download_images_in_parallel(image_links,
-                                              self._max_available_threads)
+        images = self._process_images_in_parallel(image_links)
         original_image = images.pop(0)
         images, num_images_removed = _truncate_excess_images(images)
 
@@ -138,99 +195,109 @@ class ImageLinkOptimizer(base_optimizer.BaseOptimizer):
     return optimization_result_counts.OptimizationResultCounts(
         num_of_products_optimized, num_of_products_excluded)
 
+  def _process_images_in_parallel(
+      self, image_urls: Iterable[str]) -> List[image_download.ImageDownload]:
+    """Processes all image URLs provided in parallel.
 
-def _download_images_in_parallel(
-    image_urls: Iterable[str],
-    max_threads: int = 5
-    ) -> List[image_download.ImageDownload]:
-  """Downloads all image URLs provided in parallel.
+    File contents are stored in the resulting ImageDownload objects if the
+    download is successful, or a flag indicating an error if not.
 
-  File contents are stored in the resulting ImageDownload objects if the
-  download is successful, or a flag indicating an error if not.
+    Args:
+      image_urls: List of image URLs to process.
 
-  Args:
-    image_urls: List of image URLs to download.
-    max_threads: The maximum number of parallel threads to use for downloads
-        and any other processing. Defaults to 5 as downloads are IO, rather than
-        CPU-bound.
+    Returns:
+      List of ImageDownload objects populated with either image contents or
+      a flag indicating a response error.
+    """
+    images = [image_download.ImageDownload(
+        image_invalid=False, score=float('inf'), original_index=index, url=url)
+              for index, url in enumerate(image_urls)]
 
-  Returns:
-    List of ImageDownload objects populated with either image contents or
-    a flag indicating a response error.
-  """
-  images = [image_download.ImageDownload(
-      image_invalid=False, score=float('inf'), original_index=index, url=url)
-            for index, url in enumerate(image_urls)]
+    num_threads = min(len(image_urls), self._max_available_threads)
+    with concurrent.futures.ThreadPoolExecutor(
+        max_workers=num_threads,
+        thread_name_prefix=_THREAD_NAME_PREFIX
+        ) as thread_executor:
 
-  num_threads = min(len(image_urls), max_threads)
-  with concurrent.futures.ThreadPoolExecutor(
-      max_workers=num_threads,
-      thread_name_prefix=_THREAD_NAME_PREFIX
-      ) as thread_executor:
+      images_futures = {thread_executor.submit(self._process_single_image,
+                                               image): image
+                        for image in images}
 
-    images_futures = {thread_executor.submit(_score_and_download_image,
-                                             image): image
-                      for image in images}
+      for future in concurrent.futures.as_completed(images_futures):
+        future.add_done_callback(_log_download_status)
 
-    for future in concurrent.futures.as_completed(images_futures):
-      future.add_done_callback(_log_download_status)
+      concurrent.futures.wait(images_futures,
+                              return_when=concurrent.futures.ALL_COMPLETED)
+    return images
 
-    concurrent.futures.wait(images_futures,
-                            return_when=concurrent.futures.ALL_COMPLETED)
-  return images
+  def _process_single_image(self,
+                            image: image_download.ImageDownload
+                            ) -> image_download.ImageDownload:
+    """Processes the file indicated in the provided ImageDownload.
 
+    Processing consists of multiple steps performed in sequence:
+      1) Validate URL formatting.
+      2) If self.require_image_can_be_downloaded = True, download the image and
+          perform checks on image file content.
+      3) If self.require_image_score_quality_better_than is finite, score
+          the downloaded image using a model.
 
-def _score_and_download_image(image: image_download.ImageDownload
-                              ) -> image_download.ImageDownload:
-  """Scores and downloads the file indicated in the provided ImageDownload.
+    Mutates the ImageDownload provided as the image parameter
+    (sets `content`, `image_invalid`, and `score` attributes) according to:
 
-  Mutates the ImageDownload provided as the image parameter
-  (sets `content`, `image_invalid`, and `score` attributes) according to:
+      * `content` is filled with image file content if the URL is valid,
+        excepting any network errors.
+      * `image_invalid` is set to True if any of the following criteria are met:
+        - The URL does not meet the criteria for image_link at
+          https://support.google.com/merchants/answer/7052112.
+        - The image is larger than 16MB.
+        - The image cannot be downloaded due to a networking error.
+      * score is a number, where lower numbers represent higher quality images.
 
-    * `content` is filled with image file content if the URL is valid,
-      excepting any network errors.
-    * `image_invalid` is set to True if any of the following criteria are met:
-      - The URL does not meet the criteria for image_link at
-        https://support.google.com/merchants/answer/7052112.
-      - The image is larger than 16MB.
-      - The image cannot be downloaded due to a networking error.
-    * score is a number, where lower numbers represent higher quality images.
+    Args:
+      image: The file to download and score.
 
-  Args:
-    image: The file to download and score.
+    Returns:
+      A mutated version of the image parameter containing the file content if
+      the download was successful, and a flag indicating if there is anything
+      that would cause the image to be invalid.
+    """
+    if not url_util.is_valid_image_url(image.url,
+                                       constants.MAX_IMAGE_URL_LENGTH):
+      image.image_invalid = True
+      logging.info('Image at `%s` is invalid (URL is not valid).', image.url)
+      return image
 
-  Returns:
-    A mutated version of the image parameter containing the file content if the
-    download was successful, and a flag indicating if there is anything that
-    would cause the image to be invalid.
-  """
-  if not url_util.is_valid_image_url(image.url, constants.MAX_IMAGE_URL_LENGTH):
-    image.image_invalid = True
-    logging.info('Image at `%s` is invalid (URL is not valid).', image.url)
+    if not self.require_image_can_be_downloaded:
+      return image
+
+    try:
+      image.content = networking.load_bytes_at_url(image.url)
+    except urllib.error.URLError:
+      image.image_invalid = True
+      logging.info('Image at `%s` is invalid (could not reach URL).', image.url)
+      return image
+
+    image_memory_size = sys.getsizeof(image.content)
+    if image_memory_size > constants.MAX_IMAGE_FILE_SIZE_BYTES:
+      image.image_invalid = True
+      logging.info('Image at `%s` is invalid (%s bytes is larger than the'
+                   ' maximum %s bytes).',
+                   image.url,
+                   image_memory_size,
+                   constants.MAX_IMAGE_FILE_SIZE_BYTES)
+      return image
+
+    if math.isinf(self.require_image_score_quality_better_than):
+      return image
+
+    if image.content:
+      image.score = image_util.score_image(image.content)
+      if image.score > self.require_image_score_quality_better_than:
+        image.image_invalid = True
+      logging.debug('Scored image at `%s`; score=`%s`', image.url, image.score)
+
     return image
-
-  try:
-    image.content = networking.load_bytes_at_url(image.url)
-  except urllib.error.URLError:
-    image.image_invalid = True
-    logging.info('Image at `%s` is invalid (could not reach URL).', image.url)
-    return image
-
-  image_memory_size = sys.getsizeof(image.content)
-  if image_memory_size > constants.MAX_IMAGE_FILE_SIZE_BYTES:
-    image.image_invalid = True
-    logging.info('Image at `%s` is invalid (%s bytes is larger than the'
-                 ' maximum %s bytes).',
-                 image.url,
-                 image_memory_size,
-                 constants.MAX_IMAGE_FILE_SIZE_BYTES)
-    return image
-
-  if image.content:
-    image.score = image_util.score_image(image.content)
-    logging.debug('Scored image at `%s`; score=`%s`', image.url, image.score)
-
-  return image
 
 
 def _log_download_status(future: concurrent.futures.Future) -> None:
