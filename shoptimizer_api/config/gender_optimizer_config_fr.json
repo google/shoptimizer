@@ -1,0 +1,49 @@
+{
+  "adult_product_categories": [
+    "Vêtements et accessoires",
+    "Santé et beauté",
+    "Équipements sportifs",
+    "Bagages et maroquinerie",
+    "Appareils électroniques"
+  ],
+  "baby_product_categories": [
+    "Bébés et tout-petits",
+    "Vêtements pour bébés et tout-petits",
+    "Accessoires d'habillement pour bébés et tout-petits",
+    "Mobilier pour bébés et tout-petits"
+  ],
+  "female": {
+    "adult_search_terms": [
+      "Femme",
+      "Femmes"
+    ],
+    "baby_search_terms": [
+      "Fille",
+      "Filles"
+    ],
+    "baby_title_replacement": "Fille",
+    "adult_title_replacement": "Femme"
+  },
+  "male": {
+    "adult_search_terms": [
+      "Homme",
+      "Hommes"
+    ],
+    "baby_search_terms": [
+      "Garçon",
+      "Garçons"
+    ],
+    "baby_title_replacement": "Garçon",
+    "adult_title_replacement": "Homme"
+  },
+  "unisex": {
+    "adult_search_terms": [
+      "Unisexe"
+    ],
+    "baby_search_terms": [
+      "Unisexe"
+    ],
+    "baby_title_replacement": "Unisexe",
+    "adult_title_replacement": "Unisexe"
+  }
+}
