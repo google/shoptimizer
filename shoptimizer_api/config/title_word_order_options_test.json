@@ -1,5 +1,6 @@
 {
   "descriptionIncluded": false,
   "productTypesIncluded": false,
-  "optimizationLevel": "standard"
+  "optimizationLevel": "standard",
+  "keywordsPosition": "front"
 }

@@ -204,14 +204,17 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
       'testcase_name':
           'partial_match',
       'original_title':
-          'a' * constants.TITLE_CHARS_VISIBLE_TO_USER_JA + '有名ブランドTシャツ',
+          'a' * constants.TITLE_CHARS_VISIBLE_TO_USER_JA +
+          '有名ブランドTシャツ',
       'expected_title':
-          'a' * constants.TITLE_CHARS_VISIBLE_TO_USER_JA + '有名ブランドTシャツ'
+          'a' * constants.TITLE_CHARS_VISIBLE_TO_USER_JA +
+          '有名ブランドTシャツ'
   }, {
       'testcase_name':
           'accurate_match',
       'original_title':
-          'a' * constants.TITLE_CHARS_VISIBLE_TO_USER_JA + ' 有名ブランドシャツ',
+          'a' * constants.TITLE_CHARS_VISIBLE_TO_USER_JA +
+          ' 有名ブランドシャツ',
       'expected_title':
           '[シャツ] ' + 'a' * constants.TITLE_CHARS_VISIBLE_TO_USER_JA +
           ' 有名ブランドシャツ'
@@ -387,7 +390,8 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
       'testcase_name':
           'japanese_title',
       'original_title':
-          'a' * constants.TITLE_CHARS_VISIBLE_TO_USER_JA + 'タイトルブロック'
+          'a' * constants.TITLE_CHARS_VISIBLE_TO_USER_JA +
+          'タイトルブロック'
   }, {
       'testcase_name':
           'check_case_insensitive',
@@ -496,6 +500,94 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
         '寒い冬からあなたを守る！モデル：ジャケット、[送料無料]'
         ' , カイナ '
         ',カラー：ブラック、防寒仕様ダウンジャケット')
+    self.assertEqual(expected_title, product['title'])
+    self.assertEqual(1, optimization_result.num_of_products_optimized)
+
+  @mock.patch(
+      'optimizers_builtin.title_word_order_optimizer.TitleWordOrderOptimizer._get_keywords_position',
+      return_value=title_word_order_optimizer._KeywordsPosition.BACK)
+  def test_keywords_are_appended_in_descending_order_of_weight_when_keywords_position_is_back(
+      self, _):
+    original_data = requests_bodies.build_request_body(
+        properties_to_be_updated={
+            'title':
+                'Some title with multiple keywords keyword2 keyword1 in the '
+                'middle',
+            'googleProductCategory': _PROPER_GPC_CATEGORY_EN,
+        })
+
+    optimized_data, optimization_result = self.optimizer.process(
+        original_data, constants.LANGUAGE_CODE_EN)
+    product = optimized_data['entries'][0]['product']
+
+    expected_title = ('Some title with multiple keywords keyword2 '
+                      'keyword1 in the middle [keyword1][keyword2]')
+    self.assertEqual(expected_title, product['title'])
+    self.assertEqual(1, optimization_result.num_of_products_optimized)
+
+  @mock.patch(
+      'optimizers_builtin.title_word_order_optimizer.TitleWordOrderOptimizer._get_keywords_position',
+      return_value=title_word_order_optimizer._KeywordsPosition.BACK)
+  def test_at_most_three_keywords_are_appended_weight_when_keywords_position_is_back(
+      self, _):
+    original_data = requests_bodies.build_request_body(
+        properties_to_be_updated={
+            'title': 'Some title with multiple keywords keyword2 keyword1 '
+                     'heavy_keyword heavy_keyword_2 in the middle',
+            'googleProductCategory': _PROPER_GPC_CATEGORY_EN,
+        })
+
+    optimized_data, optimization_result = self.optimizer.process(
+        original_data, constants.LANGUAGE_CODE_EN)
+    product = optimized_data['entries'][0]['product']
+
+    expected_title = (
+        'Some title with multiple '
+        'keywords keyword2 keyword1 heavy_keyword heavy_keyword_2 in the '
+        'middle [keyword1][keyword2][heavy_keyword_2]')
+    self.assertEqual(expected_title, product['title'])
+    self.assertEqual(1, optimization_result.num_of_products_optimized)
+
+  @mock.patch(
+      'optimizers_builtin.title_word_order_optimizer.TitleWordOrderOptimizer._get_keywords_position',
+      return_value=title_word_order_optimizer._KeywordsPosition.BACK)
+  def test_title_is_not_optimized_if_title_more_than_max_title_length_when_keywords_position_is_back(
+      self, _):
+    original_title = 'a' * (title_word_order_optimizer._MAX_TITLE_LENGTH -
+                            len(' heavy_keyword')) + ' heavy_keyword'
+    original_data = requests_bodies.build_request_body(
+        properties_to_be_updated={
+            'title': original_title,
+            'googleProductCategory': _PROPER_GPC_CATEGORY_EN,
+        })
+
+    optimized_data, optimization_result = self.optimizer.process(
+        original_data, constants.LANGUAGE_CODE_EN)
+    product = optimized_data['entries'][0]['product']
+
+    self.assertEqual(original_title, product['title'])
+    self.assertEqual(0, optimization_result.num_of_products_optimized)
+
+  @mock.patch(
+      'optimizers_builtin.title_word_order_optimizer.TitleWordOrderOptimizer._get_keywords_position',
+      return_value=title_word_order_optimizer._KeywordsPosition.BACK)
+  def test_a_number_of_keywords_are_appended_so_that_title_length_does_not_exceed_max_length_when_keywords_position_is_back(
+      self, _):
+    original_title = 'a' * (title_word_order_optimizer._MAX_TITLE_LENGTH - len(
+        ' keyword1 keyword2 [keyword1]')) + ' keyword1 keyword2'
+    original_data = requests_bodies.build_request_body(
+        properties_to_be_updated={
+            'title': original_title,
+            'googleProductCategory': _PROPER_GPC_CATEGORY_EN,
+        })
+
+    optimized_data, optimization_result = self.optimizer.process(
+        original_data, constants.LANGUAGE_CODE_EN)
+    product = optimized_data['entries'][0]['product']
+
+    # [keyword2] is not appended.
+    expected_title = 'a' * (title_word_order_optimizer._MAX_TITLE_LENGTH - len(
+        ' keyword1 keyword2 [keyword1]')) + ' keyword1 keyword2 [keyword1]'
     self.assertEqual(expected_title, product['title'])
     self.assertEqual(1, optimization_result.num_of_products_optimized)
 

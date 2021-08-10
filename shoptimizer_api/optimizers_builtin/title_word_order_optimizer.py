@@ -43,7 +43,6 @@ from optimizers_abstract import base_optimizer
 from util import gpc_id_to_string_converter
 from util import optimization_util
 
-
 _MAX_KEYWORDS_PER_TITLE = 3
 _MAX_TITLE_LENGTH = 150
 
@@ -113,6 +112,12 @@ class _OptimizationLevel(enum.Enum):
   STANDARD = 'standard'
 
 
+class _KeywordsPosition(enum.Enum):
+  """Enums for keywords_position to put keywords."""
+  FRONT = 'front'
+  BACK = 'back'
+
+
 class TitleWordOrderOptimizer(base_optimizer.BaseOptimizer):
   """An optimizer that optimizes title word order."""
 
@@ -171,8 +176,8 @@ class TitleWordOrderOptimizer(base_optimizer.BaseOptimizer):
 
     for entry in product_batch['entries']:
 
-      if (optimization_util.optimization_exclusion_specified(
-          entry, self._OPTIMIZER_PARAMETER)):
+      if optimization_util.optimization_exclusion_specified(
+          entry, self._OPTIMIZER_PARAMETER):
         num_of_products_excluded += 1
         continue
 
@@ -216,26 +221,35 @@ class TitleWordOrderOptimizer(base_optimizer.BaseOptimizer):
           joined_product_types,
           language) if optimization_includes_product_types else []
 
-      (keywords_visible_to_user, keywords_not_visible_to_user,
-       title_without_keywords) = (
-           _generate_front_and_back_keyword_lists(sorted_keywords_for_gpc,
-                                                  title_to_process, title_words,
-                                                  description_words,
-                                                  product_types_words,
-                                                  language))
+      if self._get_keywords_position() == _KeywordsPosition.BACK:
+        keywords_to_append = _generate_list_of_keywords_to_append(
+            sorted_keywords_for_gpc, title_to_process, title_words,
+            description_words, product_types_words)
+        optimized_title = _generate_optimized_title(keywords_to_append,
+                                                    title_to_process,
+                                                    _KeywordsPosition.BACK)
+      else:
+        (keywords_visible_to_user, keywords_not_visible_to_user,
+         title_without_keywords) = (
+             _generate_front_and_back_keyword_lists(
+                 sorted_keywords_for_gpc, title_to_process, title_words,
+                 description_words, product_types_words, language))
+        keywords_to_prepend = _generate_list_of_keywords_to_prepend(
+            keywords_visible_to_user, keywords_not_visible_to_user,
+            title_to_process, language)
+        ordered_keywords_to_prepend = _reorder_keywords_by_weight(
+            keywords_to_prepend, sorted_keywords_for_gpc)
 
-      keywords_to_prepend = _generate_list_of_keywords_to_prepend(
-          keywords_visible_to_user, keywords_not_visible_to_user,
-          title_to_process, language)
-      ordered_keywords_to_prepend = _reorder_keywords_by_weight(
-          keywords_to_prepend, sorted_keywords_for_gpc)
+        # Copy keywords.
+        optimized_title = _generate_optimized_title(ordered_keywords_to_prepend,
+                                                    title_to_process,
+                                                    _KeywordsPosition.FRONT)
 
-      optimized_title = _generate_prepended_title(ordered_keywords_to_prepend,
-                                                  title_to_process)
-
-      if len(optimized_title) > _MAX_TITLE_LENGTH:
-        optimized_title = _generate_prepended_title(ordered_keywords_to_prepend,
-                                                    title_without_keywords)
+        if len(optimized_title) > _MAX_TITLE_LENGTH:
+          # Move keywords.
+          optimized_title = _generate_optimized_title(
+              ordered_keywords_to_prepend, title_without_keywords,
+              _KeywordsPosition.FRONT)
 
       product['title'] = optimized_title
 
@@ -265,6 +279,14 @@ class TitleWordOrderOptimizer(base_optimizer.BaseOptimizer):
   def _optimization_includes_product_types(self) -> bool:
     """Returns whether productTypes field should be inspected or not when finding keywords."""
     return self._title_word_order_options.get('productTypesIncluded', False)
+
+  def _get_keywords_position(self) -> _KeywordsPosition:
+    """Returns keywords keywords_position."""
+    if self._title_word_order_options.get(
+        'keywordsPosition', '').lower() == _KeywordsPosition.BACK.value:
+      return _KeywordsPosition.BACK
+    else:
+      return _KeywordsPosition.FRONT
 
 
 def _should_skip_optimization(gpc_string: str,
@@ -380,6 +402,45 @@ def _split_words_in_japanese(text: str) -> List[str]:
   return split_words
 
 
+def _generate_list_of_keywords_to_append(
+    sorted_keywords: List[Dict[str, Any]], title_to_process: str,
+    title_words: List[str], description_words: List[str],
+    product_types_words: List[str]) -> List[str]:
+  """Determines which high-performing keywords need to be appended.
+
+  Args:
+    sorted_keywords: A list of dictionaries of keywords and weights, sorted by
+      descending weight.
+    title_to_process: the title to append performant keywords to.
+    title_words: A list of semantically tokenized words in the title.
+    description_words: A list of semantically tokenized description words.
+    product_types_words: A list of semantically tokenized product types words.
+
+  Returns:
+    A list of high-performing keywords.
+  """
+  keywords_to_append = []
+
+  for keyword_and_weight in sorted_keywords:
+    try:
+      keyword = keyword_and_weight['keyword']
+    except KeyError:
+      continue
+
+    if keyword in title_words or keyword in description_words or keyword in product_types_words:
+      temp_keywords_to_append = [*keywords_to_append, keyword]
+      temp_appended_title = _generate_optimized_title(temp_keywords_to_append,
+                                                      title_to_process,
+                                                      _KeywordsPosition.BACK)
+      if len(temp_appended_title) <= _MAX_TITLE_LENGTH:
+        keywords_to_append.append(keyword)
+
+      if _num_keywords_to_prepend_meets_or_exceeds_limit(keywords_to_append):
+        break
+
+  return keywords_to_append
+
+
 def _generate_front_and_back_keyword_lists(
     sorted_keywords: List[Dict[str, Any]], title_to_process: str,
     title_words: List[str], description_words: List[str],
@@ -462,8 +523,9 @@ def _generate_list_of_keywords_to_prepend(
   """
   keywords_to_be_prepended = keywords_not_visible_to_user
   for skipped_keyword in keywords_visible_to_user:
-    temp_prepended_title = _generate_prepended_title(keywords_to_be_prepended,
-                                                     title)
+    temp_prepended_title = _generate_optimized_title(keywords_to_be_prepended,
+                                                     title,
+                                                     _KeywordsPosition.FRONT)
     if language == constants.LANGUAGE_CODE_JA:
       front_of_title = temp_prepended_title[:constants
                                             .TITLE_CHARS_VISIBLE_TO_USER_JA]
@@ -492,24 +554,28 @@ def _reorder_keywords_by_weight(
   return sorted_keywords_to_prepend
 
 
-def _generate_prepended_title(performant_keywords_to_prepend: List[str],
-                              title: str) -> str:
-  """Prepends keywords in square brackets to the title.
+def _generate_optimized_title(performant_keywords_to_add: List[str], title: str,
+                              keywords_position: _KeywordsPosition) -> str:
+  """Adds keywords in square brackets to the title.
 
   Args:
-    performant_keywords_to_prepend: keywords to prepend to the title.
+    performant_keywords_to_add: keywords to add to the title.
     title: the original title.
+    keywords_position: the position of keywords to add.
 
   Returns:
-    The title with keywords in square brackets prepended to it.
+    The title with keywords in square brackets added to it.
   """
 
   formatted_keywords = [
       '[' + keyword + ']'
-      for keyword in performant_keywords_to_prepend[:_MAX_KEYWORDS_PER_TITLE]
+      for keyword in performant_keywords_to_add[:_MAX_KEYWORDS_PER_TITLE]
   ]
-  prepended_title = f'{"".join(formatted_keywords)} {title}'
-  return ' '.join(prepended_title.split())
+  if keywords_position == _KeywordsPosition.BACK:
+    optimized_title = f'{title} {"".join(formatted_keywords)}'
+  else:
+    optimized_title = f'{"".join(formatted_keywords)} {title}'
+  return ' '.join(optimized_title.split())
 
 
 def _remove_keywords_with_promo(
