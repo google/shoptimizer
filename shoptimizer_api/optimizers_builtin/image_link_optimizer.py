@@ -45,7 +45,7 @@ _THREAD_NAME_PREFIX: str = 'shoptimizer-image-optimizer'
 
 CONFIGURATION_DEFAULTS = {
     'require_image_can_be_downloaded': True,
-    'require_image_score_quality_better_than': 0.95
+    'require_image_score_quality_better_than': 0.9
 }
 
 

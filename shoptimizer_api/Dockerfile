@@ -36,7 +36,7 @@ RUN pip install --upgrade pip && \
 ADD . /app
 
 # Install production dependencies.
-RUN pip install gunicorn
+RUN pip install gunicorn tensorflow
 
 # Run gunicorn starting main.py/app object, binding IP:port
 CMD exec gunicorn --bind :$PORT --workers 1 --threads 8 --timeout 540 main:app

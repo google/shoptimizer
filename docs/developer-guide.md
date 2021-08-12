@@ -98,6 +98,7 @@ _**Optional:**_
 *   `description-optimizer=(true/false)`
 *   `free-shipping-optimizer=(true/false)`
 *   `identifier-exists-optimizer=(true/false)`
+*   `image-link-optimizer=(true/false)`
 *   `invalid-chars-optimizer=(true/false)`
 *   `mpn-optimizer=(true/false)`
 *   `product-type-length-optimizer=(true/false)`
@@ -218,6 +219,7 @@ condition_optimizer_config_{lang}.json | condition-optimizer                    
 free_shipping_optimizer_config_{lang}.json    | free-shipping-optimizer | Set the \"**free_shipping_patterns**\" section to a list of regex strings representing text that indicates the product is being offered with free shipping. Set the \"**shipping_exclusion_patterns**\" section to a list of regex strings that indicate any exceptions to a product's free shipping status. For example, any specific geographic areas that cannot be offered with free shipping, but otherwise free shipping would apply on that product.
 gender_optimizer_config_{lang}.json    | title-optimizer, description-optimizer | Set the \"**adult_product_categories**\" section to a list of strings representing partial [Google Product Categories](https://support.google.com/merchants/answer/6324436?hl=en) (any part of a tier can match a product's category) that indicate products in those categories should be mined for adult genders. Similarly, set the \"**baby_product_categories**\" to a list of partial GPCs that indicate products in those categories should be mined for baby genders. The next three sections, "female", "male", and "unisex" specify the terms to search the [Product Type](https://support.google.com/merchants/answer/6324406?hl=en) field and description for, and the \"**\*__replacement**\" fields specify the desired terms to set as the gender in the title (for either "baby" or "adult" types of products). See the default configs for examples.
 gpc_string_to_id_mapping_{lang}.json    | title-word-order-optimizer | An inverse version of the Google Product Category taxonomy mapping for the purpose of converting string representations of GPCs into their ID number counterparts. This config should be static and not need manual modification unless the taxonomy changes.
+image_link_optimizer_config.json       | image-link-optimizer                   | \"**require_image_can_be_downloaded**\" (bool, Default=True) If True, image URLs must be accessible over the internet by this optimizer; image file size is also validated. This requires network access to work. If False, do not try to download this image. \n \"**require_image_score_quality_better_than**\" (float, Default=0.9) Consider images likely to be disapproved if their quality score is worse than this value. Requires images to be downloaded. Normal scores range from 0.0 (best) to 1.0 (worst). See the documentation for [Image Link Optimizer](./image-link-optimizer.md) for details.
 promo_text_removal_optimizer_config_{lang}.json  | promo-text-removal-optimizer           | Set \"**promotional_text_patterns_regex**\" to a list of strings representing regex patterns that will be matched against the product's title. Set \"**promotional_text_patterns_exact_match**\" to a list of strings representing exact-match patterns that will be matched against the product's title. Matching patterns will be removed from the title.
 shopping_exclusion_optimizer_config_{lang}.json  | shopping-exclusion-optimizer           | Set \"**shopping_exclusion_patterns_exact_match**\" to a list of strings representing text that will be matched against the product's title. If the title contains any of these terms, the optimizer will exclude the product from Shopping ads in the Content API request.
 title_word_order_blocklist_{lang}.json | title-word-order-optimizer | Add words into the string array that will prevent the title-word-order-optimizer from moving those words to the front of product titles, even if they are determined to be high-performing.
@@ -381,8 +383,11 @@ __11. title-length-optimizer__
 
 This is a subset of title-optimizer, so it would be recommended to be used if title-optimizer was not used, and only if the user deems it necessary to fix long titles.
 
+__12. image-link-optimizer__
 
-__12. title-word-order-optimizer__
+No other optimizers affect the imageLink or additionalImageLink attributes, so order does not matter.
+
+__13. title-word-order-optimizer__
 
 This specific optimizer will be forced to be the last to run despite its order in the query string parameters.
 
