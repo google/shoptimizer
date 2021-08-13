@@ -56,5 +56,6 @@ steps:
   - --image=gcr.io/${_GCP_PROJECT}/shoptimizer:latest
   - --region=us-central1
   - --platform=managed
+  - --memory=2G
 timeout: 3600s
 tags: ['shoptimizer']
