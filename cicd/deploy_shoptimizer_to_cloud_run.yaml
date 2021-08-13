@@ -13,6 +13,8 @@
 # limitations under the License.
 
 steps:
+
+# Install dependencies & run unit tests
 - name: python:3.8-slim
   id: ShoptimizerUnitTests
   entrypoint: /bin/sh
@@ -24,9 +26,11 @@ steps:
     && apt-get -y install mecab libmecab-dev mecab-ipadic-utf8 git make curl xz-utils file sudo \
     && git clone --depth 1 https://github.com/neologd/mecab-ipadic-neologd.git \
     && echo yes | mecab-ipadic-neologd/bin/install-mecab-ipadic-neologd -n -a \
-    && pip install --upgrade pip && pip install pipenv \
+    && pip install --upgrade pip && pip install tensorflow pipenv \
     && pipenv install --dev --system --deploy --ignore-pipfile \
     && python test_runner.py
+
+# Docker Build
 - name: gcr.io/cloud-builders/docker
   args:
   - image
@@ -35,11 +39,15 @@ steps:
   - gcr.io/${_GCP_PROJECT}/shoptimizer
   - .
   dir: shoptimizer_api
+
+  # Docker push to Google Artifact Registry
 - name: gcr.io/cloud-builders/docker
   args:
   - image
   - push
   - gcr.io/${_GCP_PROJECT}/shoptimizer
+
+# Deploy to Cloud Run
 - name: gcr.io/cloud-builders/gcloud
   args:
   - run
