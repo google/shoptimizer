@@ -14,10 +14,10 @@ accept all risks, known and unknown, associated with its usage, including with
 respect to your deployment of any portion of this solution in your systems, or
 usage in connection with your business, if at all._
 
--   [Shoptimizer API README](#shoptimizer-api-readme)
-    *   [Overview](#overview)
-    *   [Glossary of Terms](#glossary-of-terms)
-    *   [Optimizer Explanations](#optimizer-explanations)
+- [Shoptimizer](#shoptimizer)
+  - [Overview](#overview)
+    - [Glossary of Terms](#glossary-of-terms)
+  - [Optimizer Explanations](#optimizer-explanations)
 
 ## Overview
 
@@ -74,4 +74,4 @@ shopping-exclusion-optimizer  | _Sanitization_              | excludedDestinatio
 size-length-optimizer         | _Optimization_              | sizes                                      | The sizes attribute consists of a list containing a single string. This optimizer will trim the sizes attribute to 100 characters and ensure the sizes attribute only contains one value. This will prevent the sizes attribute from being rejected.
 title-length-optimizer        | _Sanitization/Optimization_ | title                                      | Truncates title to the max title length if its length exceeds the max value. This will lead to the product avoiding disapproval. Also, if the title is a truncated version of the description, and there is space to expand the title, the title will be expanded. This is expected to improve product performance.
 title-optimizer               | _Sanitization/Optimization_ | title                                      | Optimizes title. It will create the title from the description if the title does not exist, truncate the title if it overflows, or complement the title with the description if the title is truncated from the description. It will also remove promotional text from the title. It also appends product attributes to the title after mining them. This is expected to improve product performance. Supported attributes: gender, color, sizes, brand. (This optimizer will also perform attribute mining: brand, color, sizes, and gender attributes will be added to the product fields if they do not exist and could be mined.)
-title-word-order-optimizer    | _Optimization_              | title                                      | See the documentation for [Title Word Order Optimizer](./docs/title-word-order-optimizer.md) for details. Optimizes titles using the associated config that specifies title keywords that have high-performing weights for specific product categories. A product in that category whose title contains the high-performing keywords will have its title rearranged to put the matching keywords to the front of the title so they are more prominently displayed in the ad. _(Note, due to the nature of the data processing logic, if this optimizer is specified, it will be forced to be run after all other optimizers regardless of query string order.)_
+title-word-order-optimizer    | _Optimization_              | title                                      | See the documentation for [Title Word Order Optimizer](./docs/title-word-order-optimizer.md) for details. Optimizes titles using the associated config that specifies title keywords that have high-performing weights for specific product categories. A product in that category whose title contains the high-performing keywords will have its title rearranged to put the matching keywords to the front / back of the title so they are more prominently displayed in the ad. _(Note, due to the nature of the data processing logic, if this optimizer is specified, it will be forced to be run after all other optimizers regardless of query string order.)_

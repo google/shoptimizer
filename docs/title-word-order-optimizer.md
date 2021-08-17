@@ -16,11 +16,11 @@ usage in connection with your business, if at all._
 
 ## 1. Overview
 
-Title Word Order Optimizer is a Shoptimizer API optimizer that attempts to re-arrange words in the title so that "high-performing" words of the product are shown near the front of the product's title.
+Title Word Order Optimizer is a Shoptimizer API optimizer that attempts to re-arrange words in the title so that "high-performing" words of the product are shown near the front of the product's title or are added to the back of the title (See [Configure the Position to Add High-Performing Words](#configure-the-position-to-add-high-performing-words)).
 
 This feature matches a Shoptimizer API request batch of products against a list of Google Product Categories (GPCs) and the weighted high-performing keywords for each GPC stored in a config file.
 
-If a match* was found (whether in the title, description, or productTypes, explained in more detail below), then the high-performing word is copied to the front of the product’s title, surrounded in square brackets ([ ]), and one half-width space is added before the original title. If this “copy”/”prepend” operation results in a title that is over the maximum allowed character length (150 characters), then the word is moved instead of copied. If there are multiple high-performing keywords found, they are prepended in order of descending weight (specified in the config).
+If a match* was found (whether in the title, description, or productTypes, explained in more detail below), then the high-performing word is copied to the front / back of the product’s title, surrounded in square brackets ([ ]), and one half-width space is added before / after the original title. If this “copy”/”prepend” operation results in a title that is over the maximum allowed character length (150 characters) and the keywords are being moved to the front of the title, then the word is moved instead of copied. If there are multiple high-performing keywords found, they are prepended / appended in order of descending weight (specified in the config).
 
 
 * “Match” is defined as full-words only, case-sensitive. Also, single-character words are excluded from the matching.
@@ -48,13 +48,14 @@ The next sections will describe the detailed design and associated caveats to th
 {
   "descriptionIncluded": [true/false],
   "productTypesIncluded": [true/false],
-  "optimizationLevel": ["standard/aggressive"]
+  "optimizationLevel": ["standard/aggressive"],
+  "keywordsPosition": ["front/back"]
 }
 
 
 ### Match and Move High-Performing Words Not Only in the Product Title, but also Description and ProductTypes attributes
 
-This feature utilizes the "descriptionIncluded" and "productTypesIncluded" flags in the “title_word_order_options.json” config file that enables whether to also check for high-performing words from not only the product title, but also the product description and productTypes array. If the configuration is enabled (i.e. the value is set to "true"), high-performing words found in the corresponding fields will also be moved to the front of the title.
+This feature utilizes the "descriptionIncluded" and "productTypesIncluded" flags in the “title_word_order_options.json” config file that enables whether to also check for high-performing words from not only the product title, but also the product description and productTypes array. If the configuration is enabled (i.e. the value is set to "true"), high-performing words found in the corresponding fields will also be moved to the front / back of the title.
 
 ### Configure "aggressivity" of the GPC matching
 
@@ -64,6 +65,15 @@ These levels are explained as follows:
 
 “standard” - Any product GPCs that are 4 levels deep or more skip optimizing the product for title word order. Optimizations will be applied to products having GPC depths of 3 or less.
 “aggressive” - The GPCs are matched as-is (any depth).
+
+### Configure the Position to Add High-Performing Words
+
+This feature utilizes the "keywordsPosition" configuration setting in the "title_word_order_options.json" config file that specifies a string (either "front" or "back") that determines the position in title to add high-performing words.
+
+The positions are as follows:
+
+- "front" - High-performing words are copied to the front of title. They are moved to the front if the operation results in a title that is over the maximum allowed character length (150 characters).
+- "back" - High-performing words are copied to the back of title. Title is not modified if the operation results in a title that is over the maximum allowed character length (150 characters).
 
 ### Do not move or copy matching high-performing keywords if they are in a configured list of words to block
 
@@ -84,11 +94,11 @@ In order to prevent product titles containing duplicates of high-performing word
 
 "Near the front of the title” is defined as: within a specified language-dependent threshold number of characters, if a full high-performing keyword is contained within that range of characters, it is skipped from being copied to the front of the title. However, if the high-performing keyword is partially within the threshold, or not within the threshold at all, it is copied to the front of the title.
 
-### Do not add high-performing words to the front of the title that are also considered promotional text.
+### Do not add high-performing words to the front / back of the title that are also considered promotional text.
 
 Due to certain words that are considered promotional text having a risk of disapproval of the product, this feature implements safeguards against moving those types of words, with the prerequisite that the promo text optimizer is properly configured by the user.
 
-This feature leverages the promo text optimizer’s configuration to determine if a matching high-performing word is also a promotional text word. If it is, the word is skipped from being added to the front of the title.
+This feature leverages the promo text optimizer’s configuration to determine if a matching high-performing word is also a promotional text word. If it is, the word is skipped from being added to the front / back of the title.
 
 ### Force title-word-order-optimizer to run after all other optimizers
 
