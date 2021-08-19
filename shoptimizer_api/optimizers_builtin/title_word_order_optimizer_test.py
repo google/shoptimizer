@@ -637,6 +637,9 @@ def _set_test_variables(module: 'Module'):
   }
 
 
+@mock.patch(
+    'optimizers_builtin.title_word_order_optimizer._TITLE_WORD_ORDER_OPTIONS_FILE_NAME',
+    'title_word_order_options_test')
 class TitleWordOrderOptimizerNoFlaskTest(parameterized.TestCase):
   """Tests TitleWordOrderOptimizer running outside a Flask context."""
 
