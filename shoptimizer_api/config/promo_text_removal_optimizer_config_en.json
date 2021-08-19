@@ -2,5 +2,23 @@
   "promotional_text_patterns_regex": [
   ],
   "promotional_text_patterns_exact_match": [
+    "new product",
+    "new style",
+    "new design",
+    "free shipping",
+    "free delivery",
+    "money back",
+    "top quality",
+    "top sale",
+    "big sale",
+    "wholesale",
+    "hot sale",
+    "direct sale",
+    "top selling",
+    "best selling",
+    "bestseller",
+    "cheap",
+    "best price",
+    "top price"
   ]
 }
