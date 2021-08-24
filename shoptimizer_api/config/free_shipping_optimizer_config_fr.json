@@ -1,0 +1,10 @@
+{
+  "free_shipping_patterns": [
+    "livraison (gratuite|offerte)",
+    "port (gratuit|offert)"
+  ],
+  "shipping_exclusion_patterns": [
+    "livraison (gratuite|offerte) en gros",
+    "port (gratuit|offert) en gros"
+  ]
+}
