@@ -27,7 +27,7 @@ usage in connection with your business, if at all._
       - [2.2.2 Build the Image](#222-build-the-image)
       - [2.2.3 Push the Image to the GCR](#223-push-the-image-to-the-gcr)
       - [2.2.4 Deploy to Cloud Run](#224-deploy-to-cloud-run)
-    + [2.3 Build and run Shoptimizer on Docker (local)](#23-build-and-run-shoptimizer-on-docker--local-)
+    + [2.3 Build and run Shoptimizer on Docker (local)](#23-build-and-run-shoptimizer-on-docker-local)
       - [2.3.1 Clone the Solution](#231-clone-the-solution)
       - [2.3.2 Build the Image](#232-build-the-image)
       - [2.3.3 Run the Container](#233-run-the-container)
