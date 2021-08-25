@@ -23,7 +23,10 @@
     {
       "keyword": "magic",
       "weight": 0.3
-
+    },
+    {
+      "keyword": "Hiroo Mobile",
+      "weight": 0.3
     }
   ],
   "632": [

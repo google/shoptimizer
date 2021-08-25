@@ -32,6 +32,7 @@ shoptimizer_api/config/title_word_order_options.json.
 
 import enum
 import logging
+import re
 from typing import Any, Callable, Dict, List, Optional, Tuple
 from util import promo_text_remover as promo_text_remover_lib
 from flask import current_app
@@ -42,6 +43,8 @@ from models import optimization_result_counts
 from optimizers_abstract import base_optimizer
 from util import gpc_id_to_string_converter
 from util import optimization_util
+from util import regex_util
+
 
 _MAX_KEYWORDS_PER_TITLE = 3
 _MAX_TITLE_LENGTH = 150
@@ -50,6 +53,7 @@ _GPC_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME: str = 'gpc_string_to_id_mapping_{}'
 _TITLE_WORD_ORDER_CONFIG_FILE_NAME: str = 'title_word_order_config_{}'
 _TITLE_WORD_ORDER_BLOCKLIST_FILE_NAME: str = 'title_word_order_blocklist_{}'
 _TITLE_WORD_ORDER_OPTIONS_FILE_NAME: str = 'title_word_order_options'
+_TITLE_WORD_ORDER_DICTIONARY_FILE_NAME: str = 'title_word_order_dictionary'
 
 # The following constants must be set if Shoptimizer is used outside
 # a Flask context.
@@ -57,7 +61,8 @@ GPC_STRING_TO_ID_MAPPING_CONFIG = None
 TITLE_WORD_ORDER_CONFIG = None
 BLOCKLIST_CONFIG = None
 TITLE_WORD_ORDER_OPTIONS_CONFIG = None
-CUSTOM_TEXT_TOKENIZER: Callable[[str, str], List[str]] = None
+CUSTOM_TEXT_TOKENIZER: Callable[[str, str, Dict[str, str]], List[str]] = None
+TITLE_WORD_ORDER_DICTIONARY_CONFIG = None
 
 
 def _get_required_configs():
@@ -67,6 +72,7 @@ def _get_required_configs():
       'title_word_order_config': TITLE_WORD_ORDER_CONFIG,
       'blocklist_config': BLOCKLIST_CONFIG,
       'title_word_order_options_config': TITLE_WORD_ORDER_OPTIONS_CONFIG,
+      'title_word_order_dictionary_config': TITLE_WORD_ORDER_DICTIONARY_CONFIG,
   }
 
 
@@ -90,8 +96,12 @@ def _get_configs_from_environment(language: str):
         current_app.config.get('CONFIGS',
                                {}).get(_TITLE_WORD_ORDER_OPTIONS_FILE_NAME))
 
+    title_word_order_dictionary = (
+        current_app.config.get('CONFIGS',
+                               []).get(_TITLE_WORD_ORDER_DICTIONARY_FILE_NAME))
+
     return (gpc_string_to_id_mapping, title_word_order_config, blocklist_config,
-            title_word_order_options)
+            title_word_order_options, title_word_order_dictionary)
   else:
     # It is not running on Flask.
     #
@@ -103,7 +113,8 @@ def _get_configs_from_environment(language: str):
             config_name)
 
     return (GPC_STRING_TO_ID_MAPPING_CONFIG, TITLE_WORD_ORDER_CONFIG,
-            BLOCKLIST_CONFIG, TITLE_WORD_ORDER_OPTIONS_CONFIG)
+            BLOCKLIST_CONFIG, TITLE_WORD_ORDER_OPTIONS_CONFIG,
+            TITLE_WORD_ORDER_DICTIONARY_CONFIG)
 
 
 class _OptimizationLevel(enum.Enum):
@@ -146,7 +157,8 @@ class TitleWordOrderOptimizer(base_optimizer.BaseOptimizer):
     num_of_products_excluded = 0
 
     (gpc_string_to_id_mapping, title_word_order_config, blocklist_config,
-     title_word_order_options) = _get_configs_from_environment(language)
+     title_word_order_options,
+     title_word_order_dictionary) = _get_configs_from_environment(language)
 
     # Initialize the dependency on GPCConverter depending on the runtime.
     if current_app:
@@ -213,13 +225,17 @@ class TitleWordOrderOptimizer(base_optimizer.BaseOptimizer):
           allowed_keywords_for_gpc)
 
       title_to_process = original_title
-      title_words = _tokenize_text(title_to_process, language)
+      regex_dictionary_terms = regex_util.generate_regex_term_dict(
+          title_word_order_dictionary)
+      title_words = _tokenize_text(title_to_process, language,
+                                   regex_dictionary_terms)
       description_words = _tokenize_text(
-          description, language) if optimization_includes_description else []
+          description, language,
+          regex_dictionary_terms) if optimization_includes_description else []
       joined_product_types = ' '.join(product_types)
       product_types_words = _tokenize_text(
-          joined_product_types,
-          language) if optimization_includes_product_types else []
+          joined_product_types, language, regex_dictionary_terms
+      ) if optimization_includes_product_types else []
 
       if self._get_keywords_position() == _KeywordsPosition.BACK:
         keywords_to_append = _generate_list_of_keywords_to_append(
@@ -361,30 +377,39 @@ def _remove_keywords_in_blocklist(
   return allowed_keywords
 
 
-def _tokenize_text(text: str, language: str) -> List[str]:
+def _tokenize_text(text: str,
+                   language: str,
+                   regex_dictionary_terms: Dict[str, str]) -> List[str]:
   """Splits text into individual words using the correct method for the given language.
 
   Args:
     text: Text to be split.
     language: The configured language code.
+    regex_dictionary_terms: A map of regex to dictionary term.
 
   Returns:
     The text tokenized into a list of words.
   """
   if CUSTOM_TEXT_TOKENIZER:
     
-    return CUSTOM_TEXT_TOKENIZER(text, language)
+    return CUSTOM_TEXT_TOKENIZER(text, language, regex_dictionary_terms)
   elif language == constants.LANGUAGE_CODE_JA:
-    return _split_words_in_japanese(text)
+    return _split_words_in_japanese(text, regex_dictionary_terms)
   else:
-    return text.split()
+    return _split_words_in_western_languages(text, regex_dictionary_terms)
 
 
-def _split_words_in_japanese(text: str) -> List[str]:
+def _split_words_in_japanese(
+    text: str, regex_dictionary_terms: Dict[str, str]) -> List[str]:
   """Splits Japanese text into words by using MeCab.
+
+  If a group of words in the text match a regex in the
+  regex_dictionary_terms they will be added as one string token in the
+  returned list.
 
   Args:
     text: Text to be split.
+    regex_dictionary_terms: A regex to dictionary term map.
 
   Returns:
     The text tokenized into a list of semantically delineated words.
@@ -399,6 +424,33 @@ def _split_words_in_japanese(text: str) -> List[str]:
   while node:
     split_words.append(node.surface)
     node = node.next
+
+  for regex, dictionary_word in regex_dictionary_terms.items():
+    if re.search(regex, text):
+      split_words.append(dictionary_word)
+  return split_words
+
+
+def _split_words_in_western_languages(
+    text: str, regex_dictionary_terms: Dict[str, str]) -> List[str]:
+  """Splits western text into words.
+
+  If a group of words in the text match a regex in the
+  regex_dictionary_terms they will be added as one string token in the
+  returned list.
+
+  Args:
+    text: Text to be split.
+    regex_dictionary_terms: A regex to dictionary term map.
+
+  Returns:
+    The text tokenized into a list of semantically delineated words.
+  """
+  split_words = text.split()
+
+  for regex, dictionary_word in regex_dictionary_terms.items():
+    if re.search(regex, text):
+      split_words.append(dictionary_word)
   return split_words
 
 

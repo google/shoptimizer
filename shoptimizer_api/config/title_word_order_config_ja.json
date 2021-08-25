@@ -34,7 +34,12 @@
     },
     {
       "keyword": "[SALE]",
-      "weight": 0.2    }
+      "weight": 0.2
+    },
+    {
+      "keyword": "広尾 モバイル",
+      "weight": 0.2
+    }
   ],
   "203": [
     {

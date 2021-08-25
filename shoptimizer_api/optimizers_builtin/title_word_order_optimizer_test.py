@@ -20,7 +20,7 @@ import unittest.mock as mock
 
 from optimizers_builtin import title_word_order_optimizer
 from test_data import requests_bodies
-from typing import List
+from typing import List, Dict
 from util import app_util
 
 import constants
@@ -51,6 +51,9 @@ _GPC_CATEGORY_LEVEL_4_JA = ('ファッション・アクセサリー > '
 @mock.patch(
     'optimizers_builtin.title_word_order_optimizer._TITLE_WORD_ORDER_OPTIONS_FILE_NAME',
     'title_word_order_options_test')
+@mock.patch(
+    'optimizers_builtin.title_word_order_optimizer._TITLE_WORD_ORDER_DICTIONARY_FILE_NAME',
+    'title_word_order_dictionary_test')
 class TitleWordOrderOptimizerTest(parameterized.TestCase):
 
   def setUp(self):
@@ -413,6 +416,53 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
     self.assertEqual(original_title, product['title'])
     self.assertEqual(0, optimization_result.num_of_products_optimized)
 
+  @parameterized.named_parameters([{
+      'testcase_name':
+          'japanese_title_hiroo_mobile_should_move_to_front',
+      'original_title':
+          'あなたの携帯電話のために最高の取引をしたいですか？広尾 モバイルを使う'
+  }])
+  def test_dictionary_term_file_help_tokenize_japanese_title_properly(
+      self, original_title):
+    original_data = requests_bodies.build_request_body(
+        properties_to_be_updated={
+            'title': original_title,
+            'googleProductCategory': _PROPER_GPC_CATEGORY_JA
+        })
+
+    optimized_data, optimization_result = self.optimizer.process(
+        original_data, constants.LANGUAGE_CODE_JA)
+    product = optimized_data['entries'][0]['product']
+
+    expected_title = '[広尾 モバイル] あなたの携帯電話のために最高の取引をしたいですか？広尾 モバイルを使う'
+
+    self.assertEqual(expected_title, product['title'])
+    self.assertEqual(1, optimization_result.num_of_products_optimized)
+
+  @parameterized.named_parameters([{
+      'testcase_name':
+          'non_japanese_title_hiroo_mobile_should_move_to_front',
+      'original_title':
+          'You want the best mobile phone deal? Come get Hiroo Mobile now!'
+  }])
+  def test_dictionary_term_file_help_tokenize_non_japanese_title_properly(
+      self, original_title):
+    original_data = requests_bodies.build_request_body(
+        properties_to_be_updated={
+            'title': original_title,
+            'googleProductCategory': _PROPER_GPC_CATEGORY_EN
+        })
+
+    optimized_data, optimization_result = self.optimizer.process(
+        original_data, constants.LANGUAGE_CODE_EN)
+    product = optimized_data['entries'][0]['product']
+
+    expected_title = ('[Hiroo Mobile] You want the best mobile phone deal? '
+                      'Come get Hiroo Mobile now!')
+
+    self.assertEqual(expected_title, product['title'])
+    self.assertEqual(1, optimization_result.num_of_products_optimized)
+
   @mock.patch(
       'optimizers_builtin.title_word_order_optimizer.TitleWordOrderOptimizer._get_optimization_level',
       return_value=title_word_order_optimizer._OptimizationLevel.AGGRESSIVE)
@@ -636,6 +686,8 @@ def _set_test_variables(module: 'Module'):
       'optimizationLevel': 'standard'
   }
 
+  module.TITLE_WORD_ORDER_DICTIONARY_CONFIG = []
+
 
 @mock.patch(
     'optimizers_builtin.title_word_order_optimizer._TITLE_WORD_ORDER_OPTIONS_FILE_NAME',
@@ -683,7 +735,9 @@ class TitleWordOrderOptimizerNoFlaskTest(parameterized.TestCase):
     self.assertEqual(1, optimization_result.num_of_products_optimized)
 
 
-def _custom_text_tokenizer(text: str, lang: str) -> List[str]:
+def _custom_text_tokenizer(text: str, lang: str,
+                           dictionary_terms: Dict[str, str]) -> List[str]:
   """Helper function to split text by a comma."""
   del lang
+  del dictionary_terms
   return text.split(',')
