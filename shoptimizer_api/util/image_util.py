@@ -14,18 +14,17 @@
 # limitations under the License.
 
 """Utilities related to image processing and scoring."""
+import logging
 import os
 import pathlib
 
-
 # Need to set the log level before importing tensorflow to disable info/debug.
-# Can upgrade to TF 2.5 when on Python 3.9 to remove this.
+# Can upgrade to TF 2.5 to remove this.
 # https://github.com/tensorflow/tensorflow/issues/31870
 #
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 import tensorflow.compat.v1 as tf
-tf.disable_v2_behavior()
 
 
 #  The MODEL_LOCATION must contain a `saved_model.pb` file containing a
@@ -38,6 +37,8 @@ tf.disable_v2_behavior()
 #  on how to train your own model using AutoML Vision.
 MODEL_LOCATION = os.path.join(
     pathlib.Path(__file__).parent.resolve(), 'resources', 'image_util')
+
+DEFAULT_SCORE: float = float('inf')
 
 
 def score_image(image_data: bytes) -> float:
@@ -54,13 +55,28 @@ def score_image(image_data: bytes) -> float:
     the model. Returns float('inf') if the image cannot be scored.
   """
   if not image_data:
-    return float('inf')
+    return DEFAULT_SCORE
+
+  if not _saved_model_exists():
+    logging.warning('Could not find model in `%s`. Cannot score image.',
+                    MODEL_LOCATION)
+    return DEFAULT_SCORE
 
   with tf.Session(graph=tf.Graph()) as session:
     try:
       tf.saved_model.loader.load(session, ['serve'], MODEL_LOCATION)
       score = session.run('scores:0', feed_dict={'Placeholder:0': [image_data]})
-    except tf.errors.OpError:
-      return float('inf')
+    except tf.errors.OpError as e:
+      logging.debug('Error when scoring image: %s', repr(e))
+      return DEFAULT_SCORE
 
     return score[0][0]
+
+
+def _saved_model_exists() -> bool:
+  """Identifies if a saved_model.pb file exists in the expected MODEL_LOCATION.
+
+  Returns:
+    True if the mode file can be found, False otherwise.
+  """
+  return os.path.isfile(os.path.join(MODEL_LOCATION, 'saved_model.pb'))

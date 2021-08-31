@@ -43,19 +43,20 @@ def _test_images_exist() -> bool:
 
 class ImageUtilTest(absltest.TestCase):
 
-  def test_score_image_returns_infinity_if_no_image_data_provided(self):
-    self.assertEqual(float('inf'), image_util.score_image(None))
+  def test_score_image_returns_default_if_no_image_data_provided(self):
+    self.assertEqual(image_util.DEFAULT_SCORE, image_util.score_image(None))
 
-  def test_score_image_returns_infinity_if_image_data_empty(self):
-    self.assertEqual(float('inf'), image_util.score_image(b''))
+  def test_score_image_returns_default_if_image_data_empty(self):
+    self.assertEqual(image_util.DEFAULT_SCORE, image_util.score_image(b''))
 
   @absltest.skipUnless(_saved_model_exists(),
                        f'Model file not found in {image_util.MODEL_LOCATION}.')
-  def test_score_image_returns_infinity_if_invalid_image_provided(self):
-    self.assertEqual(float('inf'), image_util.score_image(b'1234567890'))
+  def test_score_image_returns_default_if_invalid_image_provided(self):
+    self.assertEqual(image_util.DEFAULT_SCORE,
+                     image_util.score_image(b'1234567890'))
 
   @absltest.skipUnless(_saved_model_exists() and _test_images_exist(),
-                       'Required test file(s) not found.')
+                       f'Required file(s) not found in {_PATH_TO_TEST_IMAGES}.')
   def test_score_accept_image_returns_score_in_expected_range(self):
     image_path = os.path.join(_PATH_TO_TEST_IMAGES, 'accept.jpg')
     with open(image_path, 'rb') as accept_image_file:
@@ -65,7 +66,7 @@ class ImageUtilTest(absltest.TestCase):
                          _EXPECTED_ACCEPT_SCORE_MAX)
 
   @absltest.skipUnless(_saved_model_exists() and _test_images_exist(),
-                       'Required test file(s) not found.')
+                       f'Required file(s) not found in {_PATH_TO_TEST_IMAGES}.')
   def test_score_decline_image_returns_score_in_expected_range(self):
     image_path = os.path.join(_PATH_TO_TEST_IMAGES, 'decline.jpg')
     with open(image_path, 'rb') as decline_image_file:
@@ -74,3 +75,10 @@ class ImageUtilTest(absltest.TestCase):
                          _EXPECTED_DECLINE_SCORE_MIN,
                          _EXPECTED_DECLINE_SCORE_MAX)
 
+  def test_warns_and_returns_default_if_model_file_not_found(self):
+    image_util.MODEL_LOCATION = '/'
+    with self.assertLogs(level='WARNING') as logger:
+      resulting_score = image_util.score_image(b'1234567890')
+      self.assertIn(image_util.MODEL_LOCATION, logger.output[0])
+
+    self.assertEqual(image_util.DEFAULT_SCORE, resulting_score)
