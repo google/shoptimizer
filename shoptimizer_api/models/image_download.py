@@ -14,9 +14,8 @@
 # limitations under the License.
 
 """Stores image download data and metadata."""
-from typing import Optional
-
 import dataclasses
+from typing import Optional
 
 
 @dataclasses.dataclass(order=True, frozen=False)
