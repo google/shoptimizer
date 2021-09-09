@@ -28,7 +28,11 @@ from models import optimization_result_counts
 from optimizers_abstract import base_optimizer
 from util import optimization_util
 
-_SHOPPING_ADS_DESTINATION = 'Shopping ads'
+_EXCLUDED_DESTINATIONS_KEY = 'excludedDestinations'
+_INCLUDED_DESTINATIONS_KEY = 'includedDestinations'
+
+_SHOPPING_ADS_DESTINATION = 'Shopping_ads'
+_FREE_LISTINGS_DESTINATION = 'Free_listings'
 
 
 class ShoppingExclusionOptimizer(base_optimizer.BaseOptimizer):
@@ -72,17 +76,29 @@ class ShoppingExclusionOptimizer(base_optimizer.BaseOptimizer):
       product = entry['product']
 
       if self._is_non_shopping_product(product.get('title', '')):
-        if isinstance(
-            product.get('excludedDestinations'), list
-        ) and _SHOPPING_ADS_DESTINATION not in product['excludedDestinations']:
-          product['excludedDestinations'].append(_SHOPPING_ADS_DESTINATION)
-        else:
-          product['excludedDestinations'] = [_SHOPPING_ADS_DESTINATION]
+        _normalize_all_destinations(product)
 
-        if isinstance(
-            product.get('includedDestinations'), list
-        ) and _SHOPPING_ADS_DESTINATION in product['includedDestinations']:
-          product['includedDestinations'].remove(_SHOPPING_ADS_DESTINATION)
+        if isinstance(product.get(_EXCLUDED_DESTINATIONS_KEY), list):
+          if _SHOPPING_ADS_DESTINATION not in product[
+              _EXCLUDED_DESTINATIONS_KEY]:
+            product[_EXCLUDED_DESTINATIONS_KEY].append(
+                _SHOPPING_ADS_DESTINATION)
+          if _FREE_LISTINGS_DESTINATION not in product[
+              _EXCLUDED_DESTINATIONS_KEY]:
+            product[_EXCLUDED_DESTINATIONS_KEY].append(
+                _FREE_LISTINGS_DESTINATION)
+        else:
+          product[_EXCLUDED_DESTINATIONS_KEY] = [
+              _SHOPPING_ADS_DESTINATION, _FREE_LISTINGS_DESTINATION
+          ]
+
+        if isinstance(product.get(_INCLUDED_DESTINATIONS_KEY), list):
+          if _SHOPPING_ADS_DESTINATION in product[_INCLUDED_DESTINATIONS_KEY]:
+            product[_INCLUDED_DESTINATIONS_KEY].remove(
+                _SHOPPING_ADS_DESTINATION)
+          if _FREE_LISTINGS_DESTINATION in product[_INCLUDED_DESTINATIONS_KEY]:
+            product[_INCLUDED_DESTINATIONS_KEY].remove(
+                _FREE_LISTINGS_DESTINATION)
 
         num_of_products_optimized += 1
         base_optimizer.set_optimization_tracking(product,
@@ -111,3 +127,28 @@ class ShoppingExclusionOptimizer(base_optimizer.BaseOptimizer):
       return True
     else:
       return False
+
+
+def _normalize_all_destinations(product: Dict[str, Any]) -> None:
+  """Normalizes the format of shopping destinations in both 'excludedDestinations' and 'includedDestinations' fields."""
+  for key in (_EXCLUDED_DESTINATIONS_KEY, _INCLUDED_DESTINATIONS_KEY):
+    _normalize_destinations(product, key)
+
+
+def _normalize_destinations(product: Dict[str, Any], key: str) -> None:
+  """Normalizes the format of shopping destinations to be consistent with the help page: https://support.google.com/merchants/answer/6324486?hl=en.
+
+  This function replaces a space in destinations with an underscore.
+  e.g. 'Shopping ads' -> 'Shopping_ads'
+
+  Args:
+    product: Product data.
+    key: A field name of shopping destinations. It must be either
+      'excludedDestinations' or 'includedDestinations'.
+  """
+  normalized_destinations = []
+  if isinstance(product.get(key), list):
+    for destination in product[key]:
+      normalized_destination = destination.replace(' ', '_')
+      normalized_destinations.append(normalized_destination)
+    product[key] = normalized_destinations
