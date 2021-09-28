@@ -1,0 +1,15 @@
+{
+  "free_shipping_patterns": [
+    "free shipping",
+    "gratis ongkir",
+    "bebas ongkir",
+    "bebas biaya ongkir",
+    "gratis biaya ongkir",
+    "gratis ongkos kirim",
+    "bebas ongkos kirim",
+    "bebas biaya ongkos kirim",
+    "gratis biaya ongkos kirim"
+  ],
+  "shipping_exclusion_patterns": [
+  ]
+}
