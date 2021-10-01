@@ -68,6 +68,7 @@ MAXIMUM_SHOE_SIZE_US: float = 16
 GOOGLE_PRODUCT_CATEGORY_APPAREL_ACCESSORIES_KEYWORDS: Set[str] = {
     'Apparel & Accessories',
     'ファッション・アクセサリー',
+    'Pakaian & Aksesori',
 }
 
 GOOGLE_PRODUCT_CATEGORY_APPAREL_ACCESSORIES_IDS: Set[str] = {
