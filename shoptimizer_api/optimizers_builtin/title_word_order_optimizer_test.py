@@ -29,9 +29,12 @@ import constants
 _PROPER_GPC_CATEGORY_EN = 'Apparel & Accessories > Jewelry > Watches'
 
 # GPC ID is 201
-_PROPER_GPC_CATEGORY_JA = ('ファッション・アクセサリー > ' 'ジュエリー > 腕時計')
+_PROPER_GPC_CATEGORY_JA = ('ファッション・アクセサリー > '
+                           'ジュエリー > 腕時計')
 # GPC ID is 5598
-_GPC_CATEGORY_LEVEL_4_JA = ('ファッション・アクセサリー > ' '衣料品 > アウター > ' 'コート・ジャケット')
+_GPC_CATEGORY_LEVEL_4_JA = ('ファッション・アクセサリー > '
+                            '衣料品 > アウター > '
+                            'コート・ジャケット')
 
 
 @mock.patch('util.promo_text_remover._PROMO_TEXT_REMOVAL_CONFIG_FILE_NAME',
@@ -48,6 +51,9 @@ _GPC_CATEGORY_LEVEL_4_JA = ('ファッション・アクセサリー > ' '衣料
 @mock.patch(
     'optimizers_builtin.title_word_order_optimizer._TITLE_WORD_ORDER_OPTIONS_FILE_NAME',
     'title_word_order_options_test')
+@mock.patch(
+    'optimizers_builtin.title_word_order_optimizer._TITLE_WORD_ORDER_DICTIONARY_FILE_NAME',
+    'title_word_order_dictionary_test')
 class TitleWordOrderOptimizerTest(parameterized.TestCase):
 
   def setUp(self):
@@ -201,14 +207,17 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
       'testcase_name':
           'partial_match',
       'original_title':
-          'a' * constants.TITLE_CHARS_VISIBLE_TO_USER_JA + '有名ブランドTシャツ',
+          'a' * constants.TITLE_CHARS_VISIBLE_TO_USER_JA +
+          '有名ブランドTシャツ',
       'expected_title':
-          'a' * constants.TITLE_CHARS_VISIBLE_TO_USER_JA + '有名ブランドTシャツ'
+          'a' * constants.TITLE_CHARS_VISIBLE_TO_USER_JA +
+          '有名ブランドTシャツ'
   }, {
       'testcase_name':
           'accurate_match',
       'original_title':
-          'a' * constants.TITLE_CHARS_VISIBLE_TO_USER_JA + ' 有名ブランドシャツ',
+          'a' * constants.TITLE_CHARS_VISIBLE_TO_USER_JA +
+          ' 有名ブランドシャツ',
       'expected_title':
           '[シャツ] ' + 'a' * constants.TITLE_CHARS_VISIBLE_TO_USER_JA +
           ' 有名ブランドシャツ'
@@ -229,11 +238,13 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
 
   @parameterized.named_parameters([{
       'testcase_name': 'one_word_excluded_then_added_back',
-      'original_title': 'レッド・スニーカー、ブランド： '
-                        'カイナ、モデル：エオファース、色：レッド',
-      'expected_title': '[カイナ][エオファース] '
-                        'レッド・スニーカー、ブランド： '
-                        'カイナ、モデル：エオファース、色：レッド'
+      'original_title':
+          'レッド・スニーカー、ブランド： '
+          'カイナ、モデル：エオファース、色：レッド',
+      'expected_title':
+          '[カイナ][エオファース] '
+          'レッド・スニーカー、ブランド： '
+          'カイナ、モデル：エオファース、色：レッド'
   }, {
       'testcase_name':
           'keyword_kaina_already_within_japanese_threshold_chars_no_change_to_title',
@@ -285,7 +296,8 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
   def test_wmm_keyword_in_description_is_copied_to_title_when_options_toggle_is_on(
       self, _):
     description = 'とても良い カイナ とても良い'
-    original_title = ('レッド・スニーカー、ブランド： ' '色：レッド')
+    original_title = ('レッド・スニーカー、ブランド： '
+                      '色：レッド')
     original_data = requests_bodies.build_request_body(
         properties_to_be_updated={
             'title': original_title,
@@ -296,7 +308,9 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
     optimized_data, _ = self.optimizer.process(original_data,
                                                constants.LANGUAGE_CODE_JA)
     product = optimized_data['entries'][0]['product']
-    expected_title = ('[カイナ] ' 'レッド・スニーカー、ブランド： ' '色：レッド')
+    expected_title = ('[カイナ] '
+                      'レッド・スニーカー、ブランド： '
+                      '色：レッド')
     self.assertEqual(expected_title, product['title'])
 
   @mock.patch(
@@ -305,7 +319,8 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
   def test_wmm_keyword_in_description_is_not_copied_when_options_toggle_is_off(
       self, _):
     description = 'とても良い カイナ とても良い'
-    original_title = ('レッド・スニーカー、ブランド： ' '、色：レッド')
+    original_title = ('レッド・スニーカー、ブランド： '
+                      '、色：レッド')
     original_data = requests_bodies.build_request_body(
         properties_to_be_updated={
             'title': original_title,
@@ -359,7 +374,8 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
       return_value=False)
   def test_wmm_keyword_in_product_types_is_not_copied_to_title_when_options_toggle_is_off(
       self, _):
-    original_title = ('レッド・スニーカー、ブランド： ' '色：レッド')
+    original_title = ('レッド・スニーカー、ブランド： '
+                      '色：レッド')
     product_types = ['シャツ']
     original_data = requests_bodies.build_request_body(
         properties_to_be_updated={
@@ -377,7 +393,8 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
       'testcase_name':
           'japanese_title',
       'original_title':
-          'a' * constants.TITLE_CHARS_VISIBLE_TO_USER_JA + 'タイトルブロック'
+          'a' * constants.TITLE_CHARS_VISIBLE_TO_USER_JA +
+          'タイトルブロック'
   }, {
       'testcase_name':
           'check_case_insensitive',
@@ -400,10 +417,12 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
     self.assertEqual(0, optimization_result.num_of_products_optimized)
 
   @parameterized.named_parameters([{
-      'testcase_name': 'japanese_title_hiroo_mobile_should_move_to_front',
-      'original_title': 'あなたの携帯電話のために最高の取引をしたいですか？広尾 モバイルを使う'
+      'testcase_name':
+          'japanese_title_hiroo_mobile_should_move_to_front',
+      'original_title':
+          'あなたの携帯電話のために最高の取引をしたいですか？広尾 モバイルを使う'
   }])
-  def test_dictionary_term_file_tokenizes_japanese_title_properly(
+  def test_dictionary_term_file_help_tokenize_japanese_title_properly(
       self, original_title):
     original_data = requests_bodies.build_request_body(
         properties_to_be_updated={
@@ -426,7 +445,7 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
       'original_title':
           'You want the best mobile phone deal? Come get Hiroo Mobile now!'
   }])
-  def test_dictionary_term_file_tokenizes_non_japanese_title_properly(
+  def test_dictionary_term_file_help_tokenize_non_japanese_title_properly(
       self, original_title):
     original_data = requests_bodies.build_request_body(
         properties_to_be_updated={
@@ -526,10 +545,11 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
         original_data, constants.LANGUAGE_CODE_JA)
     product = optimized_data['entries'][0]['product']
 
-    expected_title = ('[カイナ] '
-                      '寒い冬からあなたを守る！モデル：ジャケット、[送料無料]'
-                      ' , カイナ '
-                      ',カラー：ブラック、防寒仕様ダウンジャケット')
+    expected_title = (
+        '[カイナ] '
+        '寒い冬からあなたを守る！モデル：ジャケット、[送料無料]'
+        ' , カイナ '
+        ',カラー：ブラック、防寒仕様ダウンジャケット')
     self.assertEqual(expected_title, product['title'])
     self.assertEqual(1, optimization_result.num_of_products_optimized)
 
@@ -631,35 +651,32 @@ def _set_test_variables(module: 'Module'):
   }
 
   module.TITLE_WORD_ORDER_CONFIG = {
-      'phrase_dictionary': ['4 roses', 'Hiroo Mobile'],
-      'keyword_weights_by_gpc': {
-          '201': [{
-              'keyword': 'keyword1',
-              'weight': 0.8
-          }, {
-              'keyword': 'keyword2',
-              'weight': 0.7
-          }, {
-              'keyword': 'heavy_keyword',
-              'weight': 0.5
-          }, {
-              'keyword': 'heavy_keyword_2',
-              'weight': 0.6
-          }, {
-              'keyword': 'a',
-              'weight': 0.4
-          }, {
-              'keyword': 'magic',
-              'weight': 0.3
-          }],
-          '632': [{
-              'keyword': 'keyword1',
-              'weight': 0.5
-          }, {
-              'keyword': 'keyword2',
-              'weight': 0.7
-          }]
-      }
+      '201': [{
+          'keyword': 'keyword1',
+          'weight': 0.8
+      }, {
+          'keyword': 'keyword2',
+          'weight': 0.7
+      }, {
+          'keyword': 'heavy_keyword',
+          'weight': 0.5
+      }, {
+          'keyword': 'heavy_keyword_2',
+          'weight': 0.6
+      }, {
+          'keyword': 'a',
+          'weight': 0.4
+      }, {
+          'keyword': 'magic',
+          'weight': 0.3
+      }],
+      '632': [{
+          'keyword': 'keyword1',
+          'weight': 0.5
+      }, {
+          'keyword': 'keyword2',
+          'weight': 0.7
+      }]
   }
   module.BLOCKLIST_CONFIG = {}
 
@@ -668,6 +685,8 @@ def _set_test_variables(module: 'Module'):
       'productTypesIncluded': False,
       'optimizationLevel': 'standard'
   }
+
+  module.TITLE_WORD_ORDER_DICTIONARY_CONFIG = []
 
 
 @mock.patch(

@@ -1,48 +1,42 @@
 {
-  "keyword_weights_by_gpc": {
-    "201": [
-      {
-        "keyword": "keyword1",
-        "weight": 0.8
-      },
-      {
-        "keyword": "keyword2",
-        "weight": 0.7
-      },
-      {
-        "keyword": "heavy_keyword",
-        "weight": 0.5
-      },
-      {
-        "keyword": "heavy_keyword_2",
-        "weight": 0.6
-      },
-      {
-        "keyword": "a",
-        "weight": 0.4
-      },
-      {
-        "keyword": "magic",
-        "weight": 0.3
-      },
-      {
-        "keyword": "Hiroo Mobile",
-        "weight": 0.3
-      }
-    ],
-    "632": [
-      {
-        "keyword": "keyword1",
-        "weight": 0.5
-      },
-      {
-        "keyword": "keyword2",
-        "weight": 0.7
-      }
-    ]
-  },
-  "phrase_dictionary": [
-    "4 roses",
-    "Hiroo Mobile"
+  "201": [
+    {
+      "keyword": "keyword1",
+      "weight": 0.8
+    },
+    {
+      "keyword": "keyword2",
+      "weight": 0.7
+    },
+    {
+      "keyword": "heavy_keyword",
+      "weight": 0.5
+    },
+    {
+      "keyword": "heavy_keyword_2",
+      "weight": 0.6
+    },
+    {
+      "keyword": "a",
+      "weight": 0.4
+    },
+    {
+      "keyword": "magic",
+      "weight": 0.3
+    },
+    {
+      "keyword": "Hiroo Mobile",
+      "weight": 0.3
+    }
+  ],
+  "632": [
+    {
+      "keyword": "keyword1",
+      "weight": 0.5
+    },
+    {
+      "keyword": "keyword2",
+      "weight": 0.7
+    }
   ]
 }

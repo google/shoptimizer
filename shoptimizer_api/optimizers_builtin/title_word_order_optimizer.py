@@ -45,6 +45,7 @@ from util import gpc_id_to_string_converter
 from util import optimization_util
 from util import regex_util
 
+
 _MAX_KEYWORDS_PER_TITLE = 3
 _MAX_TITLE_LENGTH = 150
 
@@ -52,9 +53,7 @@ _GPC_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME: str = 'gpc_string_to_id_mapping_{}'
 _TITLE_WORD_ORDER_CONFIG_FILE_NAME: str = 'title_word_order_config_{}'
 _TITLE_WORD_ORDER_BLOCKLIST_FILE_NAME: str = 'title_word_order_blocklist_{}'
 _TITLE_WORD_ORDER_OPTIONS_FILE_NAME: str = 'title_word_order_options'
-
-_KEYWORD_WEIGHTS_MAPPING_CONFIG_KEY = 'keyword_weights_by_gpc'
-_PHRASE_DICTIONARY_CONFIG_KEY = 'phrase_dictionary'
+_TITLE_WORD_ORDER_DICTIONARY_FILE_NAME: str = 'title_word_order_dictionary'
 
 # The following constants must be set if Shoptimizer is used outside
 # a Flask context.
@@ -63,6 +62,7 @@ TITLE_WORD_ORDER_CONFIG = None
 BLOCKLIST_CONFIG = None
 TITLE_WORD_ORDER_OPTIONS_CONFIG = None
 CUSTOM_TEXT_TOKENIZER: Callable[[str, str, Dict[str, str]], List[str]] = None
+TITLE_WORD_ORDER_DICTIONARY_CONFIG = None
 
 
 def _get_required_configs():
@@ -72,6 +72,7 @@ def _get_required_configs():
       'title_word_order_config': TITLE_WORD_ORDER_CONFIG,
       'blocklist_config': BLOCKLIST_CONFIG,
       'title_word_order_options_config': TITLE_WORD_ORDER_OPTIONS_CONFIG,
+      'title_word_order_dictionary_config': TITLE_WORD_ORDER_DICTIONARY_CONFIG,
   }
 
 
@@ -95,8 +96,12 @@ def _get_configs_from_environment(language: str):
         current_app.config.get('CONFIGS',
                                {}).get(_TITLE_WORD_ORDER_OPTIONS_FILE_NAME))
 
+    title_word_order_dictionary = (
+        current_app.config.get('CONFIGS',
+                               []).get(_TITLE_WORD_ORDER_DICTIONARY_FILE_NAME))
+
     return (gpc_string_to_id_mapping, title_word_order_config, blocklist_config,
-            title_word_order_options)
+            title_word_order_options, title_word_order_dictionary)
   else:
     # It is not running on Flask.
     #
@@ -108,7 +113,8 @@ def _get_configs_from_environment(language: str):
             config_name)
 
     return (GPC_STRING_TO_ID_MAPPING_CONFIG, TITLE_WORD_ORDER_CONFIG,
-            BLOCKLIST_CONFIG, TITLE_WORD_ORDER_OPTIONS_CONFIG)
+            BLOCKLIST_CONFIG, TITLE_WORD_ORDER_OPTIONS_CONFIG,
+            TITLE_WORD_ORDER_DICTIONARY_CONFIG)
 
 
 class _OptimizationLevel(enum.Enum):
@@ -151,7 +157,8 @@ class TitleWordOrderOptimizer(base_optimizer.BaseOptimizer):
     num_of_products_excluded = 0
 
     (gpc_string_to_id_mapping, title_word_order_config, blocklist_config,
-     title_word_order_options) = _get_configs_from_environment(language)
+     title_word_order_options,
+     title_word_order_dictionary) = _get_configs_from_environment(language)
 
     # Initialize the dependency on GPCConverter depending on the runtime.
     if current_app:
@@ -209,12 +216,7 @@ class TitleWordOrderOptimizer(base_optimizer.BaseOptimizer):
       if not gpc_id:
         continue
 
-      keyword_weights_mapping = title_word_order_config.get(
-          _KEYWORD_WEIGHTS_MAPPING_CONFIG_KEY, {})
-      keywords_for_gpc = keyword_weights_mapping.get(str(gpc_id), [])
-      title_word_order_dictionary = title_word_order_config.get(
-          _PHRASE_DICTIONARY_CONFIG_KEY, {})
-
+      keywords_for_gpc = title_word_order_config.get(str(gpc_id), [])
       allowed_keywords_for_gpc = _remove_keywords_in_blocklist(
           keywords_for_gpc, keyword_blocklist)
       allowed_keywords_for_gpc = _remove_keywords_with_promo(
@@ -375,7 +377,8 @@ def _remove_keywords_in_blocklist(
   return allowed_keywords
 
 
-def _tokenize_text(text: str, language: str,
+def _tokenize_text(text: str,
+                   language: str,
                    regex_dictionary_terms: Dict[str, str]) -> List[str]:
   """Splits text into individual words using the correct method for the given language.
 
