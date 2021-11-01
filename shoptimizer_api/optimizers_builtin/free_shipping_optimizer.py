@@ -149,14 +149,8 @@ def _update_shipping_field_to_zero(product: Dict[str, Any], country: str,
   if _free_shipping_already_exists(shipping_field, country, currency):
     return
 
-  free_shipping_object = {
-      'price': {
-          'value': '0',
-          'currency': currency,
-      },
-      'country': country,
-  }
-  shipping_field.append(free_shipping_object)
+  shipping_field.append(
+      dict(country=country, price=dict(value='0', currency=currency)))
   product['shipping'] = shipping_field
 
   logging.info('Modified item %s: Setting free shipping. Title is %s',
@@ -178,6 +172,7 @@ def _free_shipping_already_exists(shipping_field: List[Dict[str, Any]],
   for shipping_object in shipping_field:
     existing_price_currency = shipping_object.get('price', {}).get('currency')
     existing_country = shipping_object.get('country')
-    if existing_price_currency == currency and existing_country == country:
+    if existing_price_currency.casefold() == currency.casefold(
+    ) and existing_country.casefold() == country.casefold():
       return True
   return False

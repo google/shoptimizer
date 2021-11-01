@@ -105,3 +105,40 @@ class FreeShippingOptimizerTest(parameterized.TestCase):
 
     self.assertLen(shipping, 1)
     self.assertEqual(0, optimization_result.num_of_products_optimized)
+
+  @parameterized.named_parameters([
+      {
+          'testcase_name': 'currency_and_country_case_is_inverted_jp',
+          'test_currency': 'jpy',
+          'test_country': 'JP'
+      },
+      {
+          'testcase_name': 'currency_and_country_case_is_mixed_jp',
+          'test_currency': 'jPy',
+          'test_country': 'Jp'
+      },
+  ])
+  def test_shipping_field_is_not_updated_when_free_shipping_already_exists_in_different_case(
+      self, test_currency, test_country):
+    title = 'dummy title free shipping'
+    original_data = requests_bodies.build_request_body(
+        properties_to_be_updated={
+            'title':
+                title,
+            'shipping': [{
+                'price': {
+                    'value': 100,
+                    'currency': test_currency
+                },
+                'country': test_country
+            }]
+        },)
+
+    optimized_data, optimization_result = self.optimizer.process(
+        original_data, 'test', constants.COUNTRY_CODE_JP,
+        constants.CURRENCY_CODE_JPY)
+    product = optimized_data['entries'][0]['product']
+    shipping = product.get('shipping', [])
+
+    self.assertLen(shipping, 1)
+    self.assertEqual(0, optimization_result.num_of_products_optimized)
