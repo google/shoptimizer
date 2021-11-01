@@ -1,53 +1,59 @@
 {
-  "201": [
-    {
-      "keyword": "シャツ",
-      "weight": 0.8
-    },
-    {
-      "keyword": "カイナ",
-      "weight": 0.7
-    },
-    {
-      "keyword": "エオファース",
-      "weight": 0.6
-    },
-    {
-      "keyword": "ツ",
-      "weight": 0.5
-    },
-    {
-      "keyword": "ブロック",
-      "weight": 0.4
-    },
-    {
-      "keyword": "Block",
-      "weight": 0.3
-    },
-    {
-      "keyword": "送料無料",
-      "weight": 0.2
-    },
-    {
-      "keyword": "広尾 モバイル",
-      "weight": 0.2
-    }
-
-  ],
-  "203": [
-    {
-      "keyword": "防寒",
-      "weight": 0.9
-    },
-    {
-      "keyword": "ダウンジャケット",
-      "weight": 0.8
-    }
-  ],
-  "5598": [
-    {
-      "keyword": "ダウンジャケット",
-      "weight": 0.8
-    }
+  "keyword_weights_by_gpc": {
+    "201": [
+      {
+        "keyword": "シャツ",
+        "weight": 0.8
+      },
+      {
+        "keyword": "カイナ",
+        "weight": 0.7
+      },
+      {
+        "keyword": "エオファース",
+        "weight": 0.6
+      },
+      {
+        "keyword": "ツ",
+        "weight": 0.5
+      },
+      {
+        "keyword": "ブロック",
+        "weight": 0.4
+      },
+      {
+        "keyword": "Block",
+        "weight": 0.3
+      },
+      {
+        "keyword": "送料無料",
+        "weight": 0.2
+      },
+      {
+        "keyword": "広尾 モバイル",
+        "weight": 0.2
+      }
+    ],
+    "203": [
+      {
+        "keyword": "防寒",
+        "weight": 0.9
+      },
+      {
+        "keyword": "ダウンジャケット",
+        "weight": 0.8
+      }
+    ],
+    "5598": [
+      {
+        "keyword": "ダウンジャケット",
+        "weight": 0.8
+      }
+    ]
+  },
+  "phrase_dictionary": [
+    "4 roses",
+    "広尾 モバイル",
+    "Hiroo Mobile"
   ]
 }
