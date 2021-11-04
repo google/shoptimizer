@@ -16,12 +16,15 @@
 """Shared constants used for optimizer modules in the Shoptimizer API."""
 from typing import Set, Tuple
 
-LANGUAGE_CODE_JA: str = 'ja'
+LANGUAGE_CODE_DE: str = 'de'
 LANGUAGE_CODE_EN: str = 'en'
+LANGUAGE_CODE_JA: str = 'ja'
 
+COUNTRY_CODE_DE: str = 'de'
 COUNTRY_CODE_JP: str = 'jp'
 COUNTRY_CODE_US: str = 'us'
 
+CURRENCY_CODE_EUR: str = 'EUR'
 CURRENCY_CODE_JPY: str = 'JPY'
 CURRENCY_CODE_USD: str = 'USD'
 

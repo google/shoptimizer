@@ -1,0 +1,22 @@
+{
+  "free_shipping_patterns": [
+    "Lieferung gratis",
+    "Gratis-Lieferung",
+    "Gratis Lieferung",
+    "Gratis(versand|lieferung)",
+    "(ohne|keine) Versandkosten",
+    "kostenloser Versand",
+    "kostenlose (Lieferung|Zustellung)",
+    "Versand kostenlos"
+  ],
+  "shipping_exclusion_patterns": [
+    "Lieferung gratis (nach|in|innerhalb|im)",
+    "Gratis-Lieferung (nach|in|innerhalb|im)",
+    "Gratis Lieferung (nach|in|innerhalb|im)",
+    "Gratis(versand|lieferung) (nach|in|innerhalb|im)",
+    "(ohne|keine) Versandkosten (nach|in|innerhalb|im)",
+    "kostenloser Versand (nach|in|innerhalb|im)",
+    "kostenlose (Lieferung|Zustellung) (nach|in|innerhalb|im)",
+    "Versand kostenlos (nach|in|innerhalb|im)"
+  ]
+}

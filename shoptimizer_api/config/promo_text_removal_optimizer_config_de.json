@@ -1,0 +1,16 @@
+{
+  "promotional_text_patterns_regex": [
+    ".*versand"
+  ],
+  "promotional_text_patterns_exact_match": [
+    "Lieferung",
+    "Versand",
+    "Qualität",
+    "Verkauf",
+    "Bestseller",
+    "billig",
+    "Bestpreis",
+    "WSV",
+    "SSV"
+  ]
+}

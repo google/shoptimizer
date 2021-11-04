@@ -46,7 +46,8 @@ _NUMERIC_SIZE_INDICATORS = ('size', 'サイズ')
 _NOUN = '名詞'
 _SYMBOL = 'サ変接続'
 
-_SUPPORTED_LANGUAGES = (constants.LANGUAGE_CODE_JA, constants.LANGUAGE_CODE_EN)
+_SUPPORTED_LANGUAGES = (constants.LANGUAGE_CODE_DE, constants.LANGUAGE_CODE_EN,
+                        constants.LANGUAGE_CODE_JA)
 
 
 class SizeMiner(object):

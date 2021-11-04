@@ -39,7 +39,7 @@ _OPTIMIZERS_PLUGINS_PACKAGE = 'optimizers_plugins'
 _OPTIMIZERS_THAT_USE_MINED_ATTRIBUTES = frozenset(
     ['title-optimizer', 'description-optimizer'])
 _OPTIMIZERS_TO_RUN_LAST = ('title-word-order-optimizer',)
-_SUPPORTED_LANGUAGES = frozenset(['en', 'ja', 'id'])
+_SUPPORTED_LANGUAGES = frozenset(['de', 'en', 'id', 'ja'])
 _LANG_QUERY_STRING_KEY = 'lang'
 _COUNTRY_QUERY_STRING_KEY = 'country'
 _CURRENCY_QUERY_STRING_KEY = 'currency'
