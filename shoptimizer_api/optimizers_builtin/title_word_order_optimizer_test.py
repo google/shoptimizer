@@ -621,6 +621,36 @@ class TitleWordOrderOptimizerTest(parameterized.TestCase):
     self.assertEqual(expected_title, product['title'])
     self.assertEqual(1, optimization_result.num_of_products_optimized)
 
+  @parameterized.named_parameters([{
+      'testcase_name': 'move_to_front',
+      'keywords_position': title_word_order_optimizer._KeywordsPosition.FRONT,
+  }, {
+      'testcase_name': 'move_to_back',
+      'keywords_position': title_word_order_optimizer._KeywordsPosition.BACK,
+  }])
+  def test_process_does_not_modify_title_when_title_contains_space_and_no_keywords_found(
+      self, keywords_position):
+    get_keywords_position_path = (
+        'optimizers_builtin.title_word_order_optimizer.TitleWordOrderOptimizer.'
+        '_get_keywords_position')
+
+    with mock.patch(get_keywords_position_path) as mock_keywords_position:
+
+      original_title = 'Some title with no target keywords and space '
+      original_data = requests_bodies.build_request_body(
+          properties_to_be_updated={
+              'title': 'Some title with no target keywords and space ',
+              'googleProductCategory': _PROPER_GPC_CATEGORY_EN,
+          })
+      mock_keywords_position.return_value = keywords_position
+
+      optimized_data, optimization_result = self.optimizer.process(
+          original_data, constants.LANGUAGE_CODE_EN)
+      product = optimized_data['entries'][0]['product']
+
+      self.assertEqual(original_title, product['title'])
+      self.assertEqual(0, optimization_result.num_of_products_optimized)
+
 
 def _set_test_variables(module: 'Module'):
   """Sets the module variables for testing outside a Flask environment."""

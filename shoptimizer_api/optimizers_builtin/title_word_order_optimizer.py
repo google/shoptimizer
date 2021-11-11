@@ -239,6 +239,10 @@ class TitleWordOrderOptimizer(base_optimizer.BaseOptimizer):
         keywords_to_append = _generate_list_of_keywords_to_append(
             sorted_keywords_for_gpc, title_to_process, title_words,
             description_words, product_types_words)
+
+        if not keywords_to_append:
+          continue
+
         optimized_title = _generate_optimized_title(keywords_to_append,
                                                     title_to_process,
                                                     _KeywordsPosition.BACK)
@@ -251,6 +255,10 @@ class TitleWordOrderOptimizer(base_optimizer.BaseOptimizer):
         keywords_to_prepend = _generate_list_of_keywords_to_prepend(
             keywords_visible_to_user, keywords_not_visible_to_user,
             title_to_process, language)
+
+        if not keywords_to_prepend:
+          continue
+
         ordered_keywords_to_prepend = _reorder_keywords_by_weight(
             keywords_to_prepend, sorted_keywords_for_gpc)
 
