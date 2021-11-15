@@ -46,12 +46,6 @@ class ConditionOptimizerTest(parameterized.TestCase):
       'testcase_name': 'used 3',
       'test_title': '【Used】 新しい商品だよ？'
   }, {
-      'testcase_name': 'outlet',
-      'test_title': 'アウトレット セール 新しい商品だよ？'
-  }, {
-      'testcase_name': 'separate',
-      'test_title': 'ばらした商品 新しい商品だよ？'
-  }, {
       'testcase_name': 'unused',
       'test_title': '未使用 新しい商品だよ？'
   }, {
@@ -67,29 +61,14 @@ class ConditionOptimizerTest(parameterized.TestCase):
       'testcase_name': 'like new',
       'test_title': '新品同様 新しい商品だよ？'
   }, {
-      'testcase_name': 'dirty 1',
-      'test_title': '汚れあり 新しい商品だよ？'
-  }, {
-      'testcase_name': 'dirty 2',
-      'test_title': '汚かったり 新しい商品だよ？'
-  }, {
       'testcase_name': 'unopened',
       'test_title': '未開封 新しい商品だよ？'
-  }, {
-      'testcase_name': 'no box',
-      'test_title': '箱なし 新しい商品だよ？'
   }, {
       'testcase_name': 'beautiful condition',
       'test_title': '美品 新しい商品だよ？'
   }, {
       'testcase_name': 'some reason',
       'test_title': '【訳あり】 新しい商品だよ？'
-  }, {
-      'testcase_name': 'not wrapped',
-      'test_title': '未梱包 新しい商品だよ？'
-  }, {
-      'testcase_name': 'unsold',
-      'test_title': '非売品 新しい商品だよ？'
   }])
   def test_condition_optimizer_sets_new_product_to_used_based_on_title(
       self, test_title):
@@ -113,12 +92,6 @@ class ConditionOptimizerTest(parameterized.TestCase):
       'testcase_name': 'used 3',
       'test_description': '【Used】 新しい商品だよ？'
   }, {
-      'testcase_name': 'outlet',
-      'test_description': 'アウトレット セール 新しい商品だよ？'
-  }, {
-      'testcase_name': 'separate',
-      'test_description': 'ばらした商品 新しい商品だよ？'
-  }, {
       'testcase_name': 'unused',
       'test_description': '未使用 新しい商品だよ？'
   }, {
@@ -134,29 +107,14 @@ class ConditionOptimizerTest(parameterized.TestCase):
       'testcase_name': 'like new',
       'test_description': '新品同様 新しい商品だよ？'
   }, {
-      'testcase_name': 'dirty 1',
-      'test_description': '汚れあり 新しい商品だよ？'
-  }, {
-      'testcase_name': 'dirty 2',
-      'test_description': '汚かったり 新しい商品だよ？'
-  }, {
       'testcase_name': 'unopened',
       'test_description': '未開封 新しい商品だよ？'
-  }, {
-      'testcase_name': 'no box',
-      'test_description': '箱なし 新しい商品だよ？'
   }, {
       'testcase_name': 'beautiful condition',
       'test_description': '美品 新しい商品だよ？'
   }, {
       'testcase_name': 'some reason',
       'test_description': '【訳あり】  新しい商品だよ？'
-  }, {
-      'testcase_name': 'not wrapped',
-      'test_description': '未梱包 新しい商品だよ？'
-  }, {
-      'testcase_name': 'unsold',
-      'test_description': '非売品 新しい商品だよ？'
   }])
   def test_condition_optimizer_sets_new_product_to_used_based_on_description(
       self, test_description):
@@ -171,21 +129,15 @@ class ConditionOptimizerTest(parameterized.TestCase):
     self.assertEqual(1, optimization_result.num_of_products_optimized)
 
   @parameterized.named_parameters([{
-      'testcase_name':
-          'trading cards',
-      'test_category':
-          '芸術・エンターテイメント > 趣味・コレクション '
-          '> コレクションアイテム > トレーディングカード',
-      'test_title':
-          'カード名: 新しい商品だよ？'
+      'testcase_name': 'trading cards',
+      'test_category': '芸術・エンターテイメント > 趣味・コレクション '
+                       '> コレクションアイテム > トレーディングカード',
+      'test_title': 'カード名: 新しい商品だよ？'
   }, {
-      'testcase_name':
-          'smartphones',
-      'test_category':
-          '電気製品 > 通信機器 > 電話 > '
-          '携帯電話・スマートフォン',
-      'test_title':
-          'ロック解除済: 新しい商品だよ？'
+      'testcase_name': 'smartphones',
+      'test_category': '電気製品 > 通信機器 > 電話 > '
+                       '携帯電話・スマートフォン',
+      'test_title': 'ロック解除済: 新しい商品だよ？'
   }])
   def test_condition_optimizer_sets_new_to_used_based_on_category_and_title(
       self, test_category, test_title):
@@ -203,19 +155,13 @@ class ConditionOptimizerTest(parameterized.TestCase):
     self.assertEqual(1, optimization_result.num_of_products_optimized)
 
   @parameterized.named_parameters([{
-      'testcase_name':
-          'trading cards',
-      'test_category':
-          6997,
-      'test_title':
-          'カード名: 新しい商品だよ？'
+      'testcase_name': 'trading cards',
+      'test_category': 6997,
+      'test_title': 'カード名: 新しい商品だよ？'
   }, {
-      'testcase_name':
-          'smartphones',
-      'test_category':
-          267,
-      'test_title':
-          'ロック解除済: 新しい商品だよ？'
+      'testcase_name': 'smartphones',
+      'test_category': 267,
+      'test_title': 'ロック解除済: 新しい商品だよ？'
   }])
   def test_condition_optimizer_sets_new_to_used_based_on_gpc_id_and_title(
       self, test_category, test_title):
@@ -233,21 +179,15 @@ class ConditionOptimizerTest(parameterized.TestCase):
     self.assertEqual(1, optimization_result.num_of_products_optimized)
 
   @parameterized.named_parameters([{
-      'testcase_name':
-          'trading cards',
-      'test_category':
-          '芸術・エンターテイメント > 趣味・コレクション '
-          '> コレクションアイテム > トレーディングカード',
-      'test_description':
-          'カード名: 新しい商品だよ？'
+      'testcase_name': 'trading cards',
+      'test_category': '芸術・エンターテイメント > 趣味・コレクション '
+                       '> コレクションアイテム > トレーディングカード',
+      'test_description': 'カード名: 新しい商品だよ？'
   }, {
-      'testcase_name':
-          'smartphones',
-      'test_category':
-          '電気製品 > 通信機器 > 電話 > '
-          '携帯電話・スマートフォン',
-      'test_description':
-          'ロック解除済: 新しい商品だよ？'
+      'testcase_name': 'smartphones',
+      'test_category': '電気製品 > 通信機器 > 電話 > '
+                       '携帯電話・スマートフォン',
+      'test_description': 'ロック解除済: 新しい商品だよ？'
   }])
   def test_condition_optimizer_sets_new_to_used_based_on_category_and_description(
       self, test_category, test_description):
@@ -369,21 +309,15 @@ class ConditionOptimizerTest(parameterized.TestCase):
     self.assertEqual(0, optimization_result.num_of_products_optimized)
 
   @parameterized.named_parameters([{
-      'testcase_name':
-          'trading cards',
-      'test_category':
-          '芸術・エンターテイメント > 趣味・コレクション '
-          '> コレクションアイテム > トレーディングカード',
-      'test_title':
-          'カード: 新しい商品だよ？'
+      'testcase_name': 'trading cards',
+      'test_category': '芸術・エンターテイメント > 趣味・コレクション '
+                       '> コレクションアイテム > トレーディングカード',
+      'test_title': 'カード: 新しい商品だよ？'
   }, {
-      'testcase_name':
-          'smartphones',
-      'test_category':
-          '電気製品 > 通信機器 > 電話 > '
-          '携帯電話・スマートフォン',
-      'test_title':
-          'ロック: 新しい商品だよ？'
+      'testcase_name': 'smartphones',
+      'test_category': '電気製品 > 通信機器 > 電話 > '
+                       '携帯電話・スマートフォン',
+      'test_title': 'ロック: 新しい商品だよ？'
   }])
   def test_condition_optimizer_doesnt_change_condition_based_on_category_and_no_matches_in_title(
       self, test_category, test_title):
@@ -401,19 +335,13 @@ class ConditionOptimizerTest(parameterized.TestCase):
     self.assertEqual(0, optimization_result.num_of_products_optimized)
 
   @parameterized.named_parameters([{
-      'testcase_name':
-          'trading cards',
-      'test_category':
-          '芸術・エンターテイメント > 趣味・コレクション > コレクションアイテム > トレーディングカード',
-      'test_description':
-          'カード: 新しい商品だよ？'
+      'testcase_name': 'trading cards',
+      'test_category': '芸術・エンターテイメント > 趣味・コレクション > コレクションアイテム > トレーディングカード',
+      'test_description': 'カード: 新しい商品だよ？'
   }, {
-      'testcase_name':
-          'smartphones',
-      'test_category':
-          '電気製品 > 通信機器 > 電話 > 携帯電話・スマートフォン',
-      'test_description':
-          'ロック: 新しい商品だよ？'
+      'testcase_name': 'smartphones',
+      'test_category': '電気製品 > 通信機器 > 電話 > 携帯電話・スマートフォン',
+      'test_description': 'ロック: 新しい商品だよ？'
   }])
   def test_condition_optimizer_doesnt_change_condition_based_on_category_and_no_matches_in_description(
       self, test_category, test_description):
