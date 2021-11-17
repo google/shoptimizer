@@ -43,8 +43,8 @@ _GPC_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME: str = 'gpc_string_to_id_mapping_{}'
 
 _NUMERIC_SIZE_INDICATORS = ('size', 'サイズ')
 
-_NOUN = '名詞'
-_SYMBOL = 'サ変接続'
+_JA_NOUN = '名詞'
+_JA_SYMBOL = 'サ変接続'
 
 _SUPPORTED_LANGUAGES = (constants.LANGUAGE_CODE_DE, constants.LANGUAGE_CODE_EN,
                         constants.LANGUAGE_CODE_JA)
@@ -182,10 +182,10 @@ class SizeMiner(object):
     """
     if self._language == constants.LANGUAGE_CODE_JA:
       normalized_text = _normalize_ja_text(text)
-      mined_size = self._mine_alphabetic_clothing_size_with_mecab(
+      mined_size = self._mine_ja_alphabetic_clothing_size_with_mecab(
           normalized_text, constants.ALPHABETIC_CLOTHING_SIZES_JP)
       if not mined_size:
-        mined_size = self._mine_numeric_clothing_size_with_mecab(
+        mined_size = self._mine_ja_numeric_clothing_size_with_mecab(
             normalized_text)
       return mined_size
     elif self._language == constants.LANGUAGE_CODE_EN:
@@ -197,7 +197,7 @@ class SizeMiner(object):
       return mined_size
     return None
 
-  def _mine_alphabetic_clothing_size_with_mecab(
+  def _mine_ja_alphabetic_clothing_size_with_mecab(
       self, text: str, standard_sizes: Sequence[str]) -> Optional[str]:
     """Mines a standard size from the given text.
 
@@ -219,7 +219,8 @@ class SizeMiner(object):
       node = node.next
     return None
 
-  def _mine_numeric_clothing_size_with_mecab(self, text: str) -> Optional[str]:
+  def _mine_ja_numeric_clothing_size_with_mecab(self,
+                                                text: str) -> Optional[str]:
     """Mines a size that follows size keywords.
 
     This method finds a size keyword and returns the size value after it. e.g.
@@ -240,7 +241,7 @@ class SizeMiner(object):
       surface = node.surface
       feature = node.feature.split(',')
       # Finds a meaningful norm after the size keyword and skips symbols.
-      if is_indicator_found and _is_size_noun(feature):
+      if is_indicator_found and _is_size_ja_noun(feature):
         return surface
       if surface.lower() in _NUMERIC_SIZE_INDICATORS:
         is_indicator_found = True
@@ -363,6 +364,6 @@ def _normalize_ja_text(text: str) -> str:
   return jaconv.z2h(text, kana=False, ascii=True, digit=True)
 
 
-def _is_size_noun(feature: Sequence[str]) -> bool:
+def _is_size_ja_noun(feature: Sequence[str]) -> bool:
   """Returns if the given feature's token is valid as a size."""
-  return feature[0] == _NOUN and feature[1] != _SYMBOL
+  return feature[0] == _JA_NOUN and feature[1] != _JA_SYMBOL
