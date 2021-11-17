@@ -21,25 +21,15 @@ such as color_miner.
 
 import collections
 import logging
-from typing import Any, Dict, List, Optional, OrderedDict, Set, Tuple
+from typing import Any, Dict, Optional, OrderedDict, Set
 from flask import current_app
 
 import original_types
 from util import color_miner
-from util import gpc_id_to_string_converter
+from util import gender_miner
 from util import size_miner
 
-_GENDER_OPTIMIZER_CONFIG_FILE_NAME: str = 'gender_optimizer_config_{}'
-_GPC_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME: str = 'gpc_string_to_id_mapping_{}'
-
 _MAX_BRAND_LENGTH: int = 70
-
-_ADULT: str = 'adult'
-_BABY: str = 'baby'
-_FEMALE: str = 'female'
-_MALE: str = 'male'
-_UNISEX: str = 'unisex'
-_VALID_GENDER_VALUES: List[str] = [_FEMALE, _MALE, _UNISEX]
 
 
 class AttributeMiner(object):
@@ -47,10 +37,8 @@ class AttributeMiner(object):
 
   _brand_blocklist: Set[str] = ()
   _color_miner: Optional[color_miner.ColorMiner] = None
-  _gpc_id_to_string_converter: Optional[
-      gpc_id_to_string_converter.GPCConverter] = None
+  _gender_miner: Optional[gender_miner.GenderMiner] = None
   _size_miner: Optional[size_miner.SizeMiner] = None
-  _gender_config: Optional[Dict[str, Any]] = None
 
   def __init__(self, language: str, country: str) -> None:
     """Initializes AttributeMiner.
@@ -65,13 +53,8 @@ class AttributeMiner(object):
     self._brand_blocklist = set(
         [brand.lower() for brand in brand_blocklist_config])
 
-    self._gender_config = current_app.config.get('CONFIGS', {}).get(
-        _GENDER_OPTIMIZER_CONFIG_FILE_NAME.format(language), {})
-
-    self._gpc_id_to_string_converter = gpc_id_to_string_converter.GPCConverter(
-        _GPC_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME.format(language))
-
     self._color_miner = color_miner.ColorMiner(language)
+    self._gender_miner = gender_miner.GenderMiner(language)
     self._size_miner = size_miner.SizeMiner(language, country)
 
   def mine_and_insert_attributes_for_batch(
@@ -102,7 +85,7 @@ class AttributeMiner(object):
 
   def _mine_and_insert_attributes_for_product(
       self, product: Dict[str, Any]) -> OrderedDict[str, Any]:
-    """Mines attributes (specified below) and inserts them in to product fields.
+    """Mines attributes (specified below) and inserts them into product fields.
 
     The fields to be appended are:
     - gender
@@ -118,10 +101,11 @@ class AttributeMiner(object):
     """
     mined_attributes = collections.OrderedDict()
 
-    gender = self._mine_gender(product)
+    gender = self._gender_miner.mine_gender(product)
     if gender:
       google_gender_field = gender[0]
       _insert_value_in_field(product, 'gender', google_gender_field)
+
       gender_replacement_field = gender[1]
       mined_attributes['gender'] = gender_replacement_field
 
@@ -143,151 +127,6 @@ class AttributeMiner(object):
 
     return mined_attributes
 
-  def _mine_gender(self, product: Dict[str, Any]) -> Optional[Tuple[str, str]]:
-    """Mines the gender from product fields.
-
-    Args:
-      product: A dictionary containing product data.
-
-    Returns:
-      A Tuple containing the gender of the product and the gender replacement
-      term, or None if it was not able to be mined. This value is specified in
-      the config file mapping in this repository
-      (..config/gender_optimization_{language}.json). The reason for this is so
-      that all optimized values have a consistent replacement, especially if
-      there are multiple values found as in the unisex case.
-    """
-    if not self._gender_config:
-      logging.warning(
-          'Did not attempt to mine gender since gender config could not be '
-          'loaded')
-      return None
-
-    gender_value = product.get('gender', '')
-    google_product_category = product.get('googleProductCategory', '')
-    product_types = product.get('productTypes', [])
-    description = product.get('description', '')
-
-    gpc_string = self._gpc_id_to_string_converter.convert_gpc_id_to_string(
-        google_product_category)
-
-    age_demographic = self._get_age_demographic_if_category_is_gendered(
-        gpc_string)
-
-    # Only try mining the gender if the product's category was found
-    # in either the baby/adult configurations. age_demographic will be unset
-    # if the category was not a target gendered category.
-    if age_demographic:
-      title_replacement_config_key = age_demographic + '_title_replacement'
-      mined_gender = _get_gender_from_gender_field(gender_value)
-
-      if not mined_gender:
-        mined_gender = self._get_gender_from_product_types(
-            age_demographic, product_types)
-
-      if not mined_gender:
-        mined_gender = self._get_gender_from_description(
-            age_demographic, description)
-
-      if mined_gender:
-        title_replacement_value = self._gender_config.get(mined_gender, {}).get(
-            title_replacement_config_key, None)
-        return mined_gender, title_replacement_value
-    return None
-
-  def _get_age_demographic_if_category_is_gendered(
-      self, google_product_category: str) -> Optional[str]:
-    """Checks if the provided category was found in the config dict.
-
-    Args:
-      google_product_category: A string representing the product category.
-
-    Returns:
-      A string representing the age demographic if the product's category
-      matched the gender config's list of categories, or an empty string if
-      the product's category is not a target for gender mining.
-    """
-    product_categories = google_product_category.split(' > ')
-    categories_config_key_adult = _ADULT + '_product_categories'
-    categories_config_key_baby = _BABY + '_product_categories'
-
-    baby_categories = self._gender_config.get(categories_config_key_baby, [])
-    if any(category in baby_categories for category in product_categories):
-      return _BABY
-
-    adult_categories = self._gender_config.get(categories_config_key_adult, [])
-    if any(category in adult_categories for category in product_categories):
-      return _ADULT
-
-    return None
-
-  def _get_gender_from_product_types(self, age_demographic: str,
-                                     product_types: List[str]) -> str:
-    """Extracts the gender from the productTypes field.
-
-    Args:
-      age_demographic: A string representing either "adult" or "baby".
-      product_types: A list of product type strings.
-
-    Returns:
-      A string containing the gender of the product, or an empty string if the
-      gender could not be found.
-    """
-    if isinstance(product_types, list) and product_types:
-      concat_product_types = ' '.join(product_types)
-      search_terms_config_key = age_demographic + '_search_terms'
-      for gender in [_FEMALE, _MALE, _UNISEX]:
-        search_terms = self._gender_config.get(gender,
-                                               {}).get(search_terms_config_key,
-                                                       [])
-        if _text_contains_terms(concat_product_types, search_terms):
-          return gender
-    return ''
-
-  def _get_gender_from_description(self, age_demographic: str,
-                                   description: str) -> str:
-    """Extracts the gender from the provided description field.
-
-    Args:
-      age_demographic: A string representing either "adult" or "baby".
-      description: A string representing the product description.
-
-    Returns:
-      A string containing the gender of the product, or an empty string if the
-      gender could not be found.
-    """
-    search_terms_config_key = age_demographic + '_search_terms'
-    female_search_terms = self._gender_config.get(_FEMALE, {}).get(
-        search_terms_config_key, [])
-    male_search_terms = self._gender_config.get(_MALE,
-                                                {}).get(search_terms_config_key,
-                                                        [])
-    unisex_search_terms = self._gender_config.get(_UNISEX, {}).get(
-        search_terms_config_key, [])
-
-    if _text_contains_terms(description, unisex_search_terms):
-      return _UNISEX
-
-    female_found = False
-    male_found = False
-
-    if _text_contains_terms(description, female_search_terms):
-      female_found = True
-      # Removes the female terms in case the male ones are a substring.
-      description = _remove_terms_from_description(description,
-                                                   female_search_terms)
-
-    if _text_contains_terms(description, male_search_terms):
-      male_found = True
-
-    if female_found and male_found:
-      return _UNISEX
-    if female_found:
-      return _FEMALE
-    if male_found:
-      return _MALE
-    return ''
-
   def _brand_is_valid(self, brand: str) -> bool:
     """Checks if the given brand is valid or not.
 
@@ -306,54 +145,9 @@ class AttributeMiner(object):
     ) not in self._brand_blocklist
 
 
-def _get_gender_from_gender_field(gender_field: str) -> str:
-  """Extracts the gender from the gender field if it was valid gender value.
-
-  Args:
-    gender_field: A string representing the gender field value.
-
-  Returns:
-    A string containing the gender of the product, or an empty string if the
-    gender could not be found.
-  """
-  if gender_field in _VALID_GENDER_VALUES:
-    return gender_field
-  return ''
-
-
-def _remove_terms_from_description(description: str,
-                                   search_terms: List[str]) -> str:
-  """Removes the provided terms from the provided description string.
-
-  Args:
-    description: A string representing the product description.
-    search_terms: A list of localized terms to remove from the description.
-
-  Returns:
-    A string containing the modified description string with the provided terms
-    removed if they were found.
-  """
-  for keyword in search_terms:
-    description = description.lower().replace(keyword.lower(), '')
-  return description
-
-
-def _text_contains_terms(field_text: str, search_terms: List[str]) -> bool:
-  """Checks if any of the provided search terms was found in the provided text.
-
-  Args:
-    field_text: A string representing a product field value.
-    search_terms: A list of localized terms to find in the field_text string.
-
-  Returns:
-    True if any terms were found in the field_text string, otherwise False.
-  """
-  return any(keyword.lower() in field_text.lower() for keyword in search_terms)
-
-
 def _insert_value_in_field(product: Dict[str, Any], field: str,
                            value: Any) -> None:
-  """Inserts the value into the target field of the product.
+  """Inserts the value into the product target field only if it doesn't exist.
 
   Args:
     product: A dictionary containing product data.

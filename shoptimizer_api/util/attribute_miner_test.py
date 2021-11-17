@@ -24,9 +24,9 @@ from util import app_util
 from util import attribute_miner
 
 
-@mock.patch('util.attribute_miner._GENDER_OPTIMIZER_CONFIG_FILE_NAME',
+@mock.patch('util.gender_miner._GENDER_OPTIMIZER_CONFIG_FILE_NAME',
             'gender_optimizer_config_{}_test')
-@mock.patch('util.attribute_miner._GPC_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME',
+@mock.patch('util.gender_miner._GPC_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME',
             'gpc_string_to_id_mapping_{}_test')
 class AttributeMinerTest(unittest.TestCase):
 
