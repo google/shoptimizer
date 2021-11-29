@@ -59,3 +59,5 @@ steps:
   - --memory=2G
 timeout: 3600s
 tags: ['shoptimizer']
+options:
+  machineType: 'E2_HIGHCPU_32'
