@@ -39,6 +39,7 @@ class AttributeMiner(object):
   _color_miner: Optional[color_miner.ColorMiner] = None
   _gender_miner: Optional[gender_miner.GenderMiner] = None
   _size_miner: Optional[size_miner.SizeMiner] = None
+  _mining_options = Dict[str, Any]
 
   def __init__(self, language: str, country: str) -> None:
     """Initializes AttributeMiner.
@@ -56,6 +57,7 @@ class AttributeMiner(object):
     self._color_miner = color_miner.ColorMiner(language)
     self._gender_miner = gender_miner.GenderMiner(language)
     self._size_miner = size_miner.SizeMiner(language, country)
+    self._mining_options = current_app.config.get('MINING_OPTIONS')
 
   def mine_and_insert_attributes_for_batch(
       self, product_batch: Dict[str, Any]) -> original_types.MinedAttributes:
@@ -101,29 +103,49 @@ class AttributeMiner(object):
     """
     mined_attributes = collections.OrderedDict()
 
-    gender = self._gender_miner.mine_gender(product)
-    if gender:
-      google_gender_field = gender[0]
-      _insert_value_in_field(product, 'gender', google_gender_field)
+    # Perform gender mining if the option was turned on.
+    gender_mining_on = self._parse_mining_option_header('gender_mining_on')
+    if gender_mining_on:
+      gender = self._gender_miner.mine_gender(product)
+      if gender:
+        google_gender_field = gender[0]
+        gender_overwrite_on = self._parse_mining_option_header(
+            'gender_mining_overwrite')
+        _insert_value_in_field(product, 'gender', google_gender_field,
+                               gender_overwrite_on)
 
-      gender_replacement_field = gender[1]
-      mined_attributes['gender'] = gender_replacement_field
+        gender_replacement_field = gender[1]
+        mined_attributes['gender'] = gender_replacement_field
 
-    size = self._size_miner.mine_size(product)
-    if size:
-      _insert_value_in_field(product, 'sizes', [size])
-      mined_attributes['sizes'] = [size]
+    # Perform size mining if the option was turned on.
+    size_mining_on = self._parse_mining_option_header('size_mining_on')
+    if size_mining_on:
+      size = self._size_miner.mine_size(product)
+      if size:
+        size_overwrite_on = self._parse_mining_option_header(
+            'size_mining_overwrite')
+        _insert_value_in_field(product, 'sizes', size, size_overwrite_on)
+        mined_attributes['sizes'] = [size]
 
-    brand = product.get('brand')
-    if self._brand_is_valid(brand):
-      mined_attributes['brand'] = brand
+    # Perform brand mining and validation if the option was turned on.
+    brand_mining_on = self._parse_mining_option_header('brand_mining_on')
+    if brand_mining_on:
+      brand = product.get('brand')
+      if self._brand_is_valid(brand):
+        mined_attributes['brand'] = brand
 
-    standard_colors, unique_colors = self._color_miner.mine_color(product)
-    if standard_colors:
-      mined_attributes['color'] = standard_colors
+    # Perform color mining if the option is turned on.
+    color_mining_on = self._parse_mining_option_header('color_mining_on')
+    if color_mining_on:
+      standard_colors, unique_colors = self._color_miner.mine_color(product)
+      if standard_colors:
+        mined_attributes['color'] = standard_colors
 
-    if unique_colors:
-      _insert_value_in_field(product, 'color', '/'.join(unique_colors))
+      color_overwrite_on = self._parse_mining_option_header(
+          'color_mining_overwrite')
+      if unique_colors:
+        _insert_value_in_field(product, 'color', '/'.join(unique_colors),
+                               color_overwrite_on)
 
     return mined_attributes
 
@@ -144,17 +166,24 @@ class AttributeMiner(object):
     return brand and len(brand) <= _MAX_BRAND_LENGTH and brand.lower(
     ) not in self._brand_blocklist
 
+  def _parse_mining_option_header(self, header_key: str) -> bool:
+    """Converts the value of the request header mining option to a boolean."""
+    normalized_header_value = (
+        self._mining_options.get(header_key, '').capitalize())
+    return normalized_header_value == 'True'
 
-def _insert_value_in_field(product: Dict[str, Any], field: str,
-                           value: Any) -> None:
-  """Inserts the value into the product target field only if it doesn't exist.
+
+def _insert_value_in_field(product: Dict[str, Any], field: str, value: Any,
+                           overwrite_on: bool) -> None:
+  """Inserts the value into the product target field if it doesn't exist, or if overwrite is on.
 
   Args:
     product: A dictionary containing product data.
     field: The target field name.
     value: The field value.
+    overwrite_on: Flag that controls whether the value is overwritten or not.
   """
-  if not product.get(field):
+  if not product.get(field) or overwrite_on:
     product[field] = value
-    logging.info('Modified item %s: Inserting mined %s in field: %s',
+    logging.info('Modified item %s: Inserting mined value %s in field: %s',
                  product['offerId'], field, value)

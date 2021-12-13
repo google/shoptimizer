@@ -104,6 +104,23 @@ def optimize() -> Tuple[str, http.HTTPStatus]:
   Returns:
     JSON string and HTTP status code.
   """
+  app.config['MINING_OPTIONS'] = {
+      'brand_mining_on':
+          flask.request.headers.get('brand_mining_on', 'True'),
+      'color_mining_on':
+          flask.request.headers.get('color_mining_on', 'True'),
+      'gender_mining_on':
+          flask.request.headers.get('gender_mining_on', 'True'),
+      'size_mining_on':
+          flask.request.headers.get('size_mining_on', 'True'),
+      'color_mining_overwrite':
+          flask.request.headers.get('color_mining_overwrite', 'False'),
+      'gender_mining_overwrite':
+          flask.request.headers.get('gender_mining_overwrite', 'False'),
+      'size_mining_overwrite':
+          flask.request.headers.get('size_mining_overwrite', 'False')
+  }
+
   lang_url_parameter = flask.request.args.get('lang',
                                               constants.DEFAULT_LANG).lower()
   country_url_parameter = flask.request.args.get(
@@ -220,8 +237,7 @@ def _run_optimizers(
   optimization_results = {}
 
   mined_attributes = _get_mined_attributes(
-      product_batch, language,
-      country) if _mined_attributes_required() else {}
+      product_batch, language, country) if _mined_attributes_required() else {}
 
   optimizers = [
       optimizer_class(mined_attributes)
@@ -239,8 +255,8 @@ def _run_optimizers(
       logging.info(
           'Running optimization %s with language %s, country %s, currency %s',
           optimizer_parameter, language, country, currency)
-      product_batch, result = optimizer.process(
-          product_batch, language, country, currency)
+      product_batch, result = optimizer.process(product_batch, language,
+                                                country, currency)
       optimization_results[optimizer_parameter] = result
 
   return product_batch, optimization_results
