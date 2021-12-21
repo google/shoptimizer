@@ -43,23 +43,18 @@ MAX_COLOR_COUNT: int = 3
 MAX_COLOR_STR_LENGTH_FOR_EACH: int = 40
 MAX_COLOR_STR_LENGTH_IN_TOTAL: int = 100
 
-ALPHABETIC_CLOTHING_SIZES_JP: Tuple[str, ...] = ('XXS', 'XS', 'S', 'M', 'L',
-                                                 'LL', 'XL', 'XXL')
-
-ALPHABETIC_CLOTHING_SIZES_EN_ONE_WORD: Tuple[str,
-                                             ...] = ('XXS', 'XS', 'S', 'M', 'L',
-                                                     'LL', 'XL', 'XXL', '2XL',
-                                                     '3XL', '4XL', '5XL', '6XL',
-                                                     'SMALL', 'MEDIUM', 'LARGE',
-                                                     'OSFA', 'OS')
-
-ALPHABETIC_CLOTHING_SIZES_EN_MULTIPLE_WORDS: Tuple[str,
-                                                   ...] = ('One size fits all',
-                                                           'One size')
-
+CLOTHING_SIZES_REGEX_CHARS = r'^[0-9]?[X]*[SML\/]+$'
+CLOTHING_SIZES_REGEX_WORDS = r'((X|EXTRA)?[\s|-]?SMALL\/?\b|(X|EXTRA)?[\s|-]?MEDIUM\/?\b|(X|EXTRA)?[\s|-]?LARGE\/?\b|OSFA\/?\b|OS\/?\b)'
+NUMERIC_CLOTHING_SIZES_JA_REGEX = r'\d*\.?\d+(-?\d+)?(\.?\d+)?\s?(cm|centimeters|センチ|センチメートル|mm|ミリメートル|ミリ|inches|inch|in|インチ|years|yo|歳)?'
+ALPHABETIC_CLOTHING_SIZES_JP_UNISIZE: Tuple[str, ...] = ('フリーサイズ', 'フリー',
+                                                         'Free Size', 'FREE',
+                                                         '00(FREE)', 'free',
+                                                         'F/FREE', 'unisize',
+                                                         'One size', '1_size')
+ALPHABETIC_CLOTHING_SIZES_EN_UNISIZE: Tuple[str, ...] = ('One size fits all',
+                                                         'One size')
 ALL_ALPHABETIC_CLOTHING_SIZES: Set[str] = set().union(*[
-    ALPHABETIC_CLOTHING_SIZES_JP, ALPHABETIC_CLOTHING_SIZES_EN_ONE_WORD,
-    ALPHABETIC_CLOTHING_SIZES_EN_MULTIPLE_WORDS
+    ALPHABETIC_CLOTHING_SIZES_JP_UNISIZE, ALPHABETIC_CLOTHING_SIZES_EN_UNISIZE
 ])
 
 MINIMUM_SHOE_SIZE_JP: float = 10

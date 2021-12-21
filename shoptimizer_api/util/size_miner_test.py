@@ -23,23 +23,19 @@ from util import app_util
 from util import size_miner
 
 
-@mock.patch(
-    'util.size_miner._GPC_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME',
-    'gpc_string_to_id_mapping_{}_test')
+@mock.patch('util.size_miner._GPC_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME',
+            'gpc_string_to_id_mapping_{}_test')
 class SizeMinerTest(parameterized.TestCase):
 
   def setUp(self):
     super(SizeMinerTest, self).setUp()
     app_util.setup_test_app()
 
-  def test_mine_size_mines_size_from_sizes_field_with_language(self):
+  def test_mine_size_mines_size_from_sizes_field_with_language_ja(self):
     product = {
-        'title':
-            'TシャツM',
-        'description':
-            'TシャツM',
-        'googleProductCategory':
-            'ファッション・アクセサリー > 衣料品',
+        'title': 'TシャツM',
+        'description': 'TシャツM',
+        'googleProductCategory': 'ファッション・アクセサリー > 衣料品',
         'sizes': ['L', 'S'],
     }
     miner = size_miner.SizeMiner(
@@ -58,31 +54,60 @@ class SizeMinerTest(parameterized.TestCase):
       'title': 'Tシャツ L',
       'expected_size': 'L',
   }, {
+      'testcase_name': 'standard_size_large',
+      'title': 'Tシャツ XXXL',
+      'expected_size': 'XXXL',
+  }, {
       'testcase_name': 'numeric_size_ja_indicator',
       'title': 'Tシャツ サイズ：40',
       'expected_size': '40',
+  }, {
+      'testcase_name': 'numeric_size_decimal_ja_indicator_units',
+      'title': 'Tシャツ サイズ：40.5cm',
+      'expected_size': '40.5cm',
+  }, {
+      'testcase_name': 'numeric_size_decimal_ja_indicator_units_with_space',
+      'title': 'Tシャツ サイズ：40.5 cm',
+      'expected_size': '40.5cm',
   }, {
       'testcase_name': 'numeric_size_en_indicator',
       'title': 'Tシャツ Size:40',
       'expected_size': '40',
   }, {
-      'testcase_name': 'standard_size_is_prioritized',
-      'title': 'Tシャツ サイズ：40L',
-      'expected_size': 'L',
-  }, {
-      'testcase_name': 'size_not_exist',
+      'testcase_name': 'size_does_not_exist',
       'title': 'Tシャツ',
       'expected_size': None,
+  }, {
+      'testcase_name': 'size_indicated_but_value_missing',
+      'title': 'Tシャツ サイズ：N/A',
+      'expected_size': None,
+  }, {
+      'testcase_name': 'size_multiple_values_only_first',
+      'title': 'Tシャツ サイズ：10.5cm 11.5cm',
+      'expected_size': '10.5cm',
+  }, {
+      'testcase_name': 'size_range_is_valid',
+      'title': 'Tシャツ サイズ：10.5-11.5cm',
+      'expected_size': '10.5-11.5cm',
+  }, {
+      'testcase_name': 'size_skips_nonsize_after_indicator',
+      'title': 'Tシャツ モデルサイズ:身長:160cm',
+      'expected_size': '160cm',
+  }, {
+      'testcase_name': 'size_validates_inches',
+      'title': 'Tシャツ サイズ: 10 in shirt',
+      'expected_size': '10in',
+  }, {
+      'testcase_name': 'size_validates_years',
+      'title': 'Tシャツ サイズ: 10歳',
+      'expected_size': '10歳',
   }])
   def test_mine_size_mines_clothing_size_from_title_with_language_ja(
       self, title, expected_size):
     product = {
-        'title':
-            title,
-        'description':
-            '',
-        'googleProductCategory':
-            'ファッション・アクセサリー > 衣料品',
+        'title': title,
+        'description': '',
+        'googleProductCategory': 'ファッション・アクセサリー > 衣料品',
         'sizes': [],
     }
     miner = size_miner.SizeMiner(
@@ -188,12 +213,9 @@ class SizeMinerTest(parameterized.TestCase):
   def test_mine_size_mines_clothing_size_from_description_with_language_ja(
       self, description, expected_size):
     product = {
-        'title':
-            '',
-        'description':
-            description,
-        'googleProductCategory':
-            'ファッション・アクセサリー > 衣料品',
+        'title': '',
+        'description': description,
+        'googleProductCategory': 'ファッション・アクセサリー > 衣料品',
         'sizes': [],
     }
     miner = size_miner.SizeMiner(
@@ -231,12 +253,9 @@ class SizeMinerTest(parameterized.TestCase):
   def test_mine_size_mines_clothing_size_from_description_with_language_en(
       self, description, expected_size):
     product = {
-        'title':
-            '',
-        'description':
-            description,
-        'googleProductCategory':
-            'ファッション・アクセサリー > 衣料品',
+        'title': '',
+        'description': description,
+        'googleProductCategory': 'ファッション・アクセサリー > 衣料品',
         'sizes': [],
     }
     miner = size_miner.SizeMiner(
@@ -296,12 +315,9 @@ class SizeMinerTest(parameterized.TestCase):
   def test_mine_size_mines_shoes_size_from_title_with_language_ja(
       self, title, expected_size):
     product = {
-        'title':
-            title,
-        'description':
-            '',
-        'googleProductCategory':
-            'ファッション・アクセサリー > 靴',
+        'title': title,
+        'description': '',
+        'googleProductCategory': 'ファッション・アクセサリー > 靴',
         'sizes': [],
     }
     miner = size_miner.SizeMiner(
