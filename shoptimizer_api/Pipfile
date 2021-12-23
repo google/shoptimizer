@@ -11,7 +11,7 @@ parameterized = "==0.7.1"
 flask = "==1.1.1"
 requests = "==2.22.0"
 absl-py = "==0.9.0"
-mecab-python3 = "==0.996.5"
+mecab-python3 = "==1.0.4"
 jaconv = "==0.2.4"
 tensorflow = "==2.7.0"
 
