@@ -14,21 +14,20 @@
 # limitations under the License.
 
 """Unit tests for size_miner.py."""
-
-from absl.testing import parameterized
 import unittest.mock as mock
 
+from absl.testing import parameterized
 import constants
 from util import app_util
 from util import size_miner
 
 
-@mock.patch('util.size_miner._GPC_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME',
-            'gpc_string_to_id_mapping_{}_test')
+@mock.patch.object(size_miner, '_GPC_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME',
+                   'gpc_string_to_id_mapping_{}_test')
 class SizeMinerTest(parameterized.TestCase):
 
   def setUp(self):
-    super(SizeMinerTest, self).setUp()
+    super().setUp()
     app_util.setup_test_app()
 
   def test_mine_size_mines_size_from_sizes_field_with_language_ja(self):
@@ -54,9 +53,33 @@ class SizeMinerTest(parameterized.TestCase):
       'title': 'Tシャツ L',
       'expected_size': 'L',
   }, {
-      'testcase_name': 'standard_size_large',
+      'testcase_name': 'standard_size_extra_large',
       'title': 'Tシャツ XXXL',
       'expected_size': 'XXXL',
+  }, {
+      'testcase_name': 'standard_size_large_with_false_positive',
+      'title': 'SM Tシャツ L',
+      'expected_size': 'L',
+  }, {
+      'testcase_name': 'standard_sizes_range',
+      'title': 'Tシャツ S-M',
+      'expected_size': 'S-M',
+  }, {
+      'testcase_name': 'standard_sizes_wide_range',
+      'title': 'Tシャツ S-XXL',
+      'expected_size': 'S-XXL',
+  }, {
+      'testcase_name': 'size_validates_range_in_middle_with_false_positive',
+      'title': 'TシャツSサイズ:SS-XXLシャツ',
+      'expected_size': 'SS-XXL',
+  }, {
+      'testcase_name': 'standard_sizes_multiple_slash',
+      'title': 'Tシャツ S/M/L',
+      'expected_size': 'S/M/L',
+  }, {
+      'testcase_name': 'standard_sizes_multiple_slash_with_false_positive',
+      'title': 'Lシャツ S/M/L',
+      'expected_size': 'S/M/L',
   }, {
       'testcase_name': 'numeric_size_ja_indicator',
       'title': 'Tシャツ サイズ：40',
@@ -101,6 +124,10 @@ class SizeMinerTest(parameterized.TestCase):
       'testcase_name': 'size_validates_years',
       'title': 'Tシャツ サイズ: 10歳',
       'expected_size': '10歳',
+  }, {
+      'testcase_name': 'unisize',
+      'title': 'フリーサイズ 40L',
+      'expected_size': 'フリーサイズ',
   }])
   def test_mine_size_mines_clothing_size_from_title_with_language_ja(
       self, title, expected_size):
@@ -127,12 +154,12 @@ class SizeMinerTest(parameterized.TestCase):
       'expected_size': 'L',
   }, {
       'testcase_name': 'multiple_words_size',
-      'title': 'T-Shirt One Size Fits All',
+      'title': 'T-Shirt One size fits all',
       'expected_size': 'One size fits all',
   }, {
-      'testcase_name': 'one_word_size_is_prioritized',
-      'title': 'T-Shirt One Size Fits All L',
-      'expected_size': 'L',
+      'testcase_name': 'unisize_is_prioritized',
+      'title': 'T-Shirt One size fits all L',
+      'expected_size': 'One size fits all',
   }, {
       'testcase_name': 'size_not_exist',
       'title': 'T-Shirt',
@@ -163,12 +190,12 @@ class SizeMinerTest(parameterized.TestCase):
       'expected_size': 'L',
   }, {
       'testcase_name': 'multiple_words_size',
-      'title': 'T-Shirt One Size Fits All',
+      'title': 'T-Shirt One size fits all',
       'expected_size': 'One size fits all',
   }, {
-      'testcase_name': 'one_word_size_is_prioritized',
-      'title': 'T-Shirt One Size Fits All L',
-      'expected_size': 'L',
+      'testcase_name': 'unisize_is_prioritized',
+      'title': 'T-Shirt One size fits all L',
+      'expected_size': 'One size fits all',
   }, {
       'testcase_name': 'size_not_exist',
       'title': 'T-Shirt',
@@ -202,9 +229,9 @@ class SizeMinerTest(parameterized.TestCase):
       'description': 'Tシャツ サイズ：40',
       'expected_size': '40',
   }, {
-      'testcase_name': 'standard_size_is_prioritized',
+      'testcase_name': 'standard_size_is_not_prioritized',
       'description': 'Tシャツ サイズ:40L',
-      'expected_size': 'L',
+      'expected_size': '40L',
   }, {
       'testcase_name': 'size_not_exist',
       'description': 'Tシャツ',
@@ -239,12 +266,12 @@ class SizeMinerTest(parameterized.TestCase):
       'expected_size': 'Large',
   }, {
       'testcase_name': 'multiple_words_size',
-      'description': 'T-Shirt One Size Fits All',
+      'description': 'T-Shirt One size fits all',
       'expected_size': 'One size fits all',
   }, {
-      'testcase_name': 'one_word_size_is_prioritized',
-      'description': 'T-Shirt One Size Fits All L',
-      'expected_size': 'L',
+      'testcase_name': 'unisize_is_prioritized',
+      'description': 'T-Shirt One size fits all L',
+      'expected_size': 'One size fits all',
   }, {
       'testcase_name': 'size_not_exist',
       'description': 'T-Shirt',

@@ -25,9 +25,10 @@ References
 https://support.google.com/merchants/answer/6324492?hl=en
 """
 
+import itertools
 import logging
 import re
-from typing import Any, Dict, Optional
+from typing import Any, AnyStr, Dict, Iterator, Match, Optional
 from flask import current_app
 
 import jaconv
@@ -41,7 +42,7 @@ _ATTRIBUTES_TO_INSPECT = ('title', 'description')
 
 _GPC_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME: str = 'gpc_string_to_id_mapping_{}'
 
-_NUMERIC_SIZE_INDICATORS = ('size', 'サイズ')
+_SIZE_INDICATORS = ('size', 'サイズ')
 
 _JA_NOUN = '名詞'
 _JA_SYMBOL = 'サ変接続'
@@ -65,7 +66,7 @@ class SizeMiner(object):
       language: The configured language code.
       country: The configured country code.
     """
-    super(SizeMiner, self).__init__()
+    super().__init__()
     self._country = country
     self._gpc_id_to_string_converter = gpc_id_to_string_converter.GPCConverter(
         _GPC_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME.format(language))
@@ -123,7 +124,9 @@ class SizeMiner(object):
     gpc_string = self._gpc_id_to_string_converter.convert_gpc_id_to_string(
         google_product_category)
 
-    if self._language == constants.LANGUAGE_CODE_JA:
+    if self._language in [
+        constants.LANGUAGE_CODE_JA, constants.LANGUAGE_CODE_EN
+    ]:
       product_attribute_text = product.get(attribute, '')
       if not product_attribute_text:
         return False
@@ -183,19 +186,60 @@ class SizeMiner(object):
     """
     if self._language == constants.LANGUAGE_CODE_JA:
       normalized_text = _normalize_ja_text(text)
-      mined_size = self._mine_ja_alphabetic_clothing_size_with_mecab(
-          normalized_text)
+      mined_size = (
+          self.mine_ja_unisize_clothing_size_using_mecab(normalized_text))
+      if not mined_size:
+        mined_size = self._mine_ja_alphabetic_clothing_size(normalized_text)
       if not mined_size:
         mined_size = self._mine_ja_numeric_clothing_size_with_mecab(
             normalized_text)
-      return mined_size
+      return mined_size.strip() if mined_size else None
     elif self._language == constants.LANGUAGE_CODE_EN:
-      mined_size = self._mine_en_clothing_size(text)
-      return mined_size
+      mined_size = self._mine_en_unisize_clothing_size(text)
+      if not mined_size:
+        mined_size = self._mine_en_clothing_size(text)
+      return mined_size.strip() if mined_size else None
     return None
 
-  def _mine_ja_alphabetic_clothing_size_with_mecab(self,
-                                                   text: str) -> Optional[str]:
+  def mine_ja_unisize_clothing_size_using_mecab(self,
+                                                text: str) -> Optional[str]:
+    """Mines 'one-size-fits-all'-type terms, if found, from the given JA text.
+
+    Args:
+      text: Text to be inspected.
+
+    Returns:
+      A size string if one was able to be mined, otherwise None.
+    """
+    for size in constants.ALPHABETIC_CLOTHING_SIZES_JP_UNISIZE_MULTI_WORD:
+      if size.lower() in text.lower():
+        return size
+
+    if not self._mecab_tagger:
+      logging.warning('Did not mine size because MeCab was not set up.')
+      return None
+
+    indicator_found = False
+    node = self._mecab_tagger.parseToNode(text)
+    while node:
+      size_indicator_candidate = node.surface
+      if not node.surface:
+        node = node.next
+        continue
+
+      if indicator_found:
+        rest_of_text = _concat_mecab_nodes_from_node(node)
+        for size in constants.ALPHABETIC_CLOTHING_SIZES_JP_UNISIZE_SINGLE_WORD:
+          if size.lower() in rest_of_text.lower():
+            return size
+
+      # Looks for a matching size term in the text after the size indicator.
+      if size_indicator_candidate.lower() in _SIZE_INDICATORS:
+        indicator_found = True
+      node = node.next
+    return None
+
+  def _mine_ja_alphabetic_clothing_size(self, text: str) -> Optional[str]:
     """Mines size from the given text for Japanese language.
 
     Args:
@@ -204,31 +248,30 @@ class SizeMiner(object):
     Returns:
       A size string if one was able to be mined, otherwise None.
     """
-    if not self._mecab_tagger:
-      logging.warning('Did not mine size because MeCab was not set up.')
-      return None
-
     # Setup valid clothing sizes using regex.
-    clothing_size_chars_finder = re.compile(
-        constants.CLOTHING_SIZES_REGEX_CHARS, re.IGNORECASE)
+    clothing_size_chars_slash_finder = re.compile(
+        constants.CLOTHING_SIZES_CHARS_SLASH_SEPARATOR, re.IGNORECASE)
+    clothing_size_chars_range_finder = re.compile(
+        constants.CLOTHING_SIZES_CHARS_REGEX_RANGE, re.IGNORECASE)
     clothing_size_words_finder = re.compile(
         constants.CLOTHING_SIZES_REGEX_WORDS, re.IGNORECASE)
 
-    # Tokenize Japanese-language string, then check tokens against valid sizes.
-    node = self._mecab_tagger.parseToNode(text)
-    while node:
-      token = node.surface
-      if not token:
-        node = node.next
-        continue
+    # Validate that the token represents a size based on the regex patterns.
+    matched_clothing_size_chars_range_iterator = (
+        clothing_size_chars_range_finder.finditer(text))
+    matched_clothing_size_chars_slash_iterator = (
+        clothing_size_chars_slash_finder.finditer(text))
+    matched_clothing_size_words = clothing_size_words_finder.search(text)
 
-      # Validate that the token represents a size based on the regex patterns.
-      clothing_size_chars_matched = clothing_size_chars_finder.match(token)
-      clothing_size_words_matched = clothing_size_words_finder.match(token)
-      if clothing_size_chars_matched or clothing_size_words_matched:
-        return token
-      node = node.next
-    return None
+    if matched_clothing_size_words:
+      return matched_clothing_size_words.group(0)
+
+    longest_matching_size = _get_longest_alphabetic_regex_match(
+        itertools.chain(
+            matched_clothing_size_chars_slash_iterator,
+            matched_clothing_size_chars_range_iterator,
+        ))
+    return longest_matching_size or None
 
   def _mine_ja_numeric_clothing_size_with_mecab(self,
                                                 text: str) -> Optional[str]:
@@ -267,7 +310,7 @@ class SizeMiner(object):
           return first_matched_result
 
       # Looks for a matching size term in the text after the size indicator.
-      if size_indicator_candidate.lower() in _NUMERIC_SIZE_INDICATORS:
+      if size_indicator_candidate.lower() in _SIZE_INDICATORS:
         indicator_found = True
       node = node.next
     return None
@@ -281,24 +324,45 @@ class SizeMiner(object):
     Returns:
       A size if it could be mined, otherwise None.
     """
-    clothing_size_regex_chars = constants.CLOTHING_SIZES_REGEX_CHARS
-    clothing_size_regex_words = constants.CLOTHING_SIZES_REGEX_WORDS
-    clothing_size_chars_finder = re.compile(clothing_size_regex_chars,
-                                            re.IGNORECASE)
-    clothing_size_words_finder = re.compile(clothing_size_regex_words,
-                                            re.IGNORECASE)
+    # Setup valid clothing sizes using regex.
+    clothing_size_chars_slash_finder = re.compile(
+        constants.CLOTHING_SIZES_CHARS_SLASH_SEPARATOR, re.IGNORECASE)
+    clothing_size_chars_range_finder = re.compile(
+        constants.CLOTHING_SIZES_CHARS_REGEX_RANGE, re.IGNORECASE)
+    clothing_size_words_finder = re.compile(
+        constants.CLOTHING_SIZES_REGEX_WORDS, re.IGNORECASE)
 
-    words = text.split()
-    for word in words:
-      clothing_size_chars_matched = clothing_size_chars_finder.match(word)
-      clothing_size_words_matched = clothing_size_words_finder.match(word)
-      if clothing_size_chars_matched or clothing_size_words_matched:
-        return word.capitalize()
+    # Validate that the token represents a size based on the regex patterns.
+    matched_clothing_size_chars_range_iterator = (
+        clothing_size_chars_range_finder.finditer(text))
+    matched_clothing_size_chars_slash_iterator = (
+        clothing_size_chars_slash_finder.finditer(text))
+    matched_clothing_size_words = clothing_size_words_finder.search(text)
+
+    if matched_clothing_size_words:
+      return matched_clothing_size_words.group(0)
+
+    longest_matching_size = _get_longest_alphabetic_regex_match(
+        itertools.chain(
+            matched_clothing_size_chars_slash_iterator,
+            matched_clothing_size_chars_range_iterator,
+        ))
+    return longest_matching_size or None
+
+  def _mine_en_unisize_clothing_size(self, text: str) -> Optional[str]:
+    """Mines 'one-size-fits-all'-type terms, if found, from the given EN text.
+
+    Args:
+      text: Text to be inspected for size-related words.
+
+    Returns:
+      A size if it could be mined, otherwise None.
+    """
+    # Check for "one size fits all" terms.
     normalized_text = text.lower()
     for size in constants.ALPHABETIC_CLOTHING_SIZES_EN_UNISIZE:
       if size.lower() in normalized_text:
         return size
-    return None
 
   def _mine_shoe_size(self, product) -> Optional[str]:
     """Mines the size of the shoe from product fields.
@@ -392,3 +456,21 @@ def _concat_mecab_nodes_from_node(node: object) -> str:
     node_values.append(node.surface)
     node = node.next
   return ''.join(node_values).strip()
+
+
+def _get_longest_alphabetic_regex_match(
+    regex_matches: Iterator[Match[AnyStr]]) -> str:
+  """Helper that returns the longest sequence in a regex result, or None."""
+  longest_match = ''
+  for match in regex_matches:
+    match_group = match.group(0)
+    if _string_only_has_symbols(match_group):
+      continue
+    if len(match_group) > len(longest_match):
+      longest_match = match_group
+  return longest_match or None
+
+
+def _string_only_has_symbols(text: str) -> bool:
+  """Returns True if string only has symbols or is falsy, otherwise False."""
+  return True if not text else not text.lower().islower()
