@@ -14,16 +14,28 @@
 # limitations under the License.
 
 """Unit tests for description_optimizer.py."""
+import unittest.mock as mock
 
 from absl.testing import parameterized
-
 import constants
 from optimizers_builtin import description_optimizer
 from test_data import requests_bodies
-from util import attribute_miner
 from util import app_util
+from util import attribute_miner
 
 
+@mock.patch.dict(
+    'flask.current_app.config', {
+        'MINING_OPTIONS': {
+            'color_mining_on': 'True',
+            'color_mining_overwrite': 'True',
+            'gender_mining_on': 'True',
+            'gender_mining_overwrite': 'True',
+            'size_mining_on': 'True',
+            'size_mining_overwrite': 'True',
+            'brand_mining_on': 'True'
+        }
+    })
 class DescriptionOptimizerTest(parameterized.TestCase):
 
   def setUp(self) -> None:

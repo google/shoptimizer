@@ -27,6 +27,18 @@ from util import app_util
 from util import attribute_miner
 
 
+@mock.patch.dict(
+    'flask.current_app.config', {
+        'MINING_OPTIONS': {
+            'color_mining_on': 'True',
+            'color_mining_overwrite': 'True',
+            'gender_mining_on': 'True',
+            'gender_mining_overwrite': 'True',
+            'size_mining_on': 'True',
+            'size_mining_overwrite': 'True',
+            'brand_mining_on': 'True'
+        }
+    })
 class TitleOptimizerTest(parameterized.TestCase):
 
   def setUp(self):
@@ -141,6 +153,13 @@ class TitleOptimizerTest(parameterized.TestCase):
       self.assertEqual(enums.TrackingTag.OPTIMIZED.value,
                        product[tracking_field])
 
+  @mock.patch.dict(
+      'flask.current_app.config', {
+          'MINING_OPTIONS': {
+              'color_mining_on': 'True',
+              'color_mining_overwrite': 'True'
+          }
+      })
   def test_process_appends_color_when_the_field_has_value(self):
     original_title = 'dummy title'
     self.fields_to_append.remove('color')
@@ -224,6 +243,18 @@ class TitleOptimizerTest(parameterized.TestCase):
                      len('… Men\'s Large Google Black')) +
               '… Men\'s Large Google Black'
       })
+  @mock.patch.dict(
+      'flask.current_app.config', {
+          'MINING_OPTIONS': {
+              'color_mining_on': 'True',
+              'color_mining_overwrite': 'True',
+              'gender_mining_on': 'True',
+              'gender_mining_overwrite': 'True',
+              'size_mining_on': 'True',
+              'size_mining_overwrite': 'True',
+              'brand_mining_on': 'True'
+          }
+      })
   def test_process_appends_multiple_field_values(self, original_title,
                                                  expected_title):
     original_data = requests_bodies.build_request_body(
@@ -242,7 +273,7 @@ class TitleOptimizerTest(parameterized.TestCase):
     optimizer = title_optimizer.TitleOptimizer(mined_attrs)
 
     optimized_data, optimization_result = optimizer.process(
-        original_data, 'test')
+        original_data, constants.LANGUAGE_CODE_EN)
 
     product = optimized_data['entries'][0]['product']
     self.assertEqual(expected_title, product['title'])
@@ -450,10 +481,9 @@ class TitleOptimizerTest(parameterized.TestCase):
     title = ('[OPTI] Titlelength:Over150charsaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
              'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
              'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa bbbbb')
-    description = (
-        'NIKE  バスケットボール メンズソックス ジョーダン '
-        'アルティメット フライト 2.0 グリップ クルー '
-        'ソックス SX5851-010')
+    description = ('NIKE  バスケットボール メンズソックス ジョーダン '
+                   'アルティメット フライト 2.0 グリップ クルー '
+                   'ソックス SX5851-010')
     color = 'レッド'
     sizes = ['L']
     original_data = requests_bodies.build_request_body(
@@ -1194,12 +1224,9 @@ class TitleOptimizerSizeTest(parameterized.TestCase):
     size_term = 'L'
     original_data = requests_bodies.build_request_body(
         properties_to_be_updated={
-            'title':
-                'Tシャツ',
-            'description':
-                f'{size_term}サイズ',
-            'googleProductCategory':
-                'ファッション・アクセサリー > 衣料品',
+            'title': 'Tシャツ',
+            'description': f'{size_term}サイズ',
+            'googleProductCategory': 'ファッション・アクセサリー > 衣料品',
         },
         properties_to_be_removed=self.fields_to_append)
     mined_attrs = attribute_miner.AttributeMiner(
@@ -1219,12 +1246,9 @@ class TitleOptimizerSizeTest(parameterized.TestCase):
       self):
     original_data = requests_bodies.build_request_body(
         properties_to_be_updated={
-            'title':
-                'ORIGINAL BRAND Tシャツ',
-            'description':
-                'Tシャツ Lサイズ',
-            'googleProductCategory':
-                'ファッション・アクセサリー > 衣料品',
+            'title': 'ORIGINAL BRAND Tシャツ',
+            'description': 'Tシャツ Lサイズ',
+            'googleProductCategory': 'ファッション・アクセサリー > 衣料品',
         },
         properties_to_be_removed=self.fields_to_append)
     mined_attrs = attribute_miner.AttributeMiner(
@@ -1244,12 +1268,9 @@ class TitleOptimizerSizeTest(parameterized.TestCase):
     original_title = 'ORIGINAL BRAND Tシャツ'
     original_data = requests_bodies.build_request_body(
         properties_to_be_updated={
-            'title':
-                original_title,
-            'description':
-                'ORIGINAL BRAND Tシャツ',
-            'googleProductCategory':
-                'ファッション・アクセサリー > 衣料品',
+            'title': original_title,
+            'description': 'ORIGINAL BRAND Tシャツ',
+            'googleProductCategory': 'ファッション・アクセサリー > 衣料品',
         },
         properties_to_be_removed=self.fields_to_append)
     mined_attrs = attribute_miner.AttributeMiner(
@@ -1269,12 +1290,9 @@ class TitleOptimizerSizeTest(parameterized.TestCase):
     size_term = '27.5'
     original_data = requests_bodies.build_request_body(
         properties_to_be_updated={
-            'title':
-                'スニーカー',
-            'description':
-                f'{size_term}cm',
-            'googleProductCategory':
-                'ファッション・アクセサリー > 靴',
+            'title': 'スニーカー',
+            'description': f'{size_term}cm',
+            'googleProductCategory': 'ファッション・アクセサリー > 靴',
         },
         properties_to_be_removed=self.fields_to_append)
     mined_attrs = attribute_miner.AttributeMiner(
@@ -1295,11 +1313,9 @@ class TitleOptimizerSizeTest(parameterized.TestCase):
     self.fields_to_append.remove('sizes')
     original_data = requests_bodies.build_request_body(
         properties_to_be_updated={
-            'title':
-                'TシャツM',
+            'title': 'TシャツM',
             'sizes': [size_term],
-            'googleProductCategory':
-                'ファッション・アクセサリー > 衣料品',
+            'googleProductCategory': 'ファッション・アクセサリー > 衣料品',
         },
         properties_to_be_removed=self.fields_to_append)
     mined_attrs = attribute_miner.AttributeMiner(
