@@ -124,7 +124,7 @@ Apart from "lang", "country" and "currency", setting any of the other parameters
 to true will run the associated optimizer. If any of these parameters are not
 provided in the request, they will default to false.
 
-See the [OptimizerExplanations](../README.md#2-optimizer-explanations) section
+See the [Optimizer Explanations](../README.md#2-optimizer-explanations) section
 in the README for a description of the available optimizers, and refer to
 [section 4.3](./developer-guide.md#43-recommended-optimizer-order) 'Recommended
 Order to Run Optimizers' for running multiple optimizers in sequence.
@@ -183,6 +183,25 @@ call.
     }`
 
 --------------------------------------------------------------------------------
+
+**Request Headers**
+
+Shoptimizer API provides the ability to set several request headers that control the behavior of the title-optimizer and description-optimizer when mining attributes. If you do not use these optimizers, you can ignore this section.
+
+The following request headers can be set as key-value pairs in the REST request:
+
+| Header Name | Accepted Values | Description |
+|--|--|--|
+| **brand_mining_on** | True/False | If set to "True", attempts to mine brand from title/description. If this header is not set, the default value is "True". |
+| **color_mining_on** | True/False | If set to "True", attempts to mine color from title/description. If this header is not set, the default value is "True". |
+| **gender_mining_on** | True/False | If set to "True", attempts to mine gender from title/description. If this header is not set, the default value is "True". |
+| **size_mining_on** | True/False | If set to "True", attempts to mine size from title/description if set to "True". If this header is not set, the default value is "True". |
+| **color_mining_overwrite** | True/False | If set to "True", replaces the "color" attribute in the product (only if a value was able to be mined). If this header is not set, the default value is "False". |
+| **gender_mining_overwrite** | True/False | If set to "True", replaces the "gender" attribute in the product (only if a value was able to be mined). If this header is not set, the default value is "False". |
+| **size_mining_overwrite** | True/False | If set to "True", replaces the "size" attribute in the product (only if a value was able to be mined). If this header is not set, the default value is "False". |
+
+*Note: A “brand_mining_overwrite” header does not exist because the brand is only validated from the original attribute, therefore no logic exists that would attempt to overwrite the brand.
+
 
 ### 2.3 Example Usage
 
