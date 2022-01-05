@@ -111,7 +111,7 @@ class SizeMiner(object):
 
   def is_size_in_attribute(self, product: Dict[str, Any],
                            attribute: str) -> bool:
-    """Checks if the size in a given attribute.
+    """Checks if the size is already in a given attribute or not.
 
     Args:
       product: A dictionary containing product data.
@@ -136,14 +136,14 @@ class SizeMiner(object):
           gpc_string, constants
           .GOOGLE_PRODUCT_CATEGORY_APPAREL_ACCESSORIES_CLOTHING_KEYWORDS,
           constants.GOOGLE_PRODUCT_CATEGORY_APPAREL_ACCESSORIES_CLOTHING_IDS):
-        return self._mine_clothing_size_from_attribute(product_attribute_text)
+        return self._mine_clothing_size_from_text(product_attribute_text)
 
       # Mines shoes size.
       elif optimization_util.is_particular_google_product_category(
           gpc_string,
           constants.GOOGLE_PRODUCT_CATEGORY_APPAREL_ACCESSORIES_SHOES_KEYWORDS,
           constants.GOOGLE_PRODUCT_CATEGORY_APPAREL_ACCESSORIES_SHOES_IDS):
-        return self._mine_shoe_size_from_attribute(product_attribute_text)
+        return self._mine_shoe_size_from_text(product_attribute_text)
 
       else:
         logging.info(
@@ -169,14 +169,14 @@ class SizeMiner(object):
       product_attribute_text = product.get(attribute, '')
       if not product_attribute_text:
         continue
-      mined_size = self._mine_clothing_size_from_attribute(
+      mined_size = self._mine_clothing_size_from_text(
           product_attribute_text)
       if mined_size:
         return mined_size
     return None
 
-  def _mine_clothing_size_from_attribute(self, text: str) -> Optional[str]:
-    """Mines the size from attribute based on the configured language.
+  def _mine_clothing_size_from_text(self, text: str) -> Optional[str]:
+    """Mines the size from the given text based on the configured language.
 
     Args:
       text: Text to be inspected.
@@ -271,7 +271,21 @@ class SizeMiner(object):
             matched_clothing_size_chars_slash_iterator,
             matched_clothing_size_chars_range_iterator,
         ))
-    return longest_matching_size or None
+    if longest_matching_size:
+      return longest_matching_size
+
+    # If a size still couldn't be found, try tokenizing the text with Mecab.
+    if not self._mecab_tagger:
+      logging.warning('Did not mine size because MeCab was not set up.')
+      return None
+
+    node = self._mecab_tagger.parseToNode(text)
+    while node:
+      token = node.surface
+      if token in constants.CLOTHING_SIZES_JA:
+        return token
+      node = node.next
+    return None
 
   def _mine_ja_numeric_clothing_size_with_mecab(self,
                                                 text: str) -> Optional[str]:
@@ -378,12 +392,12 @@ class SizeMiner(object):
       if not product_attribute_text:
         continue
       else:
-        mined_size = self._mine_shoe_size_from_attribute(product_attribute_text)
+        mined_size = self._mine_shoe_size_from_text(product_attribute_text)
         if mined_size:
           return mined_size
     return None
 
-  def _mine_shoe_size_from_attribute(self, text: str) -> Optional[str]:
+  def _mine_shoe_size_from_text(self, text: str) -> Optional[str]:
     """Mines the size from attribute based on the configured language.
 
     Args:
@@ -394,12 +408,12 @@ class SizeMiner(object):
     """
     if self._language == constants.LANGUAGE_CODE_JA:
       text = _normalize_ja_text(text)
-      mined_size = self._mine_number_shoe_size_with_range(
+      mined_size = self._mine_numeric_shoe_size_with_range(
           text, constants.MINIMUM_SHOE_SIZE_JP, constants.MAXIMUM_SHOE_SIZE_JP)
       return mined_size
     elif self._language == constants.LANGUAGE_CODE_EN:
       if self._country == constants.COUNTRY_CODE_US:
-        mined_size = self._mine_number_shoe_size_with_range(
+        mined_size = self._mine_numeric_shoe_size_with_range(
             text, constants.MINIMUM_SHOE_SIZE_US,
             constants.MAXIMUM_SHOE_SIZE_US)
         return mined_size
@@ -409,8 +423,8 @@ class SizeMiner(object):
             self._country, self._language)
     return None
 
-  def _mine_number_shoe_size_with_range(self, text: str, min_size: float,
-                                        max_size: float) -> Optional[str]:
+  def _mine_numeric_shoe_size_with_range(self, text: str, min_size: float,
+                                         max_size: float) -> Optional[str]:
     """Mines the size in the valid number format and the range.
 
     This methods mines sizes under the condition below:

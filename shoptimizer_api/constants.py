@@ -46,6 +46,8 @@ MAX_COLOR_STR_LENGTH_IN_TOTAL: int = 100
 CLOTHING_SIZES_CHARS_SLASH_SEPARATOR = r'((([0-9]{1,3})?[X]*(S{1,2})\b)?\/?){0,10}(\bM{1}\b)?\/?(\b(([0-9]{1,3})?[X]*(L{1,2})\b)?\/?){0,10}'
 CLOTHING_SIZES_CHARS_REGEX_RANGE = r'((\b([0-9]{1,3})?[X]*(S{1,2}\b)?(\bM{1}\b)?\b([0-9]{1,3})?[X]*(L{1,2}\b)?)(-(\b([0-9]{1,3})?[X]*(S{1,2}\b)?(\bM{1}\b)?\b([0-9]{1,3})?[X]*(L{1,2})?))?)'
 CLOTHING_SIZES_REGEX_WORDS = r'((X|EXTRA)?[\s|-]?SMALL\/?\b|(X|EXTRA)?[\s|-]?MEDIUM\/?\b|(X|EXTRA)?[\s|-]?LARGE\/?\b|OSFA\/?\b|OS\/?\b)'
+CLOTHING_SIZES_JA: Tuple[str,
+                         ...] = ('XXS', 'XS', 'S', 'M', 'L', 'LL', 'XL', 'XXL')
 NUMERIC_CLOTHING_SIZES_JA_REGEX = r'\d*\.?\d+(-?\d+)?(\.?\d+)?\s?(cm|centimeters|センチ|センチメートル|mm|ミリメートル|ミリ|inches|inch|in|インチ|years|yo|歳)?'
 ALPHABETIC_CLOTHING_SIZES_JP_UNISIZE_MULTI_WORD: Tuple[str, ...] = ('フリーサイズ',
                                                                     'Free Size',

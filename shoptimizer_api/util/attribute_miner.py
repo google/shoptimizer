@@ -124,7 +124,7 @@ class AttributeMiner(object):
       if size:
         size_overwrite_on = self._parse_mining_option_header(
             'size_mining_overwrite')
-        _insert_value_in_field(product, 'sizes', size, size_overwrite_on)
+        _insert_value_in_field(product, 'sizes', [size], size_overwrite_on)
         mined_attributes['sizes'] = [size]
 
     # Perform brand mining and validation if the option was turned on.

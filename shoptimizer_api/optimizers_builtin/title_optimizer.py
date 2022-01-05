@@ -37,8 +37,6 @@ import logging
 import re
 from typing import Any, Dict, List
 
-import constants
-
 from models import optimization_result_counts
 from optimizers_abstract import base_optimizer
 from util import optimization_util
@@ -114,11 +112,11 @@ class TitleOptimizer(base_optimizer.BaseOptimizer):
     product_id = product.get('offerId', '')
     size_checker = size_miner.SizeMiner(language, country)
     fields_to_append_to_title = []
+    size_already_exists = size_checker.is_size_in_attribute(product, 'title')
     for attribute_name, mined_attribute_values in self._mined_attributes.get(
         product_id, {}).items():
-      if attribute_name == 'sizes' and size_checker.is_size_in_attribute(
-          product, 'title'):
-        # Does not append the size when size information is already in title.
+      # Does not append the size when size information is already in title.
+      if attribute_name == 'sizes' and size_already_exists:
         continue
       if isinstance(mined_attribute_values, str):
         fields_to_append_to_title.append(mined_attribute_values)
@@ -213,8 +211,7 @@ def _append_fields_to_title(product: Dict[str, Any], fields: List[str],
   """
   original_title = product.get('title', '')
   product['title'] = optimization_util.append_keywords_to_field(
-      original_title, fields, chars_to_preserve, _MAX_TITLE_LENGTH,
-      constants.ALL_ALPHABETIC_CLOTHING_SIZES)
+      original_title, fields, chars_to_preserve, _MAX_TITLE_LENGTH)
 
   if product['title'] != original_title:
     logging.info('Modified item %s: Appended field values to title: %s',

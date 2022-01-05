@@ -161,12 +161,12 @@ class OptimizationUtilTest(parameterized.TestCase):
 
     self.assertEqual(expected_output, actual_output)
 
-  def test_append_keywords_to_field_appends_when_keyword_is_in_allowlist_and_is_in_the_field(
+  def test_append_keywords_to_field_appends_to_target_field(
       self):
     target_field = 'dummy field'
 
     actual_output = optimization_util.append_keywords_to_field(
-        target_field, ['M'], 0, 100, allowlist=['M'])
+        target_field, ['M'], 0, 100)
 
     self.assertEqual('dummy field… M', actual_output)
 

@@ -30,8 +30,6 @@ contain values or could be mined from the product:
 import logging
 from typing import Any, Dict
 
-import constants
-
 from models import optimization_result_counts
 from optimizers_abstract import base_optimizer
 from util import optimization_util
@@ -124,8 +122,7 @@ def _create_optimized_description(original_description: str,
 
   field_with_keywords_appended = optimization_util.append_keywords_to_field(
       original_description, fields_to_append_to_description,
-      len(original_description), _MAX_DESCRIPTION_LENGTH,
-      constants.ALL_ALPHABETIC_CLOTHING_SIZES)
+      len(original_description), _MAX_DESCRIPTION_LENGTH)
 
   return field_with_keywords_appended
 

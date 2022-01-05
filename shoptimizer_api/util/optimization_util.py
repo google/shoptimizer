@@ -15,7 +15,7 @@
 
 """Utility module for optimization."""
 import copy
-from typing import Any, Collection, Dict, Iterable, List, Sequence
+from typing import Any, Dict, Iterable, List, Sequence
 
 # Amount of space to leave between product data and appended attributes
 _SEPARATOR_LENGTH = len(' ')
@@ -67,12 +67,8 @@ def cut_list_elements_over_max_length(target_list: Sequence[str],
   return [element for element in target_list if len(element) <= max_length]
 
 
-def append_keywords_to_field(
-    target_field: str,
-    keywords: Sequence[str],
-    chars_to_preserve: int,
-    max_length: int,
-    allowlist: Collection[str] = ()) -> str:
+def append_keywords_to_field(target_field: str, keywords: Sequence[str],
+                             chars_to_preserve: int, max_length: int) -> str:
   """Appends keywords to the target field.
 
   If necessary, this function removes the final characters of the target field
@@ -86,8 +82,6 @@ def append_keywords_to_field(
       of the string to make sure these chars are not removed when appending
       keywords. E.g., use to preserve original title.
     max_length (object): The maximum limit of the field length.
-    allowlist: Allowlist of words that are appended even when they are already
-      in the target field.
 
   Returns:
     The target field with keywords appended to the back.
@@ -99,7 +93,7 @@ def append_keywords_to_field(
       _SEPARATOR_LENGTH * 2)
 
   keywords_text = _get_keywords_text(keywords, lowercase_target_field,
-                                     space_left_to_append_keywords, allowlist)
+                                     space_left_to_append_keywords)
 
   if not keywords_text:
     return target_field
@@ -119,11 +113,8 @@ def append_keywords_to_field(
   return field_with_keywords_appended.strip()
 
 
-def _get_keywords_text(
-    keywords: Sequence[str],
-    lowercase_target_field: str,
-    space_left_to_append_keywords: int,
-    allowlist: Collection[str] = ()) -> str:
+def _get_keywords_text(keywords: Sequence[str], lowercase_target_field: str,
+                       space_left_to_append_keywords: int) -> str:
   """Generates a string of keywords to be appended to the target field.
 
   Args:
@@ -131,8 +122,6 @@ def _get_keywords_text(
     lowercase_target_field: The field to append keywords to.
     space_left_to_append_keywords: The space left in the target field to append
       keywords to.
-    allowlist: Allowlist of words that are appended even when they are already
-      in the target field.
 
   Returns:
     A string consisting of an ellipsis, space, and space-separated keywords,
@@ -141,9 +130,13 @@ def _get_keywords_text(
   keywords_not_in_field = []
 
   for keyword in keywords:
-    if (keyword in allowlist or
-        keyword.lower() not in lowercase_target_field) and (
-            len(keyword) + _SEPARATOR_LENGTH) <= space_left_to_append_keywords:
+    enough_space_to_append_keyword = (
+        len(keyword) + _SEPARATOR_LENGTH <= space_left_to_append_keywords)
+    keyword_not_in_field = (
+        len(keyword) > 1 and keyword.lower() not in lowercase_target_field)
+
+    if enough_space_to_append_keyword and (keyword_not_in_field or
+                                           len(keyword) < 2):
       keywords_not_in_field.append(keyword)
       space_left_to_append_keywords -= len(keyword) + _SEPARATOR_LENGTH
       if space_left_to_append_keywords <= 0:

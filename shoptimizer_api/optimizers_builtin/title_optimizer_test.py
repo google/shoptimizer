@@ -39,6 +39,8 @@ from util import attribute_miner
             'brand_mining_on': 'True'
         }
     })
+@mock.patch('util.color_miner._COLOR_OPTIMIZER_CONFIG_FILE_NAME',
+            'color_optimizer_config_{}_test')
 class TitleOptimizerTest(parameterized.TestCase):
 
   def setUp(self):
@@ -507,15 +509,6 @@ class TitleOptimizerTest(parameterized.TestCase):
 
     self.assertEqual(expected_title, product['title'])
 
-
-class TitleOptimizerBrandTest(parameterized.TestCase):
-
-  def setUp(self):
-    super(TitleOptimizerBrandTest, self).setUp()
-    app_util.setup_test_app()
-    self.optimizer = title_optimizer.TitleOptimizer()
-    self.fields_to_append = ['gender', 'color', 'sizes', 'brand']
-
   def test_process_appends_brand_when_brand_valid(self):
     original_title = 'dummy title'
     brand_to_append = 'Cool Company'
@@ -671,46 +664,14 @@ class TitleOptimizerBrandTest(parameterized.TestCase):
                 'util.size_miner.SizeMiner') as mocked_size_miner:
       mocked_color_miner.return_value.mine_color.return_value = None, None
       mocked_size_miner.return_value.mine_size.return_value = None
-      mocked_size_miner.return_value.is_size_in_attribute = False
+      mocked_size_miner.return_value.is_size_in_attribute.return_value = False
       optimized_data, optimization_result = optimizer.process(
           original_data, 'test')
 
       product = optimized_data['entries'][0]['product']
+
       self.assertIn(brand_to_append, product['title'])
       self.assertEqual(1, optimization_result.num_of_products_optimized)
-
-
-@mock.patch('util.color_miner._COLOR_OPTIMIZER_CONFIG_FILE_NAME',
-            'color_optimizer_config_{}_test')
-class TitleOptimizerColorTest(parameterized.TestCase):
-
-  def setUp(self):
-    super(TitleOptimizerColorTest, self).setUp()
-    self.optimizer = title_optimizer.TitleOptimizer()
-    self.fields_to_append = ['gender', 'color', 'sizes', 'brand']
-
-  def test_process_appends_color_when_the_field_has_value(self):
-    original_title = 'dummy title'
-    color_to_append = 'Black'
-    self.fields_to_append.remove('color')
-    original_data = requests_bodies.build_request_body(
-        properties_to_be_updated={
-            'title': original_title,
-            'color': color_to_append,
-        },
-        properties_to_be_removed=self.fields_to_append)
-    mined_attrs = attribute_miner.AttributeMiner(
-        constants.LANGUAGE_CODE_EN,
-        constants.COUNTRY_CODE_US).mine_and_insert_attributes_for_batch(
-            original_data)
-    optimizer = title_optimizer.TitleOptimizer(mined_attrs)
-
-    optimized_data, optimization_result = optimizer.process(original_data, 'en')
-
-    product = optimized_data['entries'][0]['product']
-
-    self.assertIn(color_to_append, product['title'])
-    self.assertEqual(1, optimization_result.num_of_products_optimized)
 
   @parameterized.named_parameters([
       {
@@ -818,14 +779,6 @@ class TitleOptimizerColorTest(parameterized.TestCase):
 
     self.assertEqual(original_title, product.get('title'))
     self.assertEqual(0, optimization_result.num_of_products_optimized)
-
-
-class TitleOptimizerGenderTest(parameterized.TestCase):
-
-  def setUp(self):
-    super(TitleOptimizerGenderTest, self).setUp()
-    self.optimizer = title_optimizer.TitleOptimizer()
-    self.fields_to_append = ['gender', 'color', 'sizes', 'brand']
 
   def test_process_appends_womens_to_title_from_female_gender(self):
     original_data = requests_bodies.build_request_body(
@@ -1188,14 +1141,6 @@ class TitleOptimizerGenderTest(parameterized.TestCase):
 
     self.assertEqual(original_title, product['title'])
     self.assertEqual(0, optimization_result.num_of_products_optimized)
-
-
-class TitleOptimizerSizeTest(parameterized.TestCase):
-
-  def setUp(self):
-    super(TitleOptimizerSizeTest, self).setUp()
-    self.optimizer = title_optimizer.TitleOptimizer()
-    self.fields_to_append = ['gender', 'color', 'sizes', 'brand']
 
   def test_process_appends_sizes_when_the_field_has_value(self):
     original_title = 'dummy title'
