@@ -43,7 +43,7 @@ MAX_COLOR_COUNT: int = 3
 MAX_COLOR_STR_LENGTH_FOR_EACH: int = 40
 MAX_COLOR_STR_LENGTH_IN_TOTAL: int = 100
 
-CLOTHING_SIZES_CHARS_SLASH_SEPARATOR = r'((([0-9]{1,3})?[X]*(S{1,2})\b)?\/?){0,10}(\bM{1}\b)?\/?(\b(([0-9]{1,3})?[X]*(L{1,2})\b)?\/?){0,10}'
+CLOTHING_SIZES_CHARS_SLASH_SEPARATOR = r'((([0-9]{1,3})?[X]*(\bS{1,2})\b)?\/?){0,10}(\bM{1}\b)?\/?(\b(([0-9]{1,3})?[X]*(\bL{1,2})\b)?\/?){0,10}'
 CLOTHING_SIZES_CHARS_REGEX_RANGE = r'((\b([0-9]{1,3})?[X]*(S{1,2}\b)?(\bM{1}\b)?\b([0-9]{1,3})?[X]*(L{1,2}\b)?)(-(\b([0-9]{1,3})?[X]*(S{1,2}\b)?(\bM{1}\b)?\b([0-9]{1,3})?[X]*(L{1,2})?))?)'
 CLOTHING_SIZES_REGEX_WORDS = r'((X|EXTRA)?[\s|-]?SMALL\/?\b|(X|EXTRA)?[\s|-]?MEDIUM\/?\b|(X|EXTRA)?[\s|-]?LARGE\/?\b|OSFA\/?\b|OS\/?\b)'
 CLOTHING_SIZES_JA: Tuple[str,
@@ -61,11 +61,6 @@ ALPHABETIC_CLOTHING_SIZES_JP_UNISIZE_SINGLE_WORD: Tuple[str,
                                                                 '1_size')
 ALPHABETIC_CLOTHING_SIZES_EN_UNISIZE: Tuple[str, ...] = ('One size fits all',
                                                          'One size')
-ALL_ALPHABETIC_CLOTHING_SIZES: Set[str] = frozenset(set().union(*[
-    ALPHABETIC_CLOTHING_SIZES_JP_UNISIZE_MULTI_WORD,
-    ALPHABETIC_CLOTHING_SIZES_JP_UNISIZE_SINGLE_WORD,
-    ALPHABETIC_CLOTHING_SIZES_EN_UNISIZE
-]))
 
 MINIMUM_SHOE_SIZE_JP: float = 10
 MAXIMUM_SHOE_SIZE_JP: float = 35
