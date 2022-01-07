@@ -20,6 +20,7 @@ RUN apt-get update && apt-get -y install mecab libmecab-dev mecab-ipadic-utf8 gi
 # Set up Mecab
 RUN git clone --depth 1 https://github.com/neologd/mecab-ipadic-neologd.git
 RUN echo yes | mecab-ipadic-neologd/bin/install-mecab-ipadic-neologd -n -a
+RUN cp /etc/mecabrc /usr/local/etc/
 
 # Copy Pipfiles to app/
 COPY Pip* /app/
