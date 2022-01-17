@@ -13,52 +13,50 @@
 # limitations under the License.
 
 steps:
+  # Install dependencies & run unit tests
+  - name: python:3.8-slim
+    id: ShoptimizerUnitTests
+    entrypoint: /bin/sh
+    dir: shoptimizer_api
+    args:
+      - -c
+      - |
+        apt-get update \
+        && apt-get -y install swig mecab libmecab-dev mecab-ipadic-utf8 git make curl xz-utils file sudo \
+        && git clone --depth 1 https://github.com/neologd/mecab-ipadic-neologd.git \
+        && echo yes | mecab-ipadic-neologd/bin/install-mecab-ipadic-neologd -n -a \
+        && pip install --upgrade pip && pip install tensorflow pipenv \
+        && pipenv install --dev --system --deploy --ignore-pipfile \
+        && cp /etc/mecabrc /usr/local/etc/ \
+        && python test_runner.py
 
-# Install dependencies & run unit tests
-- name: python:3.8-slim
-  id: ShoptimizerUnitTests
-  entrypoint: /bin/sh
-  dir: shoptimizer_api
-  args:
-  - -c
-  - |
-    apt-get update \
-    && apt-get -y install swig mecab libmecab-dev mecab-ipadic-utf8 git make curl xz-utils file sudo \
-    && git clone --depth 1 https://github.com/neologd/mecab-ipadic-neologd.git \
-    && echo yes | mecab-ipadic-neologd/bin/install-mecab-ipadic-neologd -n -a \
-    && pip install --upgrade pip && pip install tensorflow pipenv \
-    && pipenv install --dev --system --deploy --ignore-pipfile \
-    && cp /etc/mecabrc /usr/local/etc/ \
-    && python test_runner.py
+  # Docker Build and Push
+  - name: gcr.io/kaniko-project/executor:latest
+    id: DockerBuildAndPush
+    args:
+      - --destination=gcr.io/${_GCP_PROJECT}/shoptimizer
+      - --cache=true
+      - --cache-ttl=336h
+      - --snapshotMode=redo
+      - --context=dir:///workspace/shoptimizer_api
+    waitFor:
+      - "-"
 
-# Docker Build
-- name: gcr.io/cloud-builders/docker
-  args:
-  - image
-  - build
-  - -t
-  - gcr.io/${_GCP_PROJECT}/shoptimizer
-  - .
-  dir: shoptimizer_api
-
-  # Docker push to Google Artifact Registry
-- name: gcr.io/cloud-builders/docker
-  args:
-  - image
-  - push
-  - gcr.io/${_GCP_PROJECT}/shoptimizer
-
-# Deploy to Cloud Run
-- name: gcr.io/cloud-builders/gcloud
-  args:
-  - run
-  - deploy
-  - shoptimizer
-  - --image=gcr.io/${_GCP_PROJECT}/shoptimizer:latest
-  - --region=us-central1
-  - --platform=managed
-  - --memory=2G
+  # Deploy to Cloud Run
+  - name: gcr.io/cloud-builders/gcloud
+    args:
+      - run
+      - deploy
+      - shoptimizer
+      - --image=gcr.io/${_GCP_PROJECT}/shoptimizer:latest
+      - --region=us-central1
+      - --platform=managed
+      - --memory=2G
+    waitFor:
+      - "ShoptimizerUnitTests"
+      - "DockerBuildAndPush"
 timeout: 3600s
-tags: ['shoptimizer']
+tags: ["shoptimizer"]
 options:
-  machineType: 'E2_HIGHCPU_32'
+  # High-end machineType is necessary to use Kaniko cache, otherwise the process is killed due to memory shortage.
+  machineType: "N1_HIGHCPU_32"

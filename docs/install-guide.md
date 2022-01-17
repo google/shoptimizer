@@ -100,7 +100,7 @@ Finally, push the code to your GCP project's Cloud Source Repository.
 
 `git push gcp master`
 
-Allow the deployment to run in Cloud Build. This will take several minutes. You can monitor the progress from your GCP project's Cloud Build dashboard in the admin console.
+Allow the deployment to run in Cloud Build. This will take several minutes. You can monitor the progress from your GCP project's Cloud Build dashboard in the admin console. If a build fails, something may be wrong with cache files generated during the build. In this case, open Container Registry on the GCP console, delete the directory `shoptimizer/cache` and try running the build again.
 
 Congratulations, you should now have Shoptimizer running in Docker on Cloud Run!
 
