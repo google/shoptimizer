@@ -15,6 +15,8 @@
 
 """Tests for regex_util."""
 
+import re
+
 from absl.testing import parameterized
 from util import regex_util
 
@@ -40,7 +42,7 @@ class RegexUtilTest(parameterized.TestCase):
   )
   def test_convert_to_regex_str_that_ignores_spaces(self, term, expected_regex):
     actual_regex = regex_util.convert_to_regex_str_that_ignores_spaces(term)
-    self.assertEqual(expected_regex, actual_regex)
+    self.assertEqual(expected_regex, actual_regex.pattern)
 
   def test_generate_regex_term_dict(self):
     terms = ['E Term', '商品', '']
@@ -48,9 +50,9 @@ class RegexUtilTest(parameterized.TestCase):
     actual_regex_to_term = regex_util.generate_regex_term_dict(terms)
 
     expected_regex_to_term = {
-        'E(\\s|　)*T(\\s|　)*e(\\s|　)*r(\\s|　)*m': 'E Term',
-        '商(\\s|　)*品': '商品',
-        '': ''
+        re.compile('E(\\s|　)*T(\\s|　)*e(\\s|　)*r(\\s|　)*m'): 'E Term',
+        re.compile('商(\\s|　)*品'): '商品',
+        re.compile(''): ''
     }
 
     self.assertEqual(expected_regex_to_term, actual_regex_to_term)

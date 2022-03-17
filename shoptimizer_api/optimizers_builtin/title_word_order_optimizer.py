@@ -33,7 +33,7 @@ shoptimizer_api/config/title_word_order_options.json.
 import enum
 import logging
 import re
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Pattern, Tuple
 from util import promo_text_remover as promo_text_remover_lib
 from flask import current_app
 
@@ -62,7 +62,8 @@ GPC_STRING_TO_ID_MAPPING_CONFIG = None
 TITLE_WORD_ORDER_CONFIG = None
 BLOCKLIST_CONFIG = None
 TITLE_WORD_ORDER_OPTIONS_CONFIG = None
-CUSTOM_TEXT_TOKENIZER: Callable[[str, str, Dict[str, str]], List[str]] = None
+CUSTOM_TEXT_TOKENIZER: Callable[[str, str, Dict[Pattern[str], str]],
+                                List[str]] = None
 
 
 def _get_required_configs():
@@ -179,6 +180,12 @@ class TitleWordOrderOptimizer(base_optimizer.BaseOptimizer):
 
     optimization_level = self._get_optimization_level()
 
+    title_word_order_dictionary = title_word_order_config.get(
+        _PHRASE_DICTIONARY_CONFIG_KEY, {})
+
+    regex_dictionary_terms = regex_util.generate_regex_term_dict(
+        title_word_order_dictionary)
+
     for entry in product_batch['entries']:
 
       if optimization_util.optimization_exclusion_specified(
@@ -212,8 +219,6 @@ class TitleWordOrderOptimizer(base_optimizer.BaseOptimizer):
       keyword_weights_mapping = title_word_order_config.get(
           _KEYWORD_WEIGHTS_MAPPING_CONFIG_KEY, {})
       keywords_for_gpc = keyword_weights_mapping.get(str(gpc_id), [])
-      title_word_order_dictionary = title_word_order_config.get(
-          _PHRASE_DICTIONARY_CONFIG_KEY, {})
 
       allowed_keywords_for_gpc = _remove_keywords_in_blocklist(
           keywords_for_gpc, keyword_blocklist)
@@ -223,8 +228,7 @@ class TitleWordOrderOptimizer(base_optimizer.BaseOptimizer):
           allowed_keywords_for_gpc)
 
       title_to_process = original_title
-      regex_dictionary_terms = regex_util.generate_regex_term_dict(
-          title_word_order_dictionary)
+
       title_words = _tokenize_text(title_to_process, language,
                                    regex_dictionary_terms)
       description_words = _tokenize_text(
@@ -383,8 +387,9 @@ def _remove_keywords_in_blocklist(
   return allowed_keywords
 
 
-def _tokenize_text(text: str, language: str,
-                   regex_dictionary_terms: Dict[str, str]) -> List[str]:
+def _tokenize_text(
+    text: str, language: str, regex_dictionary_terms: Dict[Pattern[str],
+                                                           str]) -> List[str]:
   """Splits text into individual words using the correct method for the given language.
 
   Args:
@@ -405,7 +410,7 @@ def _tokenize_text(text: str, language: str,
 
 
 def _split_words_in_japanese(
-    text: str, regex_dictionary_terms: Dict[str, str]) -> List[str]:
+    text: str, regex_dictionary_terms: Dict[Pattern[str], str]) -> List[str]:
   """Splits Japanese text into words by using MeCab.
 
   If a group of words in the text match a regex in the
@@ -437,7 +442,7 @@ def _split_words_in_japanese(
 
 
 def _split_words_in_western_languages(
-    text: str, regex_dictionary_terms: Dict[str, str]) -> List[str]:
+    text: str, regex_dictionary_terms: Dict[Pattern[str], str]) -> List[str]:
   """Splits western text into words.
 
   If a group of words in the text match a regex in the
