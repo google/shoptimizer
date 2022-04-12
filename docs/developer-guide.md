@@ -20,6 +20,11 @@ usage in connection with your business, if at all._
   * [2. Architecture Overview](#2-architecture-overview)
     + [2.1 Shoptimizer Workflow](#21-shoptimizer-workflow)
     + [2.2 API Specification](#22-api-specification)
+      - [HTTP Endpoint](#http-endpoint)
+      - [URL Query Params](#url-query-params)
+      - [Request Body](#request-body)
+      - [Responses](#responses)
+      - [Request Headers](#request-headers)
     + [2.3 Example Usage](#23-example-usage)
   * [3. Config Files](#3-config-files)
   * [4. Integrating Shoptimizer with your Content API Client](#4-integrating-shoptimizer-with-your-content-api-client)
@@ -66,6 +71,8 @@ For an explanation of how to pull the source code and run Shoptimizer, see the
 
 ### 2.2 API Specification
 
+#### HTTP Endpoint
+
 Shoptimizer consists of a single endpoint called `optimize`, which is documented
 below.
 
@@ -81,7 +88,7 @@ __optimize__
 
 `POST`
 
-**URL Query Params**
+#### URL Query Params
 
 _**Required:**_
 
@@ -124,17 +131,19 @@ Apart from "lang", "country" and "currency", setting any of the other parameters
 to true will run the associated optimizer. If any of these parameters are not
 provided in the request, they will default to false.
 
-See the [Optimizer Explanations](../README.md#2-optimizer-explanations) section
+See the [Optimizer Explanations](../README.md#optimizer-explanations) section
 in the README for a description of the available optimizers, and refer to
-[section 4.3](./developer-guide.md#43-recommended-optimizer-order) 'Recommended
+[section 4.3](./developer-guide.md#43-recommended-order-to-run-optimizers) 'Recommended
 Order to Run Optimizers' for running multiple optimizers in sequence.
 
-**Request Body**
+### Request Body
 
 The request body should contain a JSON payload of product data in the same
 format as a Content API for Shopping
 [products.custombatch](https://developers.google.com/shopping-content/reference/rest/v2.1/products/custombatch)
 call.
+
+### Responses
 
 **Success Response**
 
@@ -184,7 +193,7 @@ call.
 
 --------------------------------------------------------------------------------
 
-**Request Headers**
+#### Request Headers
 
 Shoptimizer API provides the ability to set several request headers that control the behavior of the title-optimizer and description-optimizer when mining attributes. If you do not use these optimizers, you can ignore this section.
 
