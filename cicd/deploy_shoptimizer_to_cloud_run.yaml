@@ -25,8 +25,8 @@ steps:
         && apt-get -y install swig mecab libmecab-dev mecab-ipadic-utf8 git make curl xz-utils file sudo \
         && git clone --depth 1 https://github.com/neologd/mecab-ipadic-neologd.git \
         && echo yes | mecab-ipadic-neologd/bin/install-mecab-ipadic-neologd -n -a \
-        && pip install --upgrade pip && pip install tensorflow pipenv \
-        && pipenv install --dev --system --deploy --ignore-pipfile \
+        && pip install --upgrade pip \
+        && pip install -r requirements.txt \
         && cp /etc/mecabrc /usr/local/etc/ \
         && python test_runner.py
 

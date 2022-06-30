@@ -779,11 +779,12 @@ See section 2.3.3 'Run the Container' in the [install guide](./install-guide.md#
 ## 8. Run Unit Tests
 
 First, all the necessary python dependencies need to be installed. You can
- use pipenv and run:
+ use pip and run:
 ```
-pipenv --python 3
-pipenv shell
-pipenv install --dev
+cd shoptimizer_api
+pip -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
 ```
-From the pipenv virtual environment, you can now run all of the unit tests in
+From the virtual environment, you can now run all of the unit tests in
  the solution by running `python test_runner.py`.

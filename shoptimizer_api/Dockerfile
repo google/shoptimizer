@@ -22,16 +22,12 @@ RUN git clone --depth 1 https://github.com/neologd/mecab-ipadic-neologd.git
 RUN echo yes | mecab-ipadic-neologd/bin/install-mecab-ipadic-neologd -n -a
 RUN cp /etc/mecabrc /usr/local/etc/
 
-# Copy Pipfiles to app/
-COPY Pip* /app/
+# Copy requirements.txt to app/
+COPY requirements.txt /app/
 
-# Install packages using Pipfile:
-#  --dev: install dev dependencies
-#  --system: do not create pipenv virtual environment
-#  --deploy --ignore-pipfile: use the Pipfile.lock to install dependencies because that has version locked
+# Install packages using pip.
 RUN pip install --upgrade pip && \
-    pip install pipenv && \
-    pipenv install --dev --system --deploy --ignore-pipfile
+    pip install -r requirements.txt
 
 # Add all files in Dockerfile directory to /app (can ignore files with .dockerignore)
 ADD . /app

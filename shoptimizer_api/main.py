@@ -174,7 +174,7 @@ def _check_request_valid(lang_url_parameter: str) -> (bool, str):
     An error message describing the problem with the request, an empty string
     otherwise: str
   """
-  if not flask.request.json:
+  if not flask.request.is_json:
     logging.error('Request was not valid JSON. Request: %s', flask.request.data)
     return False, 'Request must be valid JSON'
 
