@@ -16,6 +16,7 @@
 """The base optimizer that all optimizers must inherit from."""
 import _pickle as pickle
 import abc
+import bisect
 import logging
 import os
 from typing import Any, Dict
@@ -38,7 +39,7 @@ except ImportError:
 
 OPTIMIZED = enums.TrackingTag.OPTIMIZED
 SANITIZED = enums.TrackingTag.SANITIZED
-SANITIZED_AND_OPTIMIZED = enums.TrackingTag.SANITIZED_AND_OPTIMIZED
+WMM = enums.TrackingTag.WMM
 
 
 class BaseOptimizer(abc.ABC):
@@ -87,10 +88,10 @@ class BaseOptimizer(abc.ABC):
     """The URL parameter that indicates this optimizer should be run."""
     try:
       return self._OPTIMIZER_PARAMETER
-    except AttributeError:
+    except AttributeError as attribute_error:
       raise NotImplementedError(
           'Optimizer must implement a str property called "_OPTIMIZER_PARAMETER"'
-      )
+      ) from attribute_error
 
   @final
   def process(
@@ -197,9 +198,11 @@ def set_optimization_tracking(product: Dict[str, Any],
     product[product_tracking_field] = tracking_tag.value
     return
 
-  # Product has been sanitized and optimized.
-  both = SANITIZED_AND_OPTIMIZED.value
-  if product_tracking_value == SANITIZED.value and tracking_tag == OPTIMIZED:
-    product[product_tracking_field] = both
-  elif product_tracking_value == OPTIMIZED.value and tracking_tag == SANITIZED:
-    product[product_tracking_field] = both
+  # Append the tracking tag to the existing one, preventing duplicates while
+  # keeping it in alphabetical order.
+  if tracking_tag.value not in product[product_tracking_field]:
+    preexisting_tracking_tags = product[product_tracking_field].split('-')
+    if tracking_tag.value not in preexisting_tracking_tags:
+      bisect.insort(preexisting_tracking_tags, tracking_tag.value)
+    product[product_tracking_field] = '-'.join(
+        preexisting_tracking_tags).lstrip('-')

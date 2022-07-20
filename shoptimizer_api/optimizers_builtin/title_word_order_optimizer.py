@@ -285,7 +285,7 @@ class TitleWordOrderOptimizer(base_optimizer.BaseOptimizer):
             product['offerId'], product['title'])
         num_of_products_optimized += 1
         base_optimizer.set_optimization_tracking(product,
-                                                 base_optimizer.OPTIMIZED)
+                                                 base_optimizer.WMM)
 
     return optimization_result_counts.OptimizationResultCounts(
         num_of_products_optimized, num_of_products_excluded)

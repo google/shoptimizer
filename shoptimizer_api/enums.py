@@ -27,11 +27,10 @@ class TrackingTag(enum.Enum):
   OPTIMIZED:
     Data was modified in an attempt to improve performance, but the
     original data was not incorrect.
-  SANITIZED_AND_OPTIMIZED:
-    The product was both sanitized and optimized
-    BaseOptimizer will set this automatically -- you do not need to set it
-    manually.)
+  WMM:
+    The product was optimized by title_word_order_optimizer using a
+    word-mix-model.
   """
   SANITIZED = 'sanitized'
   OPTIMIZED = 'optimized'
-  SANITIZED_AND_OPTIMIZED = 'sanitized-optimized'
+  WMM = 'wmm'
