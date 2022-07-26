@@ -121,6 +121,11 @@ def optimize() -> Tuple[str, http.HTTPStatus]:
           flask.request.headers.get('size_mining_overwrite', 'False')
   }
 
+  app.config['DRIVE_CONFIG_OVERRIDES'] = {
+      'adult_optimizer_config_override':
+          flask.request.headers.get('adult_optimizer_config_override', '')
+  }
+
   lang_url_parameter = flask.request.args.get('lang',
                                               constants.DEFAULT_LANG).lower()
   country_url_parameter = flask.request.args.get(

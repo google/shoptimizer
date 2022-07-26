@@ -14,6 +14,7 @@
 # limitations under the License.
 
 """Unit tests for main.py."""
+import base64
 import http
 import json
 
@@ -142,6 +143,41 @@ class MainTest(parameterized.TestCase):
     optimizers_executed = list(optimization_results.keys())
     self.assertEqual('title-word-order-optimizer', optimizers_executed[-1])
     self.assertEqual(http.HTTPStatus.OK, response.status_code)
+
+  def test_optimizer_config_override_overwrites_default_optimizer(self):
+    request_body = requests_bodies.build_request_body(
+        properties_to_be_updated={'productTypes': 'ビール・洋酒'})
+    optimizers_to_execute = ['adult-optimizer']
+    query_string = '?' + '=true&'.join(optimizers_to_execute) + '=true'
+    override_config_contents_raw = b"""
+      {
+        "adult_product_types": [
+          "no match",
+        ],
+        "adult_google_product_categories": {
+          "no match": [
+            "*",
+          ]
+        }
+      }
+    """
+    override_config_contents_base64 = (
+        base64.b64encode(override_config_contents_raw))
+    override_config_header = ({
+        'adult_optimizer_config_override': override_config_contents_base64
+    })
+    response = self.test_client.post(
+        f'{main._V1_BASE_URL}/batch/optimize{query_string}',
+        json=request_body,
+        headers=override_config_header)
+    response_data = response.data.decode('utf-8')
+    response_dict = json.loads(response_data)
+    optimization_results = response_dict['optimization-results']
+
+    optimizers_executed = list(optimization_results.keys())
+    self.assertEqual(optimizers_to_execute, optimizers_executed)
+    self.assertEqual(http.HTTPStatus.OK, response.status_code)
+    self.assertNotIn('adult-optimization', optimization_results)
 
   def test_optimizer_not_run_when_parameter_set_to_false(self):
     request_body = requests_bodies.build_request_body()

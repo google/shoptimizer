@@ -21,6 +21,8 @@ If a product in the request is determined to be in a category that requires
 the "adult" attribute to be set to True on the Content API request, this
 optimizer will set the "adult" attribute to True for that product.
 """
+import ast
+import base64
 import logging
 from typing import AbstractSet, Any, Mapping, Optional, Sequence
 from flask import current_app
@@ -59,8 +61,16 @@ class AdultOptimizer(base_optimizer.BaseOptimizer):
     Returns:
       The number of products affected by this optimization.
     """
-    self._adult_config = current_app.config.get('CONFIGS', {}).get(
-        f'adult_optimizer_config_{language}', {})
+    adult_optimizer_config_override = current_app.config.get(
+        'DRIVE_CONFIG_OVERRIDES', {}).get('adult_optimizer_config_override', '')
+    if adult_optimizer_config_override:
+      self._adult_config = ast.literal_eval(
+          base64.b64decode(adult_optimizer_config_override).decode(
+              'UTF-8').lstrip('\n').rstrip('\n').lstrip(' ').rstrip(' '))
+      logging.info('OVERRIDDEN CONFIG CONTENTS: %s', str(self._adult_config))
+    else:
+      self._adult_config = current_app.config.get('CONFIGS', {}).get(
+          f'adult_optimizer_config_{language}', {})
     self._adult_types = frozenset(
         self._adult_config.get('adult_product_types', []))
     self._gpc_id_to_string_converter = gpc_id_to_string_converter.GPCConverter(
