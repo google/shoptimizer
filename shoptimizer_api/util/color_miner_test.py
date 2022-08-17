@@ -16,7 +16,7 @@
 """Unit tests for color_miner.py."""
 
 from typing import Any, Dict, List, Optional
-import unittest.mock as mock
+from unittest import mock
 
 from absl.testing import parameterized
 

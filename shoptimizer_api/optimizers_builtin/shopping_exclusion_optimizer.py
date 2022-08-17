@@ -22,10 +22,9 @@ Shopping, so this optimizer will exclude them from the Shopping Ads destination.
 import logging
 from typing import Any, Dict, Optional, Set
 
-import flask
-
 from models import optimization_result_counts
 from optimizers_abstract import base_optimizer
+from util import config_parser
 from util import optimization_util
 
 _EXCLUDED_DESTINATIONS_KEY = 'excludedDestinations'
@@ -33,6 +32,11 @@ _INCLUDED_DESTINATIONS_KEY = 'includedDestinations'
 
 _SHOPPING_ADS_DESTINATION = 'Shopping_ads'
 _FREE_LISTINGS_DESTINATION = 'Free_listings'
+
+_SHOPPING_EXCLUSION_OPTIMIZER_CONFIG_FILE_NAME = (
+    'shopping_exclusion_optimizer_config_{}')
+_SHOPPING_EXCLUSION_OPTIMIZER_CONFIG_OVERRIDE_KEY = (
+    'shopping_exclusion_optimizer_config_override')
 
 
 class ShoppingExclusionOptimizer(base_optimizer.BaseOptimizer):
@@ -59,9 +63,10 @@ class ShoppingExclusionOptimizer(base_optimizer.BaseOptimizer):
     num_of_products_optimized = 0
     num_of_products_excluded = 0
 
-    self._shopping_exclusion_config = flask.current_app.config.get(
-        'CONFIGS', {}).get(f'shopping_exclusion_optimizer_config_{language}',
-                           {})
+    self._shopping_exclusion_config = config_parser.get_config_contents(
+        _SHOPPING_EXCLUSION_OPTIMIZER_CONFIG_OVERRIDE_KEY,
+        _SHOPPING_EXCLUSION_OPTIMIZER_CONFIG_FILE_NAME.format(language))
+
     self.shopping_removal_patterns_exact_match = frozenset(
         self._shopping_exclusion_config.get(
             'shopping_exclusion_patterns_exact_match', []))

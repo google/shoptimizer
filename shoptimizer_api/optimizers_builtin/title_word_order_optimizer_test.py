@@ -16,7 +16,7 @@
 """Unit tests for title_word_order_optimizer."""
 
 from absl.testing import parameterized
-import unittest.mock as mock
+from unittest import mock
 
 from optimizers_builtin import title_word_order_optimizer
 from test_data import requests_bodies
@@ -34,13 +34,14 @@ _PROPER_GPC_CATEGORY_JA = ('ファッション・アクセサリー > ' 'ジュ�
 _GPC_CATEGORY_LEVEL_4_JA = ('ファッション・アクセサリー > ' '衣料品 > アウター > ' 'コート・ジャケット')
 
 
-@mock.patch('util.promo_text_remover._PROMO_TEXT_REMOVAL_CONFIG_FILE_NAME',
-            'promo_text_removal_optimizer_config_{}_test')
+@mock.patch(
+    'util.promo_text_remover._PROMO_TEXT_REMOVAL_OPTIMIZER_CONFIG_FILE_NAME',
+    'promo_text_removal_optimizer_config_{}_test')
 @mock.patch(
     'optimizers_builtin.title_word_order_optimizer._GPC_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME',
     'gpc_string_to_id_mapping_{}_test')
 @mock.patch(
-    'optimizers_builtin.title_word_order_optimizer._TITLE_WORD_ORDER_CONFIG_FILE_NAME',
+    'optimizers_builtin.title_word_order_optimizer._TITLE_WORD_ORDER_OPTIMIZER_CONFIG_FILE_NAME',
     'title_word_order_config_{}_test')
 @mock.patch(
     'optimizers_builtin.title_word_order_optimizer._TITLE_WORD_ORDER_BLOCKLIST_FILE_NAME',

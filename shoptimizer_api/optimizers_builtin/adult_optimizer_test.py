@@ -16,7 +16,7 @@
 """Unit tests for adult_optimizer.py."""
 
 from absl.testing import parameterized
-import unittest.mock as mock
+from unittest import mock
 
 from optimizers_builtin import adult_optimizer
 from test_data import requests_bodies

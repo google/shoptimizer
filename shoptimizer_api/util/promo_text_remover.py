@@ -32,7 +32,12 @@ from typing import Any, Dict, Optional
 
 import flask
 
-_PROMO_TEXT_REMOVAL_CONFIG_FILE_NAME: str = 'promo_text_removal_optimizer_config_{}'
+from util import config_parser
+
+_PROMO_TEXT_REMOVAL_OPTIMIZER_CONFIG_FILE_NAME = (
+    'promo_text_removal_optimizer_config_{}')
+_PROMO_TEXT_REMOVAL_OPTIMIZER_CONFIG_OVERRIDE_KEY = (
+    'promo_text_removal_optimizer_config_override')
 
 # Can be set outside a Flask context; otherwise, no regex patterns are used.
 PROMO_TEXT_REMOVER_CONFIG = {
@@ -58,8 +63,9 @@ class PromoTextRemover(object):
 
     # Checks if running on Flask.
     if flask.current_app:
-      self._config = flask.current_app.config.get('CONFIGS', {}).get(
-          _PROMO_TEXT_REMOVAL_CONFIG_FILE_NAME.format(language), {})
+      self._config = config_parser.get_config_contents(
+          _PROMO_TEXT_REMOVAL_OPTIMIZER_CONFIG_OVERRIDE_KEY,
+          _PROMO_TEXT_REMOVAL_OPTIMIZER_CONFIG_FILE_NAME.format(language))
     else:
       self._config = PROMO_TEXT_REMOVER_CONFIG
 

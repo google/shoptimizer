@@ -33,11 +33,14 @@ import logging
 import re
 from typing import Any, Dict, List
 
-import flask
-
 from models import optimization_result_counts
 from optimizers_abstract import base_optimizer
+from util import config_parser
 from util import optimization_util
+
+_FREE_SHIPPING_OPTIMIZER_CONFIG_NAME = 'free_shipping_optimizer_config_{}'
+_FREE_SHIPPING_OPTIMIZER_CONFIG_OVERRIDE_KEY = (
+    'free_shipping_optimizer_config_override')
 
 
 class FreeShippingOptimizer(base_optimizer.BaseOptimizer):
@@ -62,8 +65,9 @@ class FreeShippingOptimizer(base_optimizer.BaseOptimizer):
     num_of_products_optimized = 0
     num_of_products_excluded = 0
 
-    self._config = flask.current_app.config.get('CONFIGS', {}).get(
-        f'free_shipping_optimizer_config_{language}', {})
+    self._free_shipping_config = config_parser.get_config_contents(
+        _FREE_SHIPPING_OPTIMIZER_CONFIG_OVERRIDE_KEY,
+        _FREE_SHIPPING_OPTIMIZER_CONFIG_NAME.format(language))
 
     for entry in product_batch['entries']:
 
@@ -129,7 +133,7 @@ class FreeShippingOptimizer(base_optimizer.BaseOptimizer):
       not.
     """
     title = product.get('title', '')
-    for pattern in self._config.get(config_key):
+    for pattern in self._free_shipping_config.get(config_key):
       if re.search(pattern, title):
         return True
     return False

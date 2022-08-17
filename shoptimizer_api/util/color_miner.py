@@ -27,15 +27,16 @@ https://support.google.com/merchants/answer/6324487?hl=en
 import logging
 import subprocess
 from typing import Any, Dict, List, Optional, Tuple
-from flask import current_app
 
 import MeCab
 
 import constants
+from util import config_parser
 from util import gpc_id_to_string_converter
 from util import optimization_util
 
 _COLOR_OPTIMIZER_CONFIG_FILE_NAME: str = 'color_optimizer_config_{}'
+_COLOR_OPTIMIZER_CONFIG_OVERRIDE_KEY = 'color_optimizer_config_override'
 _COLOR_TERMS_CONFIG_KEY: str = 'color_terms'
 _GPC_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME: str = 'gpc_string_to_id_mapping_{}'
 
@@ -57,8 +58,11 @@ class ColorMiner(object):
     """
     super(ColorMiner, self).__init__()
     self._language = language
-    self._color_config = current_app.config.get('CONFIGS', {}).get(
-        _COLOR_OPTIMIZER_CONFIG_FILE_NAME.format(language), {})
+
+    self._color_config = config_parser.get_config_contents(
+        _COLOR_OPTIMIZER_CONFIG_OVERRIDE_KEY,
+        _COLOR_OPTIMIZER_CONFIG_FILE_NAME.format(language))
+
     self._gpc_id_to_string_converter = gpc_id_to_string_converter.GPCConverter(
         _GPC_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME.format(language))
     if self._language == constants.LANGUAGE_CODE_JA:

@@ -21,17 +21,17 @@ If a product in the request is determined to be in a category that requires
 the "adult" attribute to be set to True on the Content API request, this
 optimizer will set the "adult" attribute to True for that product.
 """
-import ast
-import base64
 import logging
 from typing import AbstractSet, Any, Mapping, Optional, Sequence
-from flask import current_app
 
 from models import optimization_result_counts
 from optimizers_abstract import base_optimizer
+from util import config_parser
 from util import gpc_id_to_string_converter
 from util import optimization_util
 
+_ADULT_OPTIMIZER_CONFIG_FILE_NAME = 'adult_optimizer_config_{}'
+_ADULT_OPTIMIZER_CONFIG_OVERRIDE_KEY = 'adult_optimizer_config_override'
 _GPC_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME: str = 'gpc_string_to_id_mapping_{}'
 
 
@@ -61,16 +61,10 @@ class AdultOptimizer(base_optimizer.BaseOptimizer):
     Returns:
       The number of products affected by this optimization.
     """
-    adult_optimizer_config_override = current_app.config.get(
-        'DRIVE_CONFIG_OVERRIDES', {}).get('adult_optimizer_config_override', '')
-    if adult_optimizer_config_override:
-      self._adult_config = ast.literal_eval(
-          base64.b64decode(adult_optimizer_config_override).decode(
-              'UTF-8').lstrip('\n').rstrip('\n').lstrip(' ').rstrip(' '))
-      logging.info('OVERRIDDEN CONFIG CONTENTS: %s', str(self._adult_config))
-    else:
-      self._adult_config = current_app.config.get('CONFIGS', {}).get(
-          f'adult_optimizer_config_{language}', {})
+    self._adult_config = config_parser.get_config_contents(
+        _ADULT_OPTIMIZER_CONFIG_OVERRIDE_KEY,
+        _ADULT_OPTIMIZER_CONFIG_FILE_NAME.format(language))
+
     self._adult_types = frozenset(
         self._adult_config.get('adult_product_types', []))
     self._gpc_id_to_string_converter = gpc_id_to_string_converter.GPCConverter(

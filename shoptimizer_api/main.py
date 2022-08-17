@@ -123,7 +123,29 @@ def optimize() -> Tuple[str, http.HTTPStatus]:
 
   app.config['DRIVE_CONFIG_OVERRIDES'] = {
       'adult_optimizer_config_override':
-          flask.request.headers.get('adult_optimizer_config_override', '')
+          flask.request.headers.get('adult_optimizer_config_override', ''),
+      'brand_blocklist_override':
+          flask.request.headers.get('brand_blocklist_override', ''),
+      'color_optimizer_config_override':
+          flask.request.headers.get('color_optimizer_config_override', ''),
+      'condition_optimizer_config_override':
+          flask.request.headers.get('condition_optimizer_config_override', ''),
+      'free_shipping_optimizer_config_override':
+          flask.request.headers.get(
+              'free_shipping_optimizer_config_override', ''),
+      'gender_optimizer_config_override':
+          flask.request.headers.get('gender_optimizer_config_override', ''),
+      'promo_text_removal_optimizer_config_override':
+          flask.request.headers.get(
+              'promo_text_removal_optimizer_config_override', ''),
+      'shopping_exclusion_optimizer_config_override':
+          flask.request.headers.get(
+              'shopping_exclusion_optimizer_config_override', ''),
+      'title_word_order_optimizer_config_override':
+          flask.request.headers.get(
+              'title_word_order_optimizer_config_override', ''),
+      'title_word_order_blocklist_override':
+          flask.request.headers.get('title_word_order_blocklist_override', '')
   }
 
   lang_url_parameter = flask.request.args.get('lang',

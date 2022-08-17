@@ -41,6 +41,7 @@ import constants
 
 from models import optimization_result_counts
 from optimizers_abstract import base_optimizer
+from util import config_parser
 from util import gpc_id_to_string_converter
 from util import optimization_util
 from util import regex_util
@@ -48,10 +49,13 @@ from util import regex_util
 _MAX_KEYWORDS_PER_TITLE = 3
 _MAX_TITLE_LENGTH = 150
 
-_GPC_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME: str = 'gpc_string_to_id_mapping_{}'
-_TITLE_WORD_ORDER_CONFIG_FILE_NAME: str = 'title_word_order_config_{}'
-_TITLE_WORD_ORDER_BLOCKLIST_FILE_NAME: str = 'title_word_order_blocklist_{}'
-_TITLE_WORD_ORDER_OPTIONS_FILE_NAME: str = 'title_word_order_options'
+_GPC_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME = 'gpc_string_to_id_mapping_{}'
+_TITLE_WORD_ORDER_OPTIMIZER_CONFIG_FILE_NAME = 'title_word_order_config_{}'
+_TITLE_WORD_ORDER_OPTIMIZER_CONFIG_OVERRIDE_KEY = (
+    'title_word_order_optimizer_config_override')
+_TITLE_WORD_ORDER_BLOCKLIST_FILE_NAME = 'title_word_order_blocklist_{}'
+_TITLE_WORD_ORDER_BLOCKLIST_OVERRIDE_KEY = 'title_word_order_blocklist_override'
+_TITLE_WORD_ORDER_OPTIONS_FILE_NAME = 'title_word_order_options'
 
 _KEYWORD_WEIGHTS_MAPPING_CONFIG_KEY = 'keyword_weights_by_gpc'
 _PHRASE_DICTIONARY_CONFIG_KEY = 'phrase_dictionary'
@@ -84,13 +88,13 @@ def _get_configs_from_environment(language: str):
         current_app.config.get('CONFIGS', {}).get(
             _GPC_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME.format(language), {}))
 
-    title_word_order_config = (
-        current_app.config.get('CONFIGS', {}).get(
-            _TITLE_WORD_ORDER_CONFIG_FILE_NAME.format(language), {}))
+    title_word_order_config = config_parser.get_config_contents(
+        _TITLE_WORD_ORDER_OPTIMIZER_CONFIG_OVERRIDE_KEY,
+        _TITLE_WORD_ORDER_OPTIMIZER_CONFIG_FILE_NAME.format(language))
 
-    blocklist_config = (
-        current_app.config.get('CONFIGS', {}).get(
-            _TITLE_WORD_ORDER_BLOCKLIST_FILE_NAME.format(language), {}))
+    blocklist_config = config_parser.get_config_contents(
+        _TITLE_WORD_ORDER_BLOCKLIST_OVERRIDE_KEY,
+        _TITLE_WORD_ORDER_BLOCKLIST_FILE_NAME.format(language))
 
     title_word_order_options = (
         current_app.config.get('CONFIGS',

@@ -25,11 +25,12 @@ https://support.google.com/merchants/answer/6324479?hl=en
 
 import logging
 from typing import Any, Dict, List, Optional, Tuple
-from flask import current_app
 
+from util import config_parser
 from util import gpc_id_to_string_converter
 
 _GENDER_OPTIMIZER_CONFIG_FILE_NAME: str = 'gender_optimizer_config_{}'
+_GENDER_OPTIMIZER_CONFIG_OVERRIDE_KEY: str = 'gender_optimizer_config_override'
 _GPC_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME: str = 'gpc_string_to_id_mapping_{}'
 
 _ADULT: str = 'adult'
@@ -54,8 +55,10 @@ class GenderMiner(object):
       language: The configured language code.
     """
     super(GenderMiner, self).__init__()
-    self._gender_config = current_app.config.get('CONFIGS', {}).get(
-        _GENDER_OPTIMIZER_CONFIG_FILE_NAME.format(language), {})
+
+    self._gender_config = config_parser.get_config_contents(
+        _GENDER_OPTIMIZER_CONFIG_OVERRIDE_KEY,
+        _GENDER_OPTIMIZER_CONFIG_FILE_NAME.format(language))
 
     self._gpc_id_to_string_converter = gpc_id_to_string_converter.GPCConverter(
         _GPC_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME.format(language))

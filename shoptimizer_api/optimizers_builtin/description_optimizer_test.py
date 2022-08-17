@@ -14,7 +14,7 @@
 # limitations under the License.
 
 """Unit tests for description_optimizer.py."""
-import unittest.mock as mock
+from unittest import mock
 
 from absl.testing import parameterized
 import constants

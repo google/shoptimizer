@@ -24,13 +24,14 @@ the condition value to "used".
 import logging
 from typing import Any, Dict, List, Optional, Set
 
-from flask import current_app
-
 from models import optimization_result_counts
 from optimizers_abstract import base_optimizer
+from util import config_parser
 from util import gpc_id_to_string_converter
 from util import optimization_util
 
+_CONDITION_OPTIMIZER_CONFIG_FILENAME = 'condition_optimizer_config_{}'
+_CONDITION_OPTIMIZER_CONFIG_OVERRIDE_KEY = 'condition_optimizer_config_override'
 _GPC_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME: str = 'gpc_string_to_id_mapping_{}'
 _NEW = 'new'
 _USED = 'used'
@@ -64,9 +65,9 @@ class ConditionOptimizer(base_optimizer.BaseOptimizer):
     num_of_products_optimized = 0
     num_of_products_excluded = 0
 
-    self._condition_config = current_app.config.get('CONFIGS', {}).get(
-        f'condition_optimizer_config_{language}', {})
-
+    self._condition_config = config_parser.get_config_contents(
+        _CONDITION_OPTIMIZER_CONFIG_OVERRIDE_KEY,
+        _CONDITION_OPTIMIZER_CONFIG_FILENAME.format(language))
     self._gpc_id_to_string_converter = gpc_id_to_string_converter.GPCConverter(
         _GPC_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME.format(language))
 

@@ -26,9 +26,12 @@ from flask import current_app
 
 import original_types
 from util import color_miner
+from util import config_parser
 from util import gender_miner
 from util import size_miner
 
+_BRAND_BLOCKLIST_CONFIG_NAME = 'brand_blocklist'
+_BRAND_BLOCKLIST_OVERRIDE_KEY = 'brand_blocklist_override'
 _MAX_BRAND_LENGTH: int = 70
 
 
@@ -49,8 +52,8 @@ class AttributeMiner(object):
       country: The configured country code.
     """
     super(AttributeMiner, self).__init__()
-    brand_blocklist_config = current_app.config.get('CONFIGS', {}).get(
-        'brand_blocklist', {})
+    brand_blocklist_config = config_parser.get_config_contents(
+        _BRAND_BLOCKLIST_OVERRIDE_KEY, _BRAND_BLOCKLIST_CONFIG_NAME)
     self._brand_blocklist = set(
         [brand.lower() for brand in brand_blocklist_config])
 
