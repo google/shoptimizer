@@ -15,7 +15,7 @@
 
 """Unit tests for condition_optimizer.py."""
 
-import unittest.mock as mock
+from unittest import mock
 
 from absl.testing import parameterized
 
@@ -29,6 +29,9 @@ from util import app_util
 @mock.patch(
     'optimizers_builtin.condition_optimizer._GPC_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME',
     'gpc_string_to_id_mapping_{}_test')
+@mock.patch(
+    'optimizers_builtin.condition_optimizer._CONDITION_OPTIMIZER_CONFIG_FILENAME',
+    'condition_optimizer_config_test')
 class ConditionOptimizerTest(parameterized.TestCase):
 
   def setUp(self) -> None:
