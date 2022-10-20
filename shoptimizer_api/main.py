@@ -131,8 +131,8 @@ def optimize() -> Tuple[str, http.HTTPStatus]:
       'condition_optimizer_config_override':
           flask.request.headers.get('condition_optimizer_config_override', ''),
       'free_shipping_optimizer_config_override':
-          flask.request.headers.get(
-              'free_shipping_optimizer_config_override', ''),
+          flask.request.headers.get('free_shipping_optimizer_config_override',
+                                    ''),
       'gender_optimizer_config_override':
           flask.request.headers.get('gender_optimizer_config_override', ''),
       'promo_text_removal_optimizer_config_override':
@@ -162,6 +162,8 @@ def optimize() -> Tuple[str, http.HTTPStatus]:
         flask.jsonify(response_dict), http.HTTPStatus.BAD_REQUEST)
 
   product_batch = flask.request.json
+
+  _sanitize_batch(product_batch)
 
   optimized_product_batch, builtin_optimizer_results = _run_optimizers(
       product_batch, lang_url_parameter, country_url_parameter,
@@ -238,6 +240,18 @@ def _check_request_valid(lang_url_parameter: str) -> (bool, str):
                    'valid Shoptimizer API query string parameter.')
 
   return True, ''
+
+
+def _sanitize_batch(product_batch: Dict[str, Any]) -> None:
+  """Cleans up the product batch.
+
+  Args:
+    product_batch: A batch of product data.
+  """
+  for entry in product_batch['entries']:
+    product = entry['product']
+    for attribute in ('title', 'description'):
+      product[attribute] = str(product.get(attribute, ''))
 
 
 def _run_optimizers(

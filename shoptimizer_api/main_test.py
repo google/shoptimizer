@@ -75,6 +75,27 @@ class MainTest(parameterized.TestCase):
                      response_dict['error-msg'])
     self.assertEqual(http.HTTPStatus.BAD_REQUEST, response.status_code)
 
+  @parameterized.named_parameters([{
+      'testcase_name': 'title_is_numeric',
+      'attribute': 'title'
+  }, {
+      'testcase_name': 'description_is_numeric',
+      'attribute': 'description'
+  }])
+  def test_numeric_attribute_is_converted_to_string(self, attribute):
+    request_body = requests_bodies.build_request_body(
+        properties_to_be_updated={attribute: 1.234})
+
+    response = self.test_client.post(
+        f'{main._V1_BASE_URL}/batch/optimize', json=request_body)
+
+    response_data = response.data.decode('utf-8')
+    response_dict = json.loads(response_data)
+
+    self.assertIsInstance(
+        response_dict['optimized-data']['entries'][0]['product'][attribute],
+        str)
+
   def test_unmapped_route_returns_404(self):
     response = self.test_client.get(f'{main._V1_BASE_URL}/unmapped-route')
     self.assertEqual(http.HTTPStatus.NOT_FOUND, response.status_code)
