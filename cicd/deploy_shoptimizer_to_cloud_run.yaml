@@ -51,7 +51,10 @@ steps:
       - --image=gcr.io/${_GCP_PROJECT}/shoptimizer:latest
       - --region=us-central1
       - --platform=managed
-      - --memory=2G
+      - --memory=16G
+      - --min-instances=6
+      - --max-instances=100
+      - --timeout=3600s
     waitFor:
       - "ShoptimizerUnitTests"
       - "DockerBuildAndPush"
