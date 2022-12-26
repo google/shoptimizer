@@ -36,4 +36,4 @@ ADD . /app
 RUN pip install gunicorn tensorflow
 
 # Run gunicorn starting main.py/app object, binding IP:port
-CMD exec gunicorn --bind :$PORT --workers 1 --threads 8 --timeout 0 main:app
+CMD exec gunicorn --bind :$PORT --workers 1 --threads 6 --timeout 0 main:app
