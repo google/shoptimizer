@@ -39,7 +39,7 @@ _OPTIMIZERS_PLUGINS_PACKAGE = 'optimizers_plugins'
 _OPTIMIZERS_THAT_USE_MINED_ATTRIBUTES = frozenset(
     ['title-optimizer', 'description-optimizer'])
 _OPTIMIZERS_TO_RUN_LAST = ('title-word-order-optimizer',)
-_SUPPORTED_LANGUAGES = frozenset(['de', 'en', 'fr', 'id', 'ja'])
+_SUPPORTED_LANGUAGES = frozenset(['de', 'en', 'fr', 'id', 'ja', 'vi'])
 _LANG_QUERY_STRING_KEY = 'lang'
 _COUNTRY_QUERY_STRING_KEY = 'country'
 _CURRENCY_QUERY_STRING_KEY = 'currency'
@@ -60,7 +60,9 @@ _PLUGIN_OPTIMIZER_PARAMETERS = [
     optimizer_class.get_optimizer_parameter(optimizer_class)
     for optimizer_class in _plugin_optimizer_cache.optimizer_classes
 ]
-_VALID_OPTIMIZER_PARAMETERS = _BUILTIN_OPTIMIZER_PARAMETERS + _PLUGIN_OPTIMIZER_PARAMETERS
+_VALID_OPTIMIZER_PARAMETERS = (
+    _BUILTIN_OPTIMIZER_PARAMETERS + _PLUGIN_OPTIMIZER_PARAMETERS
+)
 
 app = app_util.create_app()
 
