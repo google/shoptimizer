@@ -21,6 +21,10 @@ import enum
 class TrackingTag(enum.Enum):
   """Enums for optimization tracking.
 
+  NOTE: If these are changed, it may affect any downstream or integrated systems
+  that make use of these tags. Be aware of this risk in order to keep systems
+  synchronized with what tags are expected.
+
   SANITIZED:
     Invalid data was removed or corrected. If this had not been done
     the product would have been disapproved.
