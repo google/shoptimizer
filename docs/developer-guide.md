@@ -217,7 +217,10 @@ The following request headers can be set as key-value pairs in the REST request:
 The following file can be imported into [Postman](https://www.postman.com/) to
 create a suite of example HTTP requests:
 
-`/shoptimizer/shoptimizer_api/postman/shoptimizer_integration_tests.postman_collection.json`
+`/shoptimizer/shoptimizer_api/postman/shoptimizer_integration_tests_example.postman_collection.json`
+
+To make switching the destination API environment easier, you can also import the file
+`shoptimizer_sample_env.postman_environment.json` into Postman to setup one or more API endpoints.
 
 Within the Postman suite, the `{{baseApiUrl}}` environment variable can be set
 to a local host or remote host, such as a Google Cloud Run URL.

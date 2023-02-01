@@ -1,0 +1,146 @@
+{
+	"info": {
+		"_postman_id": "d5d86347-9d3d-4779-a00f-6130fae674b5",
+		"name": "Example Shoptimizer Postman Collection",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Test server health",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"pm.test(\"Body matches string\", function () {",
+							"    pm.expect(pm.response.text()).to.include(\"Success\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseApiUrl}}/shoptimizer/v1/health",
+					"host": [
+						"{{baseApiUrl}}"
+					],
+					"path": [
+						"shoptimizer",
+						"v1",
+						"health"
+					]
+				},
+				"description": " "
+			},
+			"response": []
+		},
+		{
+			"name": "[API USAGE EXAMPLE] Run identity plugin",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"pm.test(\"Body matches string\", function () {",
+							"    pm.expect(pm.response.text()).to.include(\"num_of_products_optimized\\\":0\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"entries\": [\n        {\n            \"batchId\": 1111,\n            \"merchantId\": 1234567,\n            \"method\": \"insert\",\n            \"product\": {\n                \"kind\": \"content#product\",\n                \"offerId\": \"1111111111\",\n                \"source\": \"api\",\n                \"title\": \"Google Tee Black\",\n                \"description\": \"The Black Google Tee is available in unisex sizing and features a retail fit.\",\n                \"link\": \"http://my.site.com/blacktee/\",\n                \"imageLink\": \"https://shop.example.com/.../images/test.jpg\",\n                \"contentLanguage\": \"en\",\n                \"targetCountry\": \"US\",\n                \"channel\": \"online\",\n                \"ageGroup\": \"adult\",\n                \"availability\": \"in stock\",\n                \"availabilityDate\": \"2019-01-25T13:00:00-08:00\",\n                \"brand\": \"Google\",\n                \"color\": \"black\",\n                \"condition\": \"new\",\n                \"gender\": \"male\",\n                \"googleProductCategory\": \"1604\",\n                \"gtin\": \"608802531656\",\n                \"itemGroupId\": \"google_tee\",\n                \"mpn\": \"0\",\n                \"price\": {\n                    \"value\": \"21.99\",\n                    \"currency\": \"USD\"\n                },\n                \"sizes\": [\n                    \"Large\"\n                ],\n                \"includedDestinations\": [\n                    \"Shopping ads\"\n                ]\n            }\n        }\n    ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseApiUrl}}/shoptimizer/v1/batch/optimize?my-plugin=true",
+					"host": [
+						"{{baseApiUrl}}"
+					],
+					"path": [
+						"shoptimizer",
+						"v1",
+						"batch",
+						"optimize"
+					],
+					"query": [
+						{
+							"key": "my-plugin",
+							"value": "true"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "[*] Run no optimizers or plugins",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"entries\": [\n        {\n            \"batchId\": 1111,\n            \"merchantId\": 1234567,\n            \"method\": \"insert\",\n            \"product\": {\n                \"kind\": \"content#product\",\n                \"offerId\": \"1111111111\",\n                \"source\": \"api\",\n                \"title\": \"Google Tee Black\",\n                \"description\": \"The Black Google Tee is available in unisex sizing and features a retail fit.\",\n                \"link\": \"http://my.site.com/blacktee/\",\n                \"imageLink\": \"https://shop.example.com/.../images/test.jpg\",\n                \"contentLanguage\": \"en\",\n                \"targetCountry\": \"US\",\n                \"channel\": \"online\",\n                \"ageGroup\": \"adult\",\n                \"availability\": \"in stock\",\n                \"availabilityDate\": \"2019-01-25T13:00:00-08:00\",\n                \"brand\": \"Google\",\n                \"color\": \"black\",\n                \"condition\": \"new\",\n                \"gender\": \"male\",\n                \"googleProductCategory\": \"1604\",\n                \"gtin\": \"608802531656\",\n                \"itemGroupId\": \"google_tee\",\n                \"mpn\": \"0\",\n                \"price\": {\n                    \"value\": \"21.99\",\n                    \"currency\": \"USD\"\n                },\n                \"sizes\": [\n                    \"Large\"\n                ],\n                \"includedDestinations\": [\n                    \"Shopping ads\"\n                ]\n            }\n        }\n    ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseApiUrl}}/shoptimizer/v1/batch/optimize",
+					"host": [
+						"{{baseApiUrl}}"
+					],
+					"path": [
+						"shoptimizer",
+						"v1",
+						"batch",
+						"optimize"
+					],
+					"query": [
+						{
+							"key": "mpn-optimizer",
+							"value": "true",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
