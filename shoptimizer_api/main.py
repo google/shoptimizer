@@ -37,9 +37,34 @@ _V1_BASE_URL = '/shoptimizer/v1'
 _OPTIMIZERS_BUILTIN_PACKAGE = 'optimizers_builtin'
 _OPTIMIZERS_PLUGINS_PACKAGE = 'optimizers_plugins'
 _OPTIMIZERS_THAT_USE_MINED_ATTRIBUTES = frozenset(
-    ['title-optimizer', 'description-optimizer'])
+    ['title-optimizer', 'description-optimizer']
+)
 _OPTIMIZERS_TO_RUN_LAST = ('title-word-order-optimizer',)
-_SUPPORTED_LANGUAGES = frozenset(['de', 'en', 'fr', 'id', 'ja', 'vi'])
+_SUPPORTED_LANGUAGES = frozenset([
+    constants.LANGUAGE_CODE_DE,
+    constants.LANGUAGE_CODE_EN,
+    constants.LANGUAGE_CODE_FR,
+    constants.LANGUAGE_CODE_ID,
+    constants.LANGUAGE_CODE_JA,
+    constants.LANGUAGE_CODE_VI,
+])
+_SUPPORTED_COUNTRIES = frozenset([
+    constants.COUNTRY_CODE_DE,
+    constants.COUNTRY_CODE_FR,
+    constants.COUNTRY_CODE_ID,
+    constants.COUNTRY_CODE_IN,
+    constants.COUNTRY_CODE_JP,
+    constants.COUNTRY_CODE_US,
+    constants.COUNTRY_CODE_VN,
+])
+_SUPPORTED_CURRENCIES = frozenset([
+    constants.CURRENCY_CODE_EUR,
+    constants.CURRENCY_CODE_IDR,
+    constants.CURRENCY_CODE_INR,
+    constants.CURRENCY_CODE_JPY,
+    constants.CURRENCY_CODE_USD,
+    constants.CURRENCY_CODE_VND,
+])
 _LANG_QUERY_STRING_KEY = 'lang'
 _COUNTRY_QUERY_STRING_KEY = 'country'
 _CURRENCY_QUERY_STRING_KEY = 'currency'
@@ -107,84 +132,106 @@ def optimize() -> Tuple[str, http.HTTPStatus]:
     JSON string and HTTP status code.
   """
   app.config['MINING_OPTIONS'] = {
-      'brand_mining_on':
-          flask.request.headers.get('brand_mining_on', 'True'),
-      'color_mining_on':
-          flask.request.headers.get('color_mining_on', 'True'),
-      'gender_mining_on':
-          flask.request.headers.get('gender_mining_on', 'True'),
-      'size_mining_on':
-          flask.request.headers.get('size_mining_on', 'True'),
-      'color_mining_overwrite':
-          flask.request.headers.get('color_mining_overwrite', 'False'),
-      'gender_mining_overwrite':
-          flask.request.headers.get('gender_mining_overwrite', 'False'),
-      'size_mining_overwrite':
-          flask.request.headers.get('size_mining_overwrite', 'False')
+      'brand_mining_on': flask.request.headers.get('brand_mining_on', 'True'),
+      'color_mining_on': flask.request.headers.get('color_mining_on', 'True'),
+      'gender_mining_on': flask.request.headers.get('gender_mining_on', 'True'),
+      'size_mining_on': flask.request.headers.get('size_mining_on', 'True'),
+      'color_mining_overwrite': flask.request.headers.get(
+          'color_mining_overwrite', 'False'
+      ),
+      'gender_mining_overwrite': flask.request.headers.get(
+          'gender_mining_overwrite', 'False'
+      ),
+      'size_mining_overwrite': flask.request.headers.get(
+          'size_mining_overwrite', 'False'
+      ),
   }
 
   app.config['DRIVE_CONFIG_OVERRIDES'] = {
-      'adult_optimizer_config_override':
-          flask.request.headers.get('adult_optimizer_config_override', ''),
-      'brand_blocklist_override':
-          flask.request.headers.get('brand_blocklist_override', ''),
-      'color_optimizer_config_override':
-          flask.request.headers.get('color_optimizer_config_override', ''),
-      'condition_optimizer_config_override':
-          flask.request.headers.get('condition_optimizer_config_override', ''),
-      'free_shipping_optimizer_config_override':
-          flask.request.headers.get('free_shipping_optimizer_config_override',
-                                    ''),
-      'gender_optimizer_config_override':
-          flask.request.headers.get('gender_optimizer_config_override', ''),
-      'promo_text_removal_optimizer_config_override':
-          flask.request.headers.get(
-              'promo_text_removal_optimizer_config_override', ''),
-      'shopping_exclusion_optimizer_config_override':
-          flask.request.headers.get(
-              'shopping_exclusion_optimizer_config_override', ''),
-      'title_word_order_optimizer_config_override':
-          flask.request.headers.get(
-              'title_word_order_optimizer_config_override', ''),
-      'title_word_order_blocklist_override':
-          flask.request.headers.get('title_word_order_blocklist_override', '')
+      'adult_optimizer_config_override': flask.request.headers.get(
+          'adult_optimizer_config_override', ''
+      ),
+      'brand_blocklist_override': flask.request.headers.get(
+          'brand_blocklist_override', ''
+      ),
+      'color_optimizer_config_override': flask.request.headers.get(
+          'color_optimizer_config_override', ''
+      ),
+      'condition_optimizer_config_override': flask.request.headers.get(
+          'condition_optimizer_config_override', ''
+      ),
+      'free_shipping_optimizer_config_override': flask.request.headers.get(
+          'free_shipping_optimizer_config_override', ''
+      ),
+      'gender_optimizer_config_override': flask.request.headers.get(
+          'gender_optimizer_config_override', ''
+      ),
+      'promo_text_removal_optimizer_config_override': flask.request.headers.get(
+          'promo_text_removal_optimizer_config_override', ''
+      ),
+      'shopping_exclusion_optimizer_config_override': flask.request.headers.get(
+          'shopping_exclusion_optimizer_config_override', ''
+      ),
+      'title_word_order_optimizer_config_override': flask.request.headers.get(
+          'title_word_order_optimizer_config_override', ''
+      ),
+      'title_word_order_blocklist_override': flask.request.headers.get(
+          'title_word_order_blocklist_override', ''
+      ),
   }
 
-  lang_url_parameter = flask.request.args.get('lang',
-                                              constants.DEFAULT_LANG).lower()
+  lang_url_parameter = flask.request.args.get(
+      'lang', constants.DEFAULT_LANG
+  ).lower()
   country_url_parameter = flask.request.args.get(
-      'country', constants.DEFAULT_COUNTRY).lower()
+      'country', constants.DEFAULT_COUNTRY
+  ).lower()
   currency_url_parameter = flask.request.args.get(
-      'currency', constants.DEFAULT_CURRENCY).upper()
-  request_valid, error_msg = _check_request_valid(lang_url_parameter)
+      'currency', constants.DEFAULT_CURRENCY
+  ).upper()
+  request_valid, error_msg = _check_request_valid(
+      lang_url_parameter, country_url_parameter, currency_url_parameter
+  )
 
   if not request_valid:
     response_dict = _build_response_dict({}, {}, {}, error_msg)
     return flask.make_response(
-        flask.jsonify(response_dict), http.HTTPStatus.BAD_REQUEST)
+        flask.jsonify(response_dict), http.HTTPStatus.BAD_REQUEST
+    )
 
   product_batch = flask.request.json
 
   _sanitize_batch(product_batch)
 
   optimized_product_batch, builtin_optimizer_results = _run_optimizers(
-      product_batch, lang_url_parameter, country_url_parameter,
-      currency_url_parameter, _builtin_optimizer_cache)
+      product_batch,
+      lang_url_parameter,
+      country_url_parameter,
+      currency_url_parameter,
+      _builtin_optimizer_cache,
+  )
   optimized_product_batch, plugin_optimizer_results = _run_optimizers(
-      optimized_product_batch, lang_url_parameter, country_url_parameter,
-      currency_url_parameter, _plugin_optimizer_cache)
+      optimized_product_batch,
+      lang_url_parameter,
+      country_url_parameter,
+      currency_url_parameter,
+      _plugin_optimizer_cache,
+  )
 
   remove_exclude_optimizers_attributes(optimized_product_batch)
 
-  response_dict = _build_response_dict(optimized_product_batch,
-                                       builtin_optimizer_results,
-                                       plugin_optimizer_results)
+  response_dict = _build_response_dict(
+      optimized_product_batch,
+      builtin_optimizer_results,
+      plugin_optimizer_results,
+  )
 
   return flask.make_response(flask.jsonify(response_dict), http.HTTPStatus.OK)
 
 
 def remove_exclude_optimizers_attributes(
-    optimized_product_batch: Dict[str, Any]) -> None:
+    optimized_product_batch: Dict[str, Any]
+) -> None:
   """Removes any "excludeOptimizers" attributes in the request's "entries" list.
 
   Args:
@@ -194,11 +241,19 @@ def remove_exclude_optimizers_attributes(
     entry.pop('excludeOptimizers', None)
 
 
-def _check_request_valid(lang_url_parameter: str) -> (bool, str):
+def _check_request_valid(
+    lang_url_parameter: str,
+    country_url_parameter: str,
+    currency_url_parameter: str,
+) -> (bool, str):
   """Checks that the flask request is in a valid format to be processed.
 
   Args:
     lang_url_parameter: The value, if supplied, of the "lang" url parameter.
+    country_url_parameter: The value, if supplied, of the "country" url
+      parameter.
+    currency_url_parameter: The value, if supplied, of the "currency" url
+      parameter.
 
   Returns:
     True if the request is valid, False otherwise: bool
@@ -224,6 +279,14 @@ def _check_request_valid(lang_url_parameter: str) -> (bool, str):
   if lang_url_parameter not in _SUPPORTED_LANGUAGES:
     return False, (f'lang query parameter must be a supported language: '
                    f'{_SUPPORTED_LANGUAGES}')
+
+  if country_url_parameter not in _SUPPORTED_COUNTRIES:
+    return False, (f'country query parameter must be a supported country: '
+                   f'{_SUPPORTED_COUNTRIES}')
+
+  if currency_url_parameter not in _SUPPORTED_CURRENCIES:
+    return False, (f'currency query parameter must be a supported currency: '
+                   f'{_SUPPORTED_CURRENCIES}')
 
   # Check for invalid query strings by comparing against optimizers.
   request_full_query_string_parameters = _extract_all_url_parameters()

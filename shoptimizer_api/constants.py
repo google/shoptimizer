@@ -18,15 +18,25 @@ from typing import Set, Tuple
 
 LANGUAGE_CODE_DE: str = 'de'
 LANGUAGE_CODE_EN: str = 'en'
+LANGUAGE_CODE_FR: str = 'fr'
+LANGUAGE_CODE_ID: str = 'id'
 LANGUAGE_CODE_JA: str = 'ja'
+LANGUAGE_CODE_VI: str = 'vi'
 
 COUNTRY_CODE_DE: str = 'de'
+COUNTRY_CODE_FR: str = 'fr'
+COUNTRY_CODE_ID: str = 'id'
+COUNTRY_CODE_IN: str = 'in'
 COUNTRY_CODE_JP: str = 'jp'
 COUNTRY_CODE_US: str = 'us'
+COUNTRY_CODE_VN: str = 'vn'
 
 CURRENCY_CODE_EUR: str = 'EUR'
+CURRENCY_CODE_IDR: str = 'IDR'
+CURRENCY_CODE_INR: str = 'INR'
 CURRENCY_CODE_JPY: str = 'JPY'
 CURRENCY_CODE_USD: str = 'USD'
+CURRENCY_CODE_VND: str = 'VND'
 
 DEFAULT_LANG: str = LANGUAGE_CODE_EN
 DEFAULT_COUNTRY: str = COUNTRY_CODE_US
