@@ -27,7 +27,7 @@ COPY requirements.txt /app/
 
 # Install packages using pip.
 RUN pip install --upgrade pip && \
-    pip install -r requirements.txt
+    pip install --require-hashes -r requirements.txt
 
 # Add all files in Dockerfile directory to /app (can ignore files with .dockerignore)
 ADD . /app
