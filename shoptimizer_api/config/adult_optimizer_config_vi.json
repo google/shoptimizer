@@ -1,0 +1,10 @@
+{
+  "adult_product_types": [
+    "adult_term_1",
+    "adult_term_2",
+    "<Please reach out to team-noreply@google.com to ask about consulting support for adult terms for your account.>"
+  ],
+  "adult_google_product_categories": {
+    "Trưởng thành" : ["*"]
+  }
+}
