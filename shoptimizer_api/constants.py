@@ -22,6 +22,7 @@ LANGUAGE_CODE_FR: str = 'fr'
 LANGUAGE_CODE_ID: str = 'id'
 LANGUAGE_CODE_JA: str = 'ja'
 LANGUAGE_CODE_VI: str = 'vi'
+LANGUAGE_CODE_KO: str = 'ko'
 
 COUNTRY_CODE_DE: str = 'de'
 COUNTRY_CODE_FR: str = 'fr'
@@ -30,6 +31,7 @@ COUNTRY_CODE_IN: str = 'in'
 COUNTRY_CODE_JP: str = 'jp'
 COUNTRY_CODE_US: str = 'us'
 COUNTRY_CODE_VN: str = 'vn'
+COUNTRY_CODE_KR: str = 'kr'
 
 CURRENCY_CODE_EUR: str = 'EUR'
 CURRENCY_CODE_IDR: str = 'IDR'
@@ -37,6 +39,7 @@ CURRENCY_CODE_INR: str = 'INR'
 CURRENCY_CODE_JPY: str = 'JPY'
 CURRENCY_CODE_USD: str = 'USD'
 CURRENCY_CODE_VND: str = 'VND'
+CURRENCY_CODE_KRW: str = 'KRW'
 
 DEFAULT_LANG: str = LANGUAGE_CODE_EN
 DEFAULT_COUNTRY: str = COUNTRY_CODE_US
@@ -82,6 +85,7 @@ GOOGLE_PRODUCT_CATEGORY_APPAREL_ACCESSORIES_KEYWORDS: Set[str] = {
     'Apparel & Accessories',
     'ファッション・アクセサリー',
     'Pakaian & Aksesori',
+    '의류/액세서리',
 }
 
 GOOGLE_PRODUCT_CATEGORY_APPAREL_ACCESSORIES_IDS: Set[str] = {
@@ -321,6 +325,7 @@ GOOGLE_PRODUCT_CATEGORY_APPAREL_ACCESSORIES_IDS: Set[str] = {
 GOOGLE_PRODUCT_CATEGORY_APPAREL_ACCESSORIES_CLOTHING_KEYWORDS: Set[str] = {
     'Apparel & Accessories > Clothing',
     'ファッション・アクセサリー > 衣料品',
+    '의류/액세서리 > 의류',
 }
 
 GOOGLE_PRODUCT_CATEGORY_APPAREL_ACCESSORIES_CLOTHING_IDS: Set[str] = {
@@ -447,6 +452,7 @@ GOOGLE_PRODUCT_CATEGORY_APPAREL_ACCESSORIES_CLOTHING_IDS: Set[str] = {
 GOOGLE_PRODUCT_CATEGORY_APPAREL_ACCESSORIES_SHOES_KEYWORDS: Set[str] = {
     'Apparel & Accessories > Shoes',
     'ファッション・アクセサリー > 靴',
+    '의류/액세서리 > 신발',
 }
 
 GOOGLE_PRODUCT_CATEGORY_APPAREL_ACCESSORIES_SHOES_IDS: Set[str] = {
