@@ -29,11 +29,6 @@ COPY requirements.txt /app/
 RUN pip install --upgrade pip && \
     pip install --require-hashes -r requirements.txt
 
-# Set up and install Konlpy for language processing
-ENV JAVA_HOME /usr/lib/jvm/java-1.7-openjdk/jre
-RUN apt-get install -y g++ default-jdk
-RUN pip install konlpy==0.6.0
-
 # Add all files in Dockerfile directory to /app (can ignore files with .dockerignore)
 ADD . /app
 

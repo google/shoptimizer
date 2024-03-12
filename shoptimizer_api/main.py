@@ -47,7 +47,6 @@ _SUPPORTED_LANGUAGES = frozenset([
     constants.LANGUAGE_CODE_ID,
     constants.LANGUAGE_CODE_JA,
     constants.LANGUAGE_CODE_VI,
-    constants.LANGUAGE_CODE_KO,
 ])
 _SUPPORTED_COUNTRIES = frozenset([
     constants.COUNTRY_CODE_DE,
@@ -57,7 +56,6 @@ _SUPPORTED_COUNTRIES = frozenset([
     constants.COUNTRY_CODE_JP,
     constants.COUNTRY_CODE_US,
     constants.COUNTRY_CODE_VN,
-    constants.COUNTRY_CODE_KR,
 ])
 _SUPPORTED_CURRENCIES = frozenset([
     constants.CURRENCY_CODE_EUR,
@@ -66,7 +64,6 @@ _SUPPORTED_CURRENCIES = frozenset([
     constants.CURRENCY_CODE_JPY,
     constants.CURRENCY_CODE_USD,
     constants.CURRENCY_CODE_VND,
-    constants.CURRENCY_CODE_KRW,
 ])
 _LANG_QUERY_STRING_KEY = 'lang'
 _COUNTRY_QUERY_STRING_KEY = 'country'

@@ -29,7 +29,6 @@ import subprocess
 from typing import Any, Dict, List, Optional, Tuple
 
 import MeCab
-import konlpy
 
 import constants
 from util import config_parser
@@ -50,7 +49,6 @@ class ColorMiner(object):
   _gpc_id_to_string_converter: Optional[
       gpc_id_to_string_converter.GPCConverter] = None
   _mecab_tagger: Optional[MeCab.Tagger] = None
-  _konlpy_tag_komoran: Optional[konlpy.tag.Komoran] = None
 
   def __init__(self, language: str) -> None:
     """Initializes ColorMiner.
@@ -69,8 +67,6 @@ class ColorMiner(object):
         _GPC_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME.format(language))
     if self._language == constants.LANGUAGE_CODE_JA:
       self._setup_mecab()
-    if self._language == constants.LANGUAGE_CODE_KO:
-      self._setup_konlpy()
 
   def _setup_mecab(self) -> None:
     """Sets up Mecab tagger for language processing.
@@ -86,16 +82,6 @@ class ColorMiner(object):
       self._mecab_tagger = MeCab.Tagger(f'-d {config_path}')
     except RuntimeError as error:
       logging.exception('Error during initializing MeCab Tagger: %s', error)
-
-  def _setup_konlpy(self) -> None:
-    """Sets up Konlpy object for korean language processing.
-
-    Konlpy splits sentences according to Korean morphemes.
-    """
-    try:
-      self._konlpy_tag_komoran = konlpy.tag.Komoran()
-    except RuntimeError as error:
-      logging.exception('Error during initializing Konlpy Tagger: %s', error)
 
   def mine_color(
       self,
@@ -155,8 +141,6 @@ class ColorMiner(object):
     """
     if self._language == 'ja':
       return self._mine_color_by_mecab(text)
-    if self._language == 'ko':
-      return self._mine_color_by_konlpy(text)
     return self._mine_color_by_scanning_terms(text)
 
   def _mine_color_by_scanning_terms(self,
@@ -218,78 +202,6 @@ class ColorMiner(object):
     return (_clean_up_term_list(mined_standard_colors,
                                 constants.MAX_COLOR_COUNT),
             _clean_up_term_list(mined_unique_colors, constants.MAX_COLOR_COUNT))
-
-  def _mine_color_by_konlpy(self, text: str) -> Tuple[List[str], List[str]]:
-    """Mines the color by using Konlpy for language processing.
-
-    We obtain part of speech (pos) from tokens obtained from Korean sentences
-    by konlpy, and add standard color and unique color depending on pos.
-
-    If NNG (General noun), NNP (Proper noun), or NNB (Bound noun)
-    belonging to the noun form matches the color of the noun form,
-    the existing value is added to the unique color and converted to
-    a standard color mapped to the unique color.
-
-    In the case of adjective type (VA), if a color that modifies a noun is
-    input, find the standard color mapped to it and add the color name of
-    the noun type to the unique color and standard color.
-
-    In the case of foreign language (SL), it is the same as English.
-    In this case, the existing value is added to the unique color and
-    converted to a standard color mapped to the unique color.
-
-    Args:
-      text: Text to be inspected.
-
-    Returns:
-      Mined standard colors and unique colors, or empty lists if no colors could
-      be found.
-    """
-    mined_standard_colors = []
-    mined_unique_colors = []
-    color_noun_mapping, color_adjective_mapping, color_en_mapping = (
-        self._color_config['color_noun_terms'],
-        self._color_config['color_adjective_terms'],
-        self._color_config['color_en_terms'],
-    )
-    unique_noun_colors, unique_adjective_colors, unique_en_colors = (
-        color_noun_mapping.keys(),
-        color_adjective_mapping.keys(),
-        color_en_mapping.keys(),
-    )
-
-    tokens = self._konlpy_tag_komoran.pos(text)
-
-    for token in tokens:
-      word, pos = token
-
-      if (
-          pos == 'NNG' or pos == 'NNP' or pos == 'NNB'
-      ) and word in unique_noun_colors:
-        mined_unique_colors.append(word)
-        standard_color = color_noun_mapping.get(word, '').lower()
-        if standard_color:
-          mined_standard_colors.append(standard_color)
-        continue
-
-      if pos == 'VA' and word in unique_adjective_colors:
-        standard_color = color_adjective_mapping.get(word, '').lower()
-        if standard_color:
-          mined_unique_colors.append(standard_color)
-          mined_standard_colors.append(standard_color)
-        continue
-
-      if pos == 'SL' and word in unique_en_colors:
-        mined_unique_colors.append(word)
-        standard_color = color_en_mapping.get(word, '').lower()
-        if standard_color:
-          mined_standard_colors.append(standard_color)
-        continue
-
-    return (
-        _clean_up_term_list(mined_standard_colors, constants.MAX_COLOR_COUNT),
-        _clean_up_term_list(mined_unique_colors, constants.MAX_COLOR_COUNT),
-    )
 
 
 def _clean_up_term_list(term_list: List[str], max_count: int) -> List[str]:
