@@ -250,6 +250,104 @@ class ColorMinerTest(parameterized.TestCase):
     self.assertCountEqual(expected_standard_colors, mined_standard_color)
     self.assertCountEqual(expected_unique_colors, mined_unique_color)
 
+  @parameterized.named_parameters([
+      {
+          'testcase_name': 'mines_from_color',
+          'product': _build_dummy_product(
+              properties_to_be_updated={'color': '파란색'}
+          ),
+          'expected_standard_colors': ['파란색'],
+          'expected_unique_colors': ['파란색'],
+      },
+      {
+          'testcase_name': 'mines_from_title',
+          'product': _build_dummy_product(
+              properties_to_be_removed=['color'],
+              properties_to_be_updated={'title': '타이틀 빨강색'},
+          ),
+          'expected_standard_colors': ['빨간색'],
+          'expected_unique_colors': ['빨강'],
+      },
+      {
+          'testcase_name': 'mines_two_colors_from_title',
+          'product': _build_dummy_product(
+              properties_to_be_removed=['color'],
+              properties_to_be_updated={'title': '타이틀 녹색 빨간색'},
+          ),
+          'expected_standard_colors': ['빨간색', '초록색'],
+          'expected_unique_colors': ['빨간색', '녹색'],
+      },
+      {
+          'testcase_name': 'mines_unique_and_standard_color_from_description',
+          'product': _build_dummy_product(
+              properties_to_be_removed=['color'],
+              properties_to_be_updated={
+                  'title': '',
+                  'description': '설명 녹색',
+              },
+          ),
+          'expected_standard_colors': ['초록색'],
+          'expected_unique_colors': ['녹색'],
+      },
+      {
+          'testcase_name': 'mines_from_description',
+          'product': _build_dummy_product(
+              properties_to_be_removed=['color'],
+              properties_to_be_updated={
+                  'title': '',
+                  'description': '빨간 원피스',
+              },
+          ),
+          'expected_standard_colors': ['빨간색'],
+          'expected_unique_colors': ['빨간색'],
+      },
+      {
+          'testcase_name': 'mines_adjective_color_from_description',
+          'product': _build_dummy_product(
+              properties_to_be_removed=['color'],
+              properties_to_be_updated={
+                  'title': '',
+                  'description': '붉은 원피스',
+              },
+          ),
+          'expected_standard_colors': ['빨간색'],
+          'expected_unique_colors': ['빨간색'],
+      },
+      {
+          'testcase_name': 'mines_from_foreign_pronunciation_in_description',
+          'product': _build_dummy_product(
+              properties_to_be_removed=['color'],
+              properties_to_be_updated={
+                  'title': '',
+                  'description': '레드 원피스',
+              },
+          ),
+          'expected_standard_colors': ['빨간색'],
+          'expected_unique_colors': ['레드'],
+      },
+      {
+          'testcase_name': 'mines_color_noun_from_description',
+          'product': _build_dummy_product(
+              properties_to_be_removed=['color'],
+              properties_to_be_updated={
+                  'title': '',
+                  'description': '빨간색 스웨터',
+              },
+          ),
+          'expected_standard_colors': ['빨간색'],
+          'expected_unique_colors': ['빨간색'],
+      },
+  ])
+  def test_mine_color_mines_color_with_language_ko(
+      self, product, expected_standard_colors, expected_unique_colors
+  ):
+    miner = color_miner.ColorMiner(language=constants.LANGUAGE_CODE_KO)
+
+    mined_standard_color, mined_unique_color = miner.mine_color(product)
+
+    self.assertCountEqual(expected_standard_colors, mined_standard_color)
+    self.assertCountEqual(expected_unique_colors, mined_unique_color)
+
   def test_mine_color_mines_three_colors_from_title_including_four_colors(self):
     miner = color_miner.ColorMiner(language='ja')
     product = _build_dummy_product(

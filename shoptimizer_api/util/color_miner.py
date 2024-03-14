@@ -29,6 +29,7 @@ import subprocess
 from typing import Any, Dict, List, Optional, Tuple
 
 import MeCab
+import mecab_ko as KoMeCab
 
 import constants
 from util import config_parser
@@ -49,6 +50,7 @@ class ColorMiner(object):
   _gpc_id_to_string_converter: Optional[
       gpc_id_to_string_converter.GPCConverter] = None
   _mecab_tagger: Optional[MeCab.Tagger] = None
+  _komecab_tagger: Optional[KoMeCab.Tagger] = None
 
   def __init__(self, language: str) -> None:
     """Initializes ColorMiner.
@@ -67,6 +69,8 @@ class ColorMiner(object):
         _GPC_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME.format(language))
     if self._language == constants.LANGUAGE_CODE_JA:
       self._setup_mecab()
+    if self._language == constants.LANGUAGE_CODE_KO:
+      self._setup_komecab()
 
   def _setup_mecab(self) -> None:
     """Sets up Mecab tagger for language processing.
@@ -82,6 +86,16 @@ class ColorMiner(object):
       self._mecab_tagger = MeCab.Tagger(f'-d {config_path}')
     except RuntimeError as error:
       logging.exception('Error during initializing MeCab Tagger: %s', error)
+
+  def _setup_komecab(self) -> None:
+    """Sets up KoMecab object for korean language processing.
+
+    KoMecab splits sentences according to Korean morphemes.
+    """
+    try:
+      self._komecab_tagger = KoMeCab.Tagger()
+    except RuntimeError as error:
+      logging.exception('Error during initializing KoMecab Tagger: %s', error)
 
   def mine_color(
       self,
@@ -141,6 +155,8 @@ class ColorMiner(object):
     """
     if self._language == 'ja':
       return self._mine_color_by_mecab(text)
+    if self._language == 'ko':
+      return self._mine_color_by_komecab(text)
     return self._mine_color_by_scanning_terms(text)
 
   def _mine_color_by_scanning_terms(self,
@@ -202,6 +218,88 @@ class ColorMiner(object):
     return (_clean_up_term_list(mined_standard_colors,
                                 constants.MAX_COLOR_COUNT),
             _clean_up_term_list(mined_unique_colors, constants.MAX_COLOR_COUNT))
+
+  def _mine_color_by_komecab(self, text: str) -> Tuple[List[str], List[str]]:
+    """Mines the color by using KoMecab for language processing.
+
+    We obtain part of speech (pos) from tokens obtained from Korean sentences
+    by Mecab (Korean ver), and add standard color and unique color depending on
+    pos.
+
+    If NNG (General noun), NNP (Proper noun), or NNB (Bound noun)
+    belonging to the noun form matches the color of the noun form,
+    the existing value is added to the unique color and converted to
+    a standard color mapped to the unique color.
+
+    In the case of adjective type (VA or VA+ETM), if a color that modifies a
+    noun is input, find the standard color mapped to it and add the color name
+    of the noun type to the unique color and standard color.
+
+    In the case of foreign language (SL), it is the same as English.
+    In this case, the existing value is added to the unique color and
+    converted to a standard color mapped to the unique color.
+
+    Args:
+      text: Text to be inspected.
+
+    Returns:
+      Mined standard colors and unique colors, or empty lists if no colors could
+      be found.
+    """
+    mined_standard_colors = []
+    mined_unique_colors = []
+    color_noun_mapping, color_adjective_mapping, color_en_mapping = (
+        self._color_config['color_noun_terms'],
+        self._color_config['color_adjective_terms'],
+        self._color_config['color_en_terms'],
+    )
+    unique_noun_colors, unique_adjective_colors, unique_en_colors = (
+        color_noun_mapping.keys(),
+        color_adjective_mapping.keys(),
+        color_en_mapping.keys(),
+    )
+
+    node = self._komecab_tagger.parseToNode(text)
+    while node:
+      surface = node.surface
+      feature_list = node.feature.split(',')
+      pos = feature_list[0]
+      inflect = feature_list[7]
+
+      if (
+          pos == 'NNG' or pos == 'NNP' or pos == 'NNB'
+      ) and surface in unique_noun_colors:
+        mined_unique_colors.append(surface)
+        standard_color = color_noun_mapping.get(surface, '').lower()
+        if standard_color:
+          mined_standard_colors.append(standard_color)
+
+      if pos == 'VA+ETM' and inflect != '*':
+        surface_va = inflect.split('/')[0]
+        if surface_va in unique_adjective_colors:
+          standard_color = color_adjective_mapping.get(surface_va, '').lower()
+          if standard_color:
+            mined_unique_colors.append(standard_color)
+            mined_standard_colors.append(standard_color)
+
+      if pos == 'VA' or surface in unique_adjective_colors:
+        standard_color = color_adjective_mapping.get(surface, '').lower()
+        if standard_color:
+          mined_unique_colors.append(standard_color)
+          mined_standard_colors.append(standard_color)
+
+      if pos == 'SL' in unique_en_colors:
+        mined_unique_colors.append(surface)
+        standard_color = color_en_mapping.get(surface, '').lower()
+        if standard_color:
+          mined_standard_colors.append(standard_color)
+
+      node = node.next
+
+    return (
+        _clean_up_term_list(mined_standard_colors, constants.MAX_COLOR_COUNT),
+        _clean_up_term_list(mined_unique_colors, constants.MAX_COLOR_COUNT),
+    )
 
 
 def _clean_up_term_list(term_list: List[str], max_count: int) -> List[str]:
