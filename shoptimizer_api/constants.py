@@ -61,17 +61,39 @@ CLOTHING_SIZES_CHARS_REGEX_RANGE = r'((\b([0-9]{1,3})?[X]*(S{1,2}\b)?(\bM{1}\b)?
 CLOTHING_SIZES_REGEX_WORDS = r'((X|EXTRA)?[\s|-]?SMALL\/?\b|(X|EXTRA)?[\s|-]?MEDIUM\/?\b|(X|EXTRA)?[\s|-]?LARGE\/?\b|OSFA\/?\b|OS\/?\b)'
 CLOTHING_SIZES_JA: Tuple[str,
                          ...] = ('XXS', 'XS', 'S', 'M', 'L', 'LL', 'XL', 'XXL')
+CLOTHING_SIZES_KO: Tuple[str, ...] = ('XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL')
 NUMERIC_CLOTHING_SIZES_JA_REGEX = r'\d*\.?\d+(-?\d+)?(\.?\d+)?\s?(cm|centimeters|センチ|センチメートル|mm|ミリメートル|ミリ|inches|inch|in|インチ|years|yo|歳)?'
+NUMERIC_CLOTHING_SIZES_KO_REGEX = r'\d*\.?\d+(-?\d+)?(\.?\d+)?\s?(cm|centimeters|센티|센티미터|mm|밀리미터|인치|inches|inch|in|years|yo|살)?'
 ALPHABETIC_CLOTHING_SIZES_JP_UNISIZE_MULTI_WORD: Tuple[str, ...] = ('フリーサイズ',
                                                                     'Free Size',
                                                                     '00(FREE)',
                                                                     'F/FREE',
                                                                     'One size')
+ALPHABETIC_CLOTHING_SIZES_KR_UNISIZE_MULTI_WORD: Tuple[str, ...] = (
+    'Free Size',
+    'FREESIZE',
+    '00(FREE)',
+    'F/FREE',
+    'One size',
+    'Free사이즈',
+    'Free 사이즈',
+    '프리사이즈',
+    '프리 사이즈',
+    '원사이즈',
+    '원 사이즈',
+)
 ALPHABETIC_CLOTHING_SIZES_JP_UNISIZE_SINGLE_WORD: Tuple[str,
                                                         ...] = ('フリー', 'FREE',
                                                                 'free',
                                                                 'unisize',
                                                                 '1_size')
+ALPHABETIC_CLOTHING_SIZES_KR_UNISIZE_SINGLE_WORD: Tuple[str, ...] = (
+    '프리',
+    'FREE',
+    'free',
+    'unisize',
+    '1_size',
+)
 ALPHABETIC_CLOTHING_SIZES_EN_UNISIZE: Tuple[str, ...] = ('One size fits all',
                                                          'One size')
 
@@ -81,10 +103,14 @@ MAXIMUM_SHOE_SIZE_JP: float = 35
 MINIMUM_SHOE_SIZE_US: float = 4
 MAXIMUM_SHOE_SIZE_US: float = 16
 
+MINIMUM_SHOE_SIZE_KR: float = 100
+MAXIMUM_SHOE_SIZE_KR: float = 370
+
 GOOGLE_PRODUCT_CATEGORY_APPAREL_ACCESSORIES_KEYWORDS: Set[str] = {
     'Apparel & Accessories',
     'ファッション・アクセサリー',
     'Pakaian & Aksesori',
+    '의류/액세서리',
 }
 
 GOOGLE_PRODUCT_CATEGORY_APPAREL_ACCESSORIES_IDS: Set[str] = {
@@ -324,6 +350,7 @@ GOOGLE_PRODUCT_CATEGORY_APPAREL_ACCESSORIES_IDS: Set[str] = {
 GOOGLE_PRODUCT_CATEGORY_APPAREL_ACCESSORIES_CLOTHING_KEYWORDS: Set[str] = {
     'Apparel & Accessories > Clothing',
     'ファッション・アクセサリー > 衣料品',
+    '의류/액세서리 > 의류',
 }
 
 GOOGLE_PRODUCT_CATEGORY_APPAREL_ACCESSORIES_CLOTHING_IDS: Set[str] = {
@@ -450,6 +477,7 @@ GOOGLE_PRODUCT_CATEGORY_APPAREL_ACCESSORIES_CLOTHING_IDS: Set[str] = {
 GOOGLE_PRODUCT_CATEGORY_APPAREL_ACCESSORIES_SHOES_KEYWORDS: Set[str] = {
     'Apparel & Accessories > Shoes',
     'ファッション・アクセサリー > 靴',
+    '의류/액세서리 > 신발',
 }
 
 GOOGLE_PRODUCT_CATEGORY_APPAREL_ACCESSORIES_SHOES_IDS: Set[str] = {

@@ -33,6 +33,7 @@ from flask import current_app
 
 import jaconv
 import MeCab
+import mecab_ko
 
 import constants
 from util import gpc_id_to_string_converter
@@ -42,13 +43,17 @@ _ATTRIBUTES_TO_INSPECT = ('title', 'description')
 
 _GPC_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME: str = 'gpc_string_to_id_mapping_{}'
 
-_SIZE_INDICATORS = ('size', 'サイズ')
+_SIZE_INDICATORS = ('size', 'サイズ', '사이즈')
 
 _JA_NOUN = '名詞'
 _JA_SYMBOL = 'サ変接続'
 
-_SUPPORTED_LANGUAGES = (constants.LANGUAGE_CODE_DE, constants.LANGUAGE_CODE_EN,
-                        constants.LANGUAGE_CODE_JA)
+_SUPPORTED_LANGUAGES = (
+    constants.LANGUAGE_CODE_DE,
+    constants.LANGUAGE_CODE_EN,
+    constants.LANGUAGE_CODE_JA,
+    constants.LANGUAGE_CODE_KO,
+)
 
 
 class SizeMiner(object):
@@ -58,6 +63,7 @@ class SizeMiner(object):
       gpc_id_to_string_converter.GPCConverter] = None
   _language: Optional[str] = None
   _mecab_tagger: Optional[MeCab.Tagger] = None
+  _komecab_tagger: Optional[mecab_ko.Tagger] = None
 
   def __init__(self, language: str, country: str) -> None:
     """Initializes SizeMiner.
@@ -72,6 +78,7 @@ class SizeMiner(object):
         _GPC_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME.format(language))
     self._language = language
     self._mecab_tagger = current_app.config.get('MECAB')
+    self._komecab_tagger = mecab_ko.Tagger()
 
   def mine_size(self, product: Dict[str, Any]) -> Optional[str]:
     """Mines size from product fields.
@@ -125,7 +132,9 @@ class SizeMiner(object):
         google_product_category)
 
     if self._language in [
-        constants.LANGUAGE_CODE_JA, constants.LANGUAGE_CODE_EN
+        constants.LANGUAGE_CODE_JA,
+        constants.LANGUAGE_CODE_EN,
+        constants.LANGUAGE_CODE_KO,
     ]:
       product_attribute_text = product.get(attribute, '')
       if not product_attribute_text:
@@ -184,15 +193,24 @@ class SizeMiner(object):
     Returns:
       A size if it could be mined, otherwise None.
     """
-    if self._language == constants.LANGUAGE_CODE_JA:
-      normalized_text = _normalize_ja_text(text)
-      mined_size = (
-          self.mine_ja_unisize_clothing_size_using_mecab(normalized_text))
+    if (
+        self._language == constants.LANGUAGE_CODE_JA
+        or self._language == constants.LANGUAGE_CODE_KO
+    ):
+      normalized_text = (
+          _normalize_ja_text(text)
+          if self._language == constants.LANGUAGE_CODE_JA
+          else text
+      )
+      mined_size = self._mine_ja_ko_unisize_clothing_size_using_mecab(
+          normalized_text
+      )
       if not mined_size:
-        mined_size = self._mine_ja_alphabetic_clothing_size(normalized_text)
+        mined_size = self._mine_ja_ko_alphabetic_clothing_size(normalized_text)
       if not mined_size:
-        mined_size = self._mine_ja_numeric_clothing_size_with_mecab(
-            normalized_text)
+        mined_size = self._mine_ja_ko_numeric_clothing_size_with_mecab(
+            normalized_text
+        )
       return mined_size.strip() if mined_size else None
     elif self._language == constants.LANGUAGE_CODE_EN:
       mined_size = self._mine_en_unisize_clothing_size(text)
@@ -201,9 +219,10 @@ class SizeMiner(object):
       return mined_size.strip() if mined_size else None
     return None
 
-  def mine_ja_unisize_clothing_size_using_mecab(self,
-                                                text: str) -> Optional[str]:
-    """Mines 'one-size-fits-all'-type terms, if found, from the given JA text.
+  def _mine_ja_ko_unisize_clothing_size_using_mecab(
+      self, text: str
+  ) -> Optional[str]:
+    """Mines 'one-size-fits-all'-type terms, if found, from the given JA or KO text.
 
     Args:
       text: Text to be inspected.
@@ -211,16 +230,40 @@ class SizeMiner(object):
     Returns:
       A size string if one was able to be mined, otherwise None.
     """
-    for size in constants.ALPHABETIC_CLOTHING_SIZES_JP_UNISIZE_MULTI_WORD:
+    if self._language == constants.LANGUAGE_CODE_JA:
+      unsize_multi_word = (
+          constants.ALPHABETIC_CLOTHING_SIZES_JP_UNISIZE_MULTI_WORD
+      )
+      unsize_single_word = (
+          constants.ALPHABETIC_CLOTHING_SIZES_JP_UNISIZE_SINGLE_WORD
+      )
+      mecab_tagger = self._mecab_tagger
+    elif self._language == constants.LANGUAGE_CODE_KO:
+      unsize_multi_word = (
+          constants.ALPHABETIC_CLOTHING_SIZES_KR_UNISIZE_MULTI_WORD
+      )
+      unsize_single_word = (
+          constants.ALPHABETIC_CLOTHING_SIZES_KR_UNISIZE_SINGLE_WORD
+      )
+      mecab_tagger = self._komecab_tagger
+    else:
+      logging.warning(
+          'This function mines Japanese or Korean unsize clothing sizes. This'
+          ' language %s is not supported.',
+          self._language,
+      )
+      return None
+
+    for size in unsize_multi_word:
       if size.lower() in text.lower():
         return size
 
-    if not self._mecab_tagger:
+    if not mecab_tagger:
       logging.warning('Did not mine size because MeCab was not set up.')
       return None
 
     indicator_found = False
-    node = self._mecab_tagger.parseToNode(text)
+    node = mecab_tagger.parseToNode(text)
     while node:
       size_indicator_candidate = node.surface
       if not node.surface:
@@ -229,7 +272,7 @@ class SizeMiner(object):
 
       if indicator_found:
         rest_of_text = _concat_mecab_nodes_from_node(node)
-        for size in constants.ALPHABETIC_CLOTHING_SIZES_JP_UNISIZE_SINGLE_WORD:
+        for size in unsize_single_word:
           if size.lower() in rest_of_text.lower():
             return size
 
@@ -239,8 +282,8 @@ class SizeMiner(object):
       node = node.next
     return None
 
-  def _mine_ja_alphabetic_clothing_size(self, text: str) -> Optional[str]:
-    """Mines size from the given text for Japanese language.
+  def _mine_ja_ko_alphabetic_clothing_size(self, text: str) -> Optional[str]:
+    """Mines size from the given text for Japanese or Korean language.
 
     Args:
       text: Text to be inspected.
@@ -248,6 +291,20 @@ class SizeMiner(object):
     Returns:
       A size string if one was able to be mined, otherwise None.
     """
+    if self._language == constants.LANGUAGE_CODE_JA:
+      clothing_sizes = constants.CLOTHING_SIZES_JA
+      mecab_tagger = self._mecab_tagger
+    elif self._language == constants.LANGUAGE_CODE_KO:
+      clothing_sizes = constants.CLOTHING_SIZES_KO
+      mecab_tagger = self._komecab_tagger
+    else:
+      logging.warning(
+          'This function mines Japanese or Korean alphabetic clothing sizes.'
+          ' This language %s is not supported.',
+          self._language,
+      )
+      return None
+
     # Setup valid clothing sizes using regex.
     clothing_size_chars_slash_finder = re.compile(
         constants.CLOTHING_SIZES_CHARS_SLASH_SEPARATOR, re.IGNORECASE)
@@ -275,21 +332,22 @@ class SizeMiner(object):
       return longest_matching_size
 
     # If a size still couldn't be found, try tokenizing the text with Mecab.
-    if not self._mecab_tagger:
+    if not mecab_tagger:
       logging.warning('Did not mine size because MeCab was not set up.')
       return None
 
-    node = self._mecab_tagger.parseToNode(text)
+    node = mecab_tagger.parseToNode(text)
     while node:
       token = node.surface
-      if token in constants.CLOTHING_SIZES_JA:
+      if token in clothing_sizes:
         return token
       node = node.next
     return None
 
-  def _mine_ja_numeric_clothing_size_with_mecab(self,
-                                                text: str) -> Optional[str]:
-    """Mines size tokens that correspond to size indicators in Japanese.
+  def _mine_ja_ko_numeric_clothing_size_with_mecab(
+      self, text: str
+  ) -> Optional[str]:
+    """Mines size tokens that correspond to size indicators in Japanese and Korean.
 
     This method finds a size indicator word and returns the size value after it.
     e.g. when the input is "T-shirt size:40", it returns "40".
@@ -300,15 +358,30 @@ class SizeMiner(object):
     Returns:
       A size if it could be mined, otherwise None.
     """
-    if not self._mecab_tagger:
+    if self._language == constants.LANGUAGE_CODE_JA:
+      mecab_tagger = self._mecab_tagger
+      numeric_clothing_sizes_regex = constants.NUMERIC_CLOTHING_SIZES_JA_REGEX
+    elif self._language == constants.LANGUAGE_CODE_KO:
+      mecab_tagger = self._komecab_tagger
+      numeric_clothing_sizes_regex = constants.NUMERIC_CLOTHING_SIZES_KO_REGEX
+    else:
+      logging.warning(
+          'This function mines Japanese or Korean numeric clothing sizes. This'
+          ' language %s is not supported.',
+          self._language,
+      )
+      return None
+
+    if not mecab_tagger:
       logging.warning('Did not mine size because MeCab was not set up.')
       return None
 
-    clothing_size_ja_numeric_finder = re.compile(
-        constants.NUMERIC_CLOTHING_SIZES_JA_REGEX, re.IGNORECASE)
+    clothing_size_ja_ko_numeric_finder = re.compile(
+        numeric_clothing_sizes_regex, re.IGNORECASE
+    )
 
     indicator_found = False
-    node = self._mecab_tagger.parseToNode(text)
+    node = mecab_tagger.parseToNode(text)
     while node:
       size_indicator_candidate = node.surface
       if not node.surface:
@@ -317,8 +390,9 @@ class SizeMiner(object):
 
       if indicator_found:
         rest_of_text = _concat_mecab_nodes_from_node(node)
-        rest_of_text_matches = clothing_size_ja_numeric_finder.match(
-            rest_of_text)
+        rest_of_text_matches = clothing_size_ja_ko_numeric_finder.match(
+            rest_of_text
+        )
         if rest_of_text_matches:
           first_matched_result = rest_of_text_matches.group(0)
           return first_matched_result
@@ -421,6 +495,11 @@ class SizeMiner(object):
         logging.warning(
             'The shoe-size mining feature currently does not support country %s with language %s.',
             self._country, self._language)
+    elif self._language == constants.LANGUAGE_CODE_KO:
+      mined_size = self._mine_numeric_shoe_size_with_range(
+          text, constants.MINIMUM_SHOE_SIZE_KR, constants.MAXIMUM_SHOE_SIZE_KR
+      )
+      return mined_size
     return None
 
   def _mine_numeric_shoe_size_with_range(self, text: str, min_size: float,
@@ -434,6 +513,12 @@ class SizeMiner(object):
     - Recognized as size: 10, 27, 27.0, 27.5, 40
     - Not recognized as size: 9, 27.1, 41
 
+    In South Korea, sizes are measured in mm. Only 3-digit numbers
+    that are integers and whose first digit is 0 or 5 are mined.
+    Examples when min_size = 100 and max_size = 370
+    - Recognized as size: 100, 270, 275, 370
+    - Not recognized as size: 90, 111, 271, 380
+
     Args:
       text: Text to be inspected.
       min_size: The minimum size.
@@ -442,7 +527,12 @@ class SizeMiner(object):
     Returns:
       A size if it could be mined, otherwise None.
     """
-    shoe_size_pattern = r'((?<!\d)\d{1,2}\.[05](?!\d)|(?<![\.\d])\d{1,2}(?![\.\d]))'
+    if len(str(int(max_size))) <= 2:
+      shoe_size_pattern = (
+          r'((?<!\d)\d{1,2}\.[05](?!\d)|(?<![\.\d])\d{1,2}(?![\.\d]))'
+      )
+    elif len(str(int(max_size))) == 3:
+      shoe_size_pattern = r'((?<!\d)\d{2,2}[05](?!\d)|(?<!)\d{2,2}(?!))'
     size_finder = re.compile(shoe_size_pattern)
     size_candidates = size_finder.findall(text)
     for size_candidate in size_candidates:

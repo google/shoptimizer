@@ -44,6 +44,21 @@ class SizeMinerTest(parameterized.TestCase):
 
     self.assertEqual('L', mined_size)
 
+  def test_mine_size_mines_size_from_sizes_field_with_language_ko(self):
+    product = {
+        'title': '티셔츠 M',
+        'description': '티셔츠 M',
+        'googleProductCategory': '의류/액세서리 > 의류',
+        'sizes': ['M', 'L'],
+    }
+    miner = size_miner.SizeMiner(
+        language=constants.LANGUAGE_CODE_KO, country=constants.COUNTRY_CODE_KR
+    )
+
+    mined_size = miner.mine_size(product)
+
+    self.assertEqual('M', mined_size)
+
   @parameterized.named_parameters([{
       'testcase_name': 'empty',
       'title': '',
@@ -180,27 +195,167 @@ class SizeMinerTest(parameterized.TestCase):
 
     self.assertEqual(expected_size, mined_size)
 
-  @parameterized.named_parameters([{
-      'testcase_name': 'empty',
-      'title': '',
-      'expected_size': None,
-  }, {
-      'testcase_name': 'one_word_size',
-      'title': 'T-Shirt L',
-      'expected_size': 'L',
-  }, {
-      'testcase_name': 'multiple_words_size',
-      'title': 'T-Shirt One size fits all',
-      'expected_size': 'One size fits all',
-  }, {
-      'testcase_name': 'unisize_is_prioritized',
-      'title': 'T-Shirt One size fits all L',
-      'expected_size': 'One size fits all',
-  }, {
-      'testcase_name': 'size_not_exist',
-      'title': 'T-Shirt',
-      'expected_size': None,
-  }])
+  @parameterized.named_parameters([
+      {
+          'testcase_name': 'empty',
+          'title': '',
+          'expected_size': None,
+      },
+      {
+          'testcase_name': 'standard_size',
+          'title': '티셔츠 L',
+          'expected_size': 'L',
+      },
+      {
+          'testcase_name': 'standard_size_extra_large',
+          'title': '티셔츠 XXXL',
+          'expected_size': 'XXXL',
+      },
+      {
+          'testcase_name': 'standard_size_large_with_false_positive',
+          'title': 'SM 티셔츠 L',
+          'expected_size': 'L',
+      },
+      {
+          'testcase_name': 'standard_sizes_range',
+          'title': '티셔츠 S-M',
+          'expected_size': 'S-M',
+      },
+      {
+          'testcase_name': 'standard_sizes_wide_range',
+          'title': '티셔츠 S-XXL',
+          'expected_size': 'S-XXL',
+      },
+      {
+          'testcase_name': 'size_validates_range_in_middle_with_false_positive',
+          'title': '티셔츠S사이즈:SS-XXL셔츠',
+          'expected_size': 'SS-XXL',
+      },
+      {
+          'testcase_name': 'standard_sizes_multiple_slash',
+          'title': '티셔츠 S/M/L',
+          'expected_size': 'S/M/L',
+      },
+      {
+          'testcase_name': 'standard_sizes_multiple_slash_with_false_positive',
+          'title': '티셔츠 S/M/L',
+          'expected_size': 'S/M/L',
+      },
+      {
+          'testcase_name': 'numeric_size_ko_indicator',
+          'title': '티셔츠 사이즈:100',
+          'expected_size': '100',
+      },
+      {
+          'testcase_name': 'numeric_size_decimal_ko_indicator_units',
+          'title': '티셔츠 사이즈:40.5cm',
+          'expected_size': '40.5cm',
+      },
+      {
+          'testcase_name': 'numeric_size_decimal_ko_indicator_units_with_space',
+          'title': '티셔츠 사이즈:40.5 cm',
+          'expected_size': '40.5cm',
+      },
+      {
+          'testcase_name': 'numeric_size_en_indicator',
+          'title': '티셔츠 Size:40',
+          'expected_size': '40',
+      },
+      {
+          'testcase_name': 'size_does_not_exist',
+          'title': '티셔츠',
+          'expected_size': None,
+      },
+      {
+          'testcase_name': 'size_indicated_but_value_missing',
+          'title': '티셔츠 사이즈:N/A',
+          'expected_size': None,
+      },
+      {
+          'testcase_name': 'size_multiple_values_only_first',
+          'title': '티셔츠 사이즈:10.5cm 11.5cm',
+          'expected_size': '10.5cm',
+      },
+      {
+          'testcase_name': 'size_range_is_valid',
+          'title': '티셔츠 사이즈:10.5-11.5cm',
+          'expected_size': '10.5-11.5cm',
+      },
+      {
+          'testcase_name': 'size_skips_nonsize_after_indicator',
+          'title': '티셔츠 모델사이즈 키:160cm',
+          'expected_size': '160cm',
+      },
+      {
+          'testcase_name': 'size_before_indicator',
+          'title': '티셔츠 L 사이즈',
+          'expected_size': 'L',
+      },
+      {
+          'testcase_name': 'size_validates_inches',
+          'title': '티셔츠 사이즈: 10 in 셔츠',
+          'expected_size': '10in',
+      },
+      {
+          'testcase_name': 'size_validates_years',
+          'title': '티셔츠 사이즈: 10살',
+          'expected_size': '10살',
+      },
+      {
+          'testcase_name': 'unisize',
+          'title': '프리사이즈 40L',
+          'expected_size': '프리사이즈',
+      },
+      {
+          'testcase_name': 'unisize with en',
+          'title': '자켓 SIZE:UNISEX FREE',
+          'expected_size': 'FREE',
+      },
+  ])
+  def test_mine_size_mines_clothing_size_from_title_with_language_ko(
+      self, title, expected_size
+  ):
+    product = {
+        'title': title,
+        'description': '',
+        'googleProductCategory': '의류/액세서리 > 의류',
+        'sizes': [],
+    }
+    miner = size_miner.SizeMiner(
+        language=constants.LANGUAGE_CODE_KO, country=constants.COUNTRY_CODE_KR
+    )
+
+    mined_size = miner.mine_size(product)
+
+    self.assertEqual(expected_size, mined_size)
+
+  @parameterized.named_parameters([
+      {
+          'testcase_name': 'empty',
+          'title': '',
+          'expected_size': None,
+      },
+      {
+          'testcase_name': 'one_word_size',
+          'title': 'T-Shirt L',
+          'expected_size': 'L',
+      },
+      {
+          'testcase_name': 'multiple_words_size',
+          'title': 'T-Shirt One size fits all',
+          'expected_size': 'One size fits all',
+      },
+      {
+          'testcase_name': 'unisize_is_prioritized',
+          'title': 'T-Shirt One size fits all L',
+          'expected_size': 'One size fits all',
+      },
+      {
+          'testcase_name': 'size_not_exist',
+          'title': 'T-Shirt',
+          'expected_size': None,
+      },
+  ])
   def test_mine_size_mines_clothing_size_from_title_with_language_en_and_gpc_number(
       self, title, expected_size):
     product = {
@@ -287,6 +442,50 @@ class SizeMinerTest(parameterized.TestCase):
     }
     miner = size_miner.SizeMiner(
         language=constants.LANGUAGE_CODE_EN, country=constants.COUNTRY_CODE_US)
+
+    mined_size = miner.mine_size(product)
+
+    self.assertEqual(expected_size, mined_size)
+
+  @parameterized.named_parameters([
+      {
+          'testcase_name': 'empty',
+          'description': '',
+          'expected_size': None,
+      },
+      {
+          'testcase_name': 'standard_size',
+          'description': '티셔츠 L',
+          'expected_size': 'L',
+      },
+      {
+          'testcase_name': 'size_keyword',
+          'description': '티셔츠 사이즈:40',
+          'expected_size': '40',
+      },
+      {
+          'testcase_name': 'standard_size_is_not_prioritized',
+          'description': '티셔츠 사이즈:40L',
+          'expected_size': '40L',
+      },
+      {
+          'testcase_name': 'size_not_exist',
+          'description': '티셔츠',
+          'expected_size': None,
+      },
+  ])
+  def test_mine_size_mines_clothing_size_from_description_with_language_ko(
+      self, description, expected_size
+  ):
+    product = {
+        'title': '',
+        'description': description,
+        'googleProductCategory': '의류/액세서리 > 의류',
+        'sizes': [],
+    }
+    miner = size_miner.SizeMiner(
+        language=constants.LANGUAGE_CODE_KO, country=constants.COUNTRY_CODE_KR
+    )
 
     mined_size = miner.mine_size(product)
 
@@ -411,6 +610,75 @@ class SizeMinerTest(parameterized.TestCase):
     }
     miner = size_miner.SizeMiner(
         language=constants.LANGUAGE_CODE_EN, country=constants.COUNTRY_CODE_US)
+
+    mined_size = miner.mine_size(product)
+
+    self.assertEqual(expected_size, mined_size)
+
+  @parameterized.named_parameters([
+      {
+          'testcase_name': 'empty',
+          'title': '',
+          'expected_size': None,
+      },
+      {
+          'testcase_name': 'valid_size_integer',
+          'title': '운동화 270mm',
+          'expected_size': '270',
+      },
+      {
+          'testcase_name': 'valid_size_first_decimal_place_zero',
+          'title': '운동화 270.0mm',
+          'expected_size': '270',
+      },
+      {
+          'testcase_name': 'valid_size_first_units_place_five',
+          'title': '운동화 275mm',
+          'expected_size': '275',
+      },
+      {
+          'testcase_name': 'minimum_size',
+          'title': '운동화 100mm',
+          'expected_size': '100',
+      },
+      {
+          'testcase_name': 'maximum_size',
+          'title': '운동화 370mm',
+          'expected_size': '370',
+      },
+      {
+          'testcase_name': 'invalid_size_too_small',
+          'title': '운동화 90mm',
+          'expected_size': None,
+      },
+      {
+          'testcase_name': 'invalid_size_too_big',
+          'title': '운동화 380mm',
+          'expected_size': None,
+      },
+      {
+          'testcase_name': 'invalid_size_first_units_place_one',
+          'title': '운동화 271mm',
+          'expected_size': None,
+      },
+      {
+          'testcase_name': 'valid_size_integer_without_mm',
+          'title': '운동화 270',
+          'expected_size': '270',
+      },
+  ])
+  def test_mine_size_mines_shoes_size_from_title_with_language_ko(
+      self, title, expected_size
+  ):
+    product = {
+        'title': title,
+        'description': '',
+        'googleProductCategory': '의류/액세서리 > 신발',
+        'sizes': [],
+    }
+    miner = size_miner.SizeMiner(
+        language=constants.LANGUAGE_CODE_KO, country=constants.COUNTRY_CODE_KR
+    )
 
     mined_size = miner.mine_size(product)
 
