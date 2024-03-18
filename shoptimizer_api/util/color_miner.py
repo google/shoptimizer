@@ -29,7 +29,7 @@ import subprocess
 from typing import Any, Dict, List, Optional, Tuple
 
 import MeCab
-import mecab_ko as KoMeCab
+import mecab_ko
 
 import constants
 from util import config_parser
@@ -50,7 +50,7 @@ class ColorMiner(object):
   _gpc_id_to_string_converter: Optional[
       gpc_id_to_string_converter.GPCConverter] = None
   _mecab_tagger: Optional[MeCab.Tagger] = None
-  _komecab_tagger: Optional[KoMeCab.Tagger] = None
+  _komecab_tagger: Optional[mecab_ko.Tagger] = None
 
   def __init__(self, language: str) -> None:
     """Initializes ColorMiner.
@@ -88,14 +88,14 @@ class ColorMiner(object):
       logging.exception('Error during initializing MeCab Tagger: %s', error)
 
   def _setup_komecab(self) -> None:
-    """Sets up KoMecab object for korean language processing.
+    """Sets up mecab_ko object for korean language processing.
 
-    KoMecab splits sentences according to Korean morphemes.
+    meacb_ko splits sentences according to Korean morphemes.
     """
     try:
-      self._komecab_tagger = KoMeCab.Tagger()
+      self._komecab_tagger = mecab_ko.Tagger()
     except RuntimeError as error:
-      logging.exception('Error during initializing KoMecab Tagger: %s', error)
+      logging.exception('Error during initializing mecab_ko Tagger: %s', error)
 
   def mine_color(
       self,
@@ -220,7 +220,7 @@ class ColorMiner(object):
             _clean_up_term_list(mined_unique_colors, constants.MAX_COLOR_COUNT))
 
   def _mine_color_by_komecab(self, text: str) -> Tuple[List[str], List[str]]:
-    """Mines the color by using KoMecab for language processing.
+    """Mines the color by using mecab_ko for language processing.
 
     We obtain part of speech (pos) from tokens obtained from Korean sentences
     by Mecab (Korean ver), and add standard color and unique color depending on
