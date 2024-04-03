@@ -1,0 +1,49 @@
+{
+  "adult_product_categories": [
+    "의류/액세서리",
+    "건강/미용",
+    "스포츠용품",
+    "여행용 가방/가방",
+    "전자기기"
+  ],
+  "baby_product_categories": [
+    "영유아",
+    "영유아용 의류",
+    "영유아 의류 액세서리",
+    "영유아 가구"
+  ],
+  "female": {
+    "adult_search_terms": [
+      "여성",
+      "여성용"
+    ],
+    "baby_search_terms": [
+      "여아",
+      "여아용"
+    ],
+    "baby_title_replacement": "여아용",
+    "adult_title_replacement": "여성용"
+  },
+  "male": {
+    "adult_search_terms": [
+      "남성",
+      "남성용"
+    ],
+    "baby_search_terms": [
+      "남아",
+      "남아용"
+    ],
+    "baby_title_replacement": "남아용",
+    "adult_title_replacement": "남성용"
+  },
+  "unisex": {
+    "adult_search_terms": [
+      "남녀공용"
+    ],
+    "baby_search_terms": [
+      "남녀공용"
+    ],
+    "baby_title_replacement": "남녀공용",
+    "adult_title_replacement": "남녀공용"
+  }
+}

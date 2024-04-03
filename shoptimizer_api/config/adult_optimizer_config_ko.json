@@ -1,0 +1,21 @@
+{
+  "adult_product_types": [
+    "adult_term_1",
+    "adult_term_2",
+    "<Please reach out to team-noreply@google.com to ask about consulting support for adult terms for your account.>"
+  ],
+  "adult_google_product_categories": {
+    "성인용 제품" : [
+      "*"
+    ],
+    "식품/음료/담배 > 음료 > 주류" : [
+      "*"
+    ],
+    "식품/음료/담배 > 담배 > 제품" : [
+      "*"
+    ],
+    "미디어 > 도서" : [
+      "성인용"
+    ]
+  }
+}
