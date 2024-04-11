@@ -96,9 +96,9 @@ _**Required:**_
 
 _**Optional:**_
 
-*   `lang=[en/ja]`
-*   `country=[us/jp]`
-*   `currency=[usd/jpy]`
+*   `lang=[de/en/fr/id/ja/ko/vi]`
+*   `country=[us/jp or other country codes]`
+*   `currency=[usd/jpy or other currency codes]`
 *   `adult-optimizer=(true/false)`
 *   `color-length-optimizer=(true/false)`
 *   `condition-optimizer=(true/false)`
@@ -117,11 +117,12 @@ _**Optional:**_
 *   `title-word-order-optimizer=(true/false)`
 
 "lang" will control which language is used for certain optimizers that require
-language-specific token parsing. The supported language values are: "en"
-(English), "ja" (Japanese). If the "lang" parameter is not supplied, it will
-default to English. This directly maps to which language-specific config file
-is used under the config/ directory. These files can be edited by the user as
-needed.
+language-specific token parsing.
+The supported language values are: "de" (German), "en" (English), "fr" (French), "id" (Indonesian), "ja" (Japanese), "ko" (Korean), "vi" (Vietnamese).
+If the "lang" parameter is not supplied, it will
+default to English.
+This directly maps to which language-specific config file is used under the config/ directory.
+Users can edit existing files or create new ones for additional language support.
 
 "country" and "currency" will control which country and currency are used for
 certain optimizers that set country-specific and currency-specific value. The

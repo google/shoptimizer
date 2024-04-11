@@ -18,6 +18,7 @@
 This module acts as the main entry point to the Shoptimizer API.
 """
 
+
 import http
 
 import logging
@@ -45,28 +46,28 @@ _SUPPORTED_LANGUAGES = frozenset([
     constants.LANGUAGE_CODE_EN,
     constants.LANGUAGE_CODE_FR,
     constants.LANGUAGE_CODE_ID,
+    constants.LANGUAGE_CODE_KO,
     constants.LANGUAGE_CODE_JA,
     constants.LANGUAGE_CODE_VI,
-    constants.LANGUAGE_CODE_KO,
 ])
 _SUPPORTED_COUNTRIES = frozenset([
     constants.COUNTRY_CODE_DE,
     constants.COUNTRY_CODE_FR,
     constants.COUNTRY_CODE_ID,
     constants.COUNTRY_CODE_IN,
+    constants.COUNTRY_CODE_KR,
     constants.COUNTRY_CODE_JP,
     constants.COUNTRY_CODE_US,
     constants.COUNTRY_CODE_VN,
-    constants.COUNTRY_CODE_KR,
 ])
 _SUPPORTED_CURRENCIES = frozenset([
     constants.CURRENCY_CODE_EUR,
     constants.CURRENCY_CODE_IDR,
     constants.CURRENCY_CODE_INR,
+    constants.CURRENCY_CODE_KRW,
     constants.CURRENCY_CODE_JPY,
     constants.CURRENCY_CODE_USD,
     constants.CURRENCY_CODE_VND,
-    constants.CURRENCY_CODE_KRW,
 ])
 _LANG_QUERY_STRING_KEY = 'lang'
 _COUNTRY_QUERY_STRING_KEY = 'country'
@@ -76,9 +77,11 @@ _CURRENCY_QUERY_STRING_KEY = 'currency'
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
 _builtin_optimizer_cache = optimizer_cache.OptimizerCache(
-    _OPTIMIZERS_BUILTIN_PACKAGE)
+    _OPTIMIZERS_BUILTIN_PACKAGE
+)
 _plugin_optimizer_cache = optimizer_cache.OptimizerCache(
-    _OPTIMIZERS_PLUGINS_PACKAGE)
+    _OPTIMIZERS_PLUGINS_PACKAGE
+)
 
 _BUILTIN_OPTIMIZER_PARAMETERS = [
     optimizer_class.get_optimizer_parameter(optimizer_class)
@@ -233,7 +236,7 @@ def optimize() -> Tuple[str, http.HTTPStatus]:
 
 
 def remove_exclude_optimizers_attributes(
-    optimized_product_batch: Dict[str, Any]
+    optimized_product_batch: Dict[str, Any],
 ) -> None:
   """Removes any "excludeOptimizers" attributes in the request's "entries" list.
 
@@ -268,44 +271,59 @@ def _check_request_valid(
     return False, 'Request must be valid JSON'
 
   if 'entries' not in flask.request.json:
-    logging.error('Request did not contain entries key. Request: %s',
-                  flask.request.json)
+    logging.error(
+        'Request did not contain entries key. Request: %s', flask.request.json
+    )
     return False, 'Request must contain entries as a key.'
 
   product_dict = flask.request.json
 
   if not isinstance(product_dict['entries'], list):
-    logging.error('Entries did not contain a list of products. %s',
-                  product_dict)
+    logging.error(
+        'Entries did not contain a list of products. %s', product_dict
+    )
     return False, 'Entries must contain a list of products.'
 
   if lang_url_parameter not in _SUPPORTED_LANGUAGES:
-    return False, (f'lang query parameter must be a supported language: '
-                   f'{_SUPPORTED_LANGUAGES}')
+    return False, (
+        'lang query parameter must be a supported language: '
+        f'{_SUPPORTED_LANGUAGES}'
+    )
 
   if country_url_parameter not in _SUPPORTED_COUNTRIES:
-    return False, (f'country query parameter must be a supported country: '
-                   f'{_SUPPORTED_COUNTRIES}')
+    return False, (
+        'country query parameter must be a supported country: '
+        f'{_SUPPORTED_COUNTRIES}'
+    )
 
   if currency_url_parameter not in _SUPPORTED_CURRENCIES:
-    return False, (f'currency query parameter must be a supported currency: '
-                   f'{_SUPPORTED_CURRENCIES}')
+    return False, (
+        'currency query parameter must be a supported currency: '
+        f'{_SUPPORTED_CURRENCIES}'
+    )
 
   # Check for invalid query strings by comparing against optimizers.
   request_full_query_string_parameters = _extract_all_url_parameters()
   request_optimizer_query_string_parameters = set(
-      request_full_query_string_parameters) - {
-          _LANG_QUERY_STRING_KEY, _COUNTRY_QUERY_STRING_KEY,
-          _CURRENCY_QUERY_STRING_KEY
-      }
+      request_full_query_string_parameters
+  ) - {
+      _LANG_QUERY_STRING_KEY,
+      _COUNTRY_QUERY_STRING_KEY,
+      _CURRENCY_QUERY_STRING_KEY,
+  }
   invalid_query_string_parameters = list(
-      request_optimizer_query_string_parameters -
-      set(_VALID_OPTIMIZER_PARAMETERS))
+      request_optimizer_query_string_parameters
+      - set(_VALID_OPTIMIZER_PARAMETERS)
+  )
   if invalid_query_string_parameters:
-    logging.error('An invalid query string parameter was provided: %s',
-                  invalid_query_string_parameters)
-    return False, ('Invalid query string parameter detected. Please provide a '
-                   'valid Shoptimizer API query string parameter.')
+    logging.error(
+        'An invalid query string parameter was provided: %s',
+        invalid_query_string_parameters,
+    )
+    return False, (
+        'Invalid query string parameter detected. Please provide a '
+        'valid Shoptimizer API query string parameter.'
+    )
 
   return True, ''
 
@@ -345,8 +363,11 @@ def _run_optimizers(
   """
   optimization_results = {}
 
-  mined_attributes = _get_mined_attributes(
-      product_batch, language, country) if _mined_attributes_required() else {}
+  mined_attributes = (
+      _get_mined_attributes(product_batch, language, country)
+      if _mined_attributes_required()
+      else {}
+  )
 
   optimizers = [
       optimizer_class(mined_attributes)
@@ -358,14 +379,20 @@ def _run_optimizers(
   optimizer_mapping = dict(zip(optimizer_parameters, optimizers))
 
   for optimizer_parameter in _generate_optimizer_parameter_list_to_run(
-      optimizer_parameters_to_run_last=_OPTIMIZERS_TO_RUN_LAST):
+      optimizer_parameters_to_run_last=_OPTIMIZERS_TO_RUN_LAST
+  ):
     optimizer = optimizer_mapping.get(optimizer_parameter)
     if optimizer:
       logging.info(
           'Running optimization %s with language %s, country %s, currency %s',
-          optimizer_parameter, language, country, currency)
-      product_batch, result = optimizer.process(product_batch, language,
-                                                country, currency)
+          optimizer_parameter,
+          language,
+          country,
+          currency,
+      )
+      product_batch, result = optimizer.process(
+          product_batch, language, country, currency
+      )
       optimization_results[optimizer_parameter] = result
 
   return product_batch, optimization_results
@@ -401,8 +428,9 @@ def _exists_in_query_string_with_value_true(query_parameter_key: str) -> bool:
     return False
 
 
-def _get_mined_attributes(product_batch: Dict[str, Any], language: str,
-                          country: str) -> original_types.MinedAttributes:
+def _get_mined_attributes(
+    product_batch: Dict[str, Any], language: str, country: str
+) -> original_types.MinedAttributes:
   """Gets a list of mined attributes for every product in the batch.
 
   Args:
@@ -431,7 +459,8 @@ def _extract_all_url_parameters() -> List[str]:
 
 
 def _generate_optimizer_parameter_list_to_run(
-    optimizer_parameters_to_run_last: Sequence[str]) -> List[str]:
+    optimizer_parameters_to_run_last: Sequence[str],
+) -> List[str]:
   """Generates a list of optimizer parameters whose values are true by extracting from query string.
 
   Also brings optimizer parameters that should run last to the end of the
@@ -454,10 +483,12 @@ def _generate_optimizer_parameter_list_to_run(
   return optimizer_parameters
 
 
-def _build_response_dict(optimized_product_batch: Dict[str, Any],
-                         builtin_optimizer_results: Dict[str, Any],
-                         plugin_optimizer_results: Dict[str, Any],
-                         error_msg: str = '') -> Dict[str, Any]:
+def _build_response_dict(
+    optimized_product_batch: Dict[str, Any],
+    builtin_optimizer_results: Dict[str, Any],
+    plugin_optimizer_results: Dict[str, Any],
+    error_msg: str = '',
+) -> Dict[str, Any]:
   """Builds a dictionary of response data.
 
   Args:
@@ -473,7 +504,7 @@ def _build_response_dict(optimized_product_batch: Dict[str, Any],
   response = {
       'optimized-data': optimized_product_batch,
       'optimization-results': builtin_optimizer_results,
-      'plugin-results': plugin_optimizer_results
+      'plugin-results': plugin_optimizer_results,
   }
 
   if error_msg:
@@ -496,7 +527,8 @@ def health() -> Tuple[str, http.HTTPStatus]:
 @app.errorhandler(404)
 def not_found(_) -> Tuple[str, http.HTTPStatus]:
   return flask.make_response(
-      flask.jsonify({'error': 'URL not found'}), http.HTTPStatus.NOT_FOUND)
+      flask.jsonify({'error': 'URL not found'}), http.HTTPStatus.NOT_FOUND
+  )
 
 
 if __name__ == '__main__':
