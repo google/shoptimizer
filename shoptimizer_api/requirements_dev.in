@@ -1,0 +1,13 @@
+absl-py
+chardet
+flask
+google-api-python-client
+gunicorn
+importlib-metadata
+keras-preprocessing
+jaconv
+parameterized
+mecab-ko
+mecab-python3
+requests
+tensorflow

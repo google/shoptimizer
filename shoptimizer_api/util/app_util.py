@@ -30,6 +30,7 @@ def create_app() -> flask.Flask:
   app.config['JSON_SORT_KEYS'] = False
   app.config['CONFIGS'] = _load_all_configs()
   app.config['MECAB'] = _setup_mecab()
+  app.json.sort_keys = False
   return app
 
 

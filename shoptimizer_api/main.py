@@ -19,8 +19,8 @@ This module acts as the main entry point to the Shoptimizer API.
 """
 
 
+import collections
 import http
-
 import logging
 import sys
 from typing import Any, Dict, List, Sequence, Tuple
@@ -361,7 +361,7 @@ def _run_optimizers(
     The results of each optimizer run: Dict[str,
     optimization_result.OptimizationResult]
   """
-  optimization_results = {}
+  optimization_results = collections.OrderedDict()
 
   mined_attributes = (
       _get_mined_attributes(product_batch, language, country)

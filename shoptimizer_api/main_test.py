@@ -17,6 +17,7 @@
 import base64
 import http
 import json
+import unittest
 
 from absl.testing import parameterized
 
@@ -117,6 +118,7 @@ class MainTest(parameterized.TestCase):
   # endregion
 
   # region builtin optimizer tests
+
   def test_optimizer_run_when_parameter_set_to_true(self):
     request_body = requests_bodies.build_request_body()
 
@@ -142,7 +144,6 @@ class MainTest(parameterized.TestCase):
     response_data = response.data.decode('utf-8')
     response_dict = json.loads(response_data)
     optimization_results = response_dict['optimization-results']
-
     optimizers_executed = list(optimization_results.keys())
     self.assertEqual(optimizers_to_execute, optimizers_executed)
     self.assertEqual(http.HTTPStatus.OK, response.status_code)
@@ -327,3 +328,6 @@ class MainTest(parameterized.TestCase):
         response_dict['optimized-data']['entries'][0].get('excludedOptimizers'))
 
   # endregion
+
+if __name__ == '__main__':
+  unittest.main()

@@ -32,8 +32,5 @@ RUN pip install --upgrade pip && \
 # Add all files in Dockerfile directory to /app (can ignore files with .dockerignore)
 ADD . /app
 
-# Install production dependencies.
-RUN pip install gunicorn tensorflow
-
 # Run gunicorn starting main.py/app object, binding IP:port
 CMD exec gunicorn --bind :$PORT --workers 1 --threads 6 --timeout 0 main:app
