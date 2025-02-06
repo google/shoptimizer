@@ -20,10 +20,11 @@ This module acts as the main entry point to the Shoptimizer API.
 
 
 import collections
+from collections.abc import Sequence
 import http
 import logging
 import sys
-from typing import Any, Dict, List, Sequence, Tuple
+from typing import Any
 
 import flask
 
@@ -99,7 +100,7 @@ app = app_util.create_app()
 
 
 @app.route(f'{_V1_BASE_URL}/batch/optimize', methods=['POST'])
-def optimize() -> Tuple[str, http.HTTPStatus]:
+def optimize() -> tuple[str, http.HTTPStatus]:
   """Optimizes a JSON payload containing product data.
 
   The request body format should match the Content API custom batch insert
@@ -236,7 +237,7 @@ def optimize() -> Tuple[str, http.HTTPStatus]:
 
 
 def remove_exclude_optimizers_attributes(
-    optimized_product_batch: Dict[str, Any],
+    optimized_product_batch: dict[str, Any],
 ) -> None:
   """Removes any "excludeOptimizers" attributes in the request's "entries" list.
 
@@ -328,7 +329,7 @@ def _check_request_valid(
   return True, ''
 
 
-def _sanitize_batch(product_batch: Dict[str, Any]) -> None:
+def _sanitize_batch(product_batch: dict[str, Any]) -> None:
   """Cleans up the product batch.
 
   Args:
@@ -341,12 +342,12 @@ def _sanitize_batch(product_batch: Dict[str, Any]) -> None:
 
 
 def _run_optimizers(
-    product_batch: Dict[str, Any],
+    product_batch: dict[str, Any],
     language: str,
     country: str,
     currency: str,
     cached_optimizers: optimizer_cache.OptimizerCache,
-) -> (Dict[str, Any], Dict[str, optimization_result.OptimizationResult]):
+) -> (dict[str, Any], dict[str, optimization_result.OptimizationResult]):
   """Transforms a JSON payload of product data using optimizers.
 
   Args:
@@ -429,7 +430,7 @@ def _exists_in_query_string_with_value_true(query_parameter_key: str) -> bool:
 
 
 def _get_mined_attributes(
-    product_batch: Dict[str, Any], language: str, country: str
+    product_batch: dict[str, Any], language: str, country: str
 ) -> original_types.MinedAttributes:
   """Gets a list of mined attributes for every product in the batch.
 
@@ -445,7 +446,7 @@ def _get_mined_attributes(
   return miner.mine_and_insert_attributes_for_batch(product_batch)
 
 
-def _extract_all_url_parameters() -> List[str]:
+def _extract_all_url_parameters() -> list[str]:
   """Extracts all of the query string parameters from the request.
 
   Returns:
@@ -460,7 +461,7 @@ def _extract_all_url_parameters() -> List[str]:
 
 def _generate_optimizer_parameter_list_to_run(
     optimizer_parameters_to_run_last: Sequence[str],
-) -> List[str]:
+) -> list[str]:
   """Generates a list of optimizer parameters whose values are true by extracting from query string.
 
   Also brings optimizer parameters that should run last to the end of the
@@ -472,7 +473,7 @@ def _generate_optimizer_parameter_list_to_run(
   Returns:
     Optimizer parameters that exist in query string and are set to true.
   """
-  optimizer_parameters: List[str] = []
+  optimizer_parameters: list[str] = []
   for parameter_key, parameter_value in flask.request.args.items():
     if isinstance(parameter_value, str) and parameter_value.lower() == 'true':
       optimizer_parameters.append(parameter_key)
@@ -484,11 +485,11 @@ def _generate_optimizer_parameter_list_to_run(
 
 
 def _build_response_dict(
-    optimized_product_batch: Dict[str, Any],
-    builtin_optimizer_results: Dict[str, Any],
-    plugin_optimizer_results: Dict[str, Any],
+    optimized_product_batch: dict[str, Any],
+    builtin_optimizer_results: dict[str, Any],
+    plugin_optimizer_results: dict[str, Any],
     error_msg: str = '',
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
   """Builds a dictionary of response data.
 
   Args:
@@ -514,7 +515,7 @@ def _build_response_dict(
 
 
 @app.route(f'{_V1_BASE_URL}/health', methods=['GET'])
-def health() -> Tuple[str, http.HTTPStatus]:
+def health() -> tuple[str, http.HTTPStatus]:
   """A simple endpoint for checking the health of the deployed application.
 
   Returns:
@@ -525,7 +526,7 @@ def health() -> Tuple[str, http.HTTPStatus]:
 
 
 @app.errorhandler(404)
-def not_found(_) -> Tuple[str, http.HTTPStatus]:
+def not_found(_) -> tuple[str, http.HTTPStatus]:
   return flask.make_response(
       flask.jsonify({'error': 'URL not found'}), http.HTTPStatus.NOT_FOUND
   )

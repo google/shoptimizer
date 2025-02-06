@@ -14,15 +14,17 @@
 # limitations under the License.
 
 """Utility module for optimization."""
+from collections.abc import Iterable, Sequence
 import copy
-from typing import Any, Dict, Iterable, List, Sequence
+from typing import Any
 
 # Amount of space to leave between product data and appended attributes
 _SEPARATOR_LENGTH = len(' ')
 
 
-def optimization_exclusion_specified(entry: Dict[str, Any],
-                                     optimizer_parameter: str) -> bool:
+def optimization_exclusion_specified(
+    entry: dict[str, Any], optimizer_parameter: str
+) -> bool:
   """Returns true if the optimizer exclusion attribute was set and matches the given optimizer parameter."""
   return (entry.get('excludeOptimizers') and
           isinstance(entry.get('excludeOptimizers'), list) and
@@ -36,8 +38,8 @@ def cut_list_to_limit_list_length(target_list: Sequence[Any],
 
 
 def cut_list_to_limit_concatenated_str_length(
-    target_list: Sequence[str], separator: str,
-    max_total_str_length: int) -> List[str]:
+    target_list: Sequence[str], separator: str, max_total_str_length: int
+) -> list[str]:
   """Removes the last items from the list to limit the length of concatenated string of the items.
 
   For example, when target_list = ['Hello', 'Shoptimizer'] and separator = ',',
@@ -61,8 +63,9 @@ def cut_list_to_limit_concatenated_str_length(
   return output_list
 
 
-def cut_list_elements_over_max_length(target_list: Sequence[str],
-                                      max_length: int) -> List[str]:
+def cut_list_elements_over_max_length(
+    target_list: Sequence[str], max_length: int
+) -> list[str]:
   """Removes elements from a list that are over a certain length."""
   return [element for element in target_list if len(element) <= max_length]
 

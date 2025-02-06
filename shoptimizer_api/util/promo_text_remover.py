@@ -28,7 +28,7 @@ exists.
 
 import logging
 import re
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 import flask
 
@@ -50,7 +50,7 @@ class PromoTextRemover(object):
   """A class that removes text from a field of a product."""
 
   _language: Optional[str] = None
-  _config: Optional[Dict[str, Any]] = None
+  _config: Optional[dict[str, Any]] = None
 
   def __init__(self, language: str) -> None:
     """Initializes PromoTextRemover.
@@ -74,8 +74,9 @@ class PromoTextRemover(object):
     self.promo_regex_patterns = self._config.get(
         'promotional_text_patterns_regex', [])
 
-  def remove_text_from_field(self, product: Dict[str, Any],
-                             field_key: str) -> None:
+  def remove_text_from_field(
+      self, product: dict[str, Any], field_key: str
+  ) -> None:
     """Removes text and regex patterns in the config file from a product field.
 
     Args:

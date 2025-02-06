@@ -14,7 +14,6 @@
 # limitations under the License.
 
 """Shared constants used for optimizer modules in the Shoptimizer API."""
-from typing import Set, Tuple
 
 LANGUAGE_CODE_DE: str = 'de'
 LANGUAGE_CODE_EN: str = 'en'
@@ -48,9 +47,16 @@ DEFAULT_CURRENCY: str = CURRENCY_CODE_USD
 MAX_ALTERNATE_IMAGE_URLS: int = 10
 MAX_IMAGE_URL_LENGTH: int = 2000
 MAX_IMAGE_FILE_SIZE_BYTES: int = 16000000  # 16MB
-VALID_IMAGE_URL_FILE_SUFFIXES: Tuple[str,
-                                     ...] = ('.JPG', '.JPEG', '.WEBP', '.PNG',
-                                             '.GIF', '.BMP', '.TIF', '.TIFF')
+VALID_IMAGE_URL_FILE_SUFFIXES: tuple[str, ...] = (
+    '.JPG',
+    '.JPEG',
+    '.WEBP',
+    '.PNG',
+    '.GIF',
+    '.BMP',
+    '.TIF',
+    '.TIFF',
+)
 
 MAX_COLOR_COUNT: int = 3
 MAX_COLOR_STR_LENGTH_FOR_EACH: int = 40
@@ -59,17 +65,27 @@ MAX_COLOR_STR_LENGTH_IN_TOTAL: int = 100
 CLOTHING_SIZES_CHARS_SLASH_SEPARATOR = r'(\b([0-9]{1,3})?(X{0,3})(S{1,2})\b|\bM{1}\b|\b([0-9]{1,3})?(X{0,2})(L{1,2})\b)(\/(([0-9]{1,3})?(X{0,3})(S{1,2})\b|M{1}\b|([0-9]{1,3})?(X{0,2})(L{1,2})\b))*'
 CLOTHING_SIZES_CHARS_REGEX_RANGE = r'((\b([0-9]{1,3})?[X]*(S{1,2}\b)?(\bM{1}\b)?\b([0-9]{1,3})?[X]*(L{1,2}\b)?)(-(\b([0-9]{1,3})?[X]*(S{1,2}\b)?(\bM{1}\b)?\b([0-9]{1,3})?[X]*(L{1,2})?))?)'
 CLOTHING_SIZES_REGEX_WORDS = r'((X|EXTRA)?[\s|-]?SMALL\/?\b|(X|EXTRA)?[\s|-]?MEDIUM\/?\b|(X|EXTRA)?[\s|-]?LARGE\/?\b|OSFA\/?\b|\bOS\/?\b)'
-CLOTHING_SIZES_JA: Tuple[str,
-                         ...] = ('XXS', 'XS', 'S', 'M', 'L', 'LL', 'XL', 'XXL')
-CLOTHING_SIZES_KO: Tuple[str, ...] = ('XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL')
+CLOTHING_SIZES_JA: tuple[str, ...] = (
+    'XXS',
+    'XS',
+    'S',
+    'M',
+    'L',
+    'LL',
+    'XL',
+    'XXL',
+)
+CLOTHING_SIZES_KO: tuple[str, ...] = ('XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL')
 NUMERIC_CLOTHING_SIZES_JA_REGEX = r'\d*\.?\d+(-?\d+)?(\.?\d+)?\s?(cm|centimeters|センチ|センチメートル|mm|ミリメートル|ミリ|inches|inch|in|インチ|years|yo|歳)?'
 NUMERIC_CLOTHING_SIZES_KO_REGEX = r'\d*\.?\d+(-?\d+)?(\.?\d+)?\s?(cm|centimeters|센티|센티미터|mm|밀리미터|인치|inches|inch|in|years|yo|살)?'
-ALPHABETIC_CLOTHING_SIZES_JP_UNISIZE_MULTI_WORD: Tuple[str, ...] = ('フリーサイズ',
-                                                                    'Free Size',
-                                                                    '00(FREE)',
-                                                                    'F/FREE',
-                                                                    'One size')
-ALPHABETIC_CLOTHING_SIZES_KR_UNISIZE_MULTI_WORD: Tuple[str, ...] = (
+ALPHABETIC_CLOTHING_SIZES_JP_UNISIZE_MULTI_WORD: tuple[str, ...] = (
+    'フリーサイズ',
+    'Free Size',
+    '00(FREE)',
+    'F/FREE',
+    'One size',
+)
+ALPHABETIC_CLOTHING_SIZES_KR_UNISIZE_MULTI_WORD: tuple[str, ...] = (
     'Free Size',
     'FREESIZE',
     '00(FREE)',
@@ -82,20 +98,24 @@ ALPHABETIC_CLOTHING_SIZES_KR_UNISIZE_MULTI_WORD: Tuple[str, ...] = (
     '원사이즈',
     '원 사이즈',
 )
-ALPHABETIC_CLOTHING_SIZES_JP_UNISIZE_SINGLE_WORD: Tuple[str,
-                                                        ...] = ('フリー', 'FREE',
-                                                                'free',
-                                                                'unisize',
-                                                                '1_size')
-ALPHABETIC_CLOTHING_SIZES_KR_UNISIZE_SINGLE_WORD: Tuple[str, ...] = (
+ALPHABETIC_CLOTHING_SIZES_JP_UNISIZE_SINGLE_WORD: tuple[str, ...] = (
+    'フリー',
+    'FREE',
+    'free',
+    'unisize',
+    '1_size',
+)
+ALPHABETIC_CLOTHING_SIZES_KR_UNISIZE_SINGLE_WORD: tuple[str, ...] = (
     '프리',
     'FREE',
     'free',
     'unisize',
     '1_size',
 )
-ALPHABETIC_CLOTHING_SIZES_EN_UNISIZE: Tuple[str, ...] = ('One size fits all',
-                                                         'One size')
+ALPHABETIC_CLOTHING_SIZES_EN_UNISIZE: tuple[str, ...] = (
+    'One size fits all',
+    'One size',
+)
 
 MINIMUM_SHOE_SIZE_JP: float = 10
 MAXIMUM_SHOE_SIZE_JP: float = 35
@@ -106,14 +126,14 @@ MAXIMUM_SHOE_SIZE_US: float = 16
 MINIMUM_SHOE_SIZE_KR: float = 100
 MAXIMUM_SHOE_SIZE_KR: float = 370
 
-GOOGLE_PRODUCT_CATEGORY_APPAREL_ACCESSORIES_KEYWORDS: Set[str] = {
+GOOGLE_PRODUCT_CATEGORY_APPAREL_ACCESSORIES_KEYWORDS: set[str] = {
     'Apparel & Accessories',
     'ファッション・アクセサリー',
     'Pakaian & Aksesori',
     '의류/액세서리',
 }
 
-GOOGLE_PRODUCT_CATEGORY_APPAREL_ACCESSORIES_IDS: Set[str] = {
+GOOGLE_PRODUCT_CATEGORY_APPAREL_ACCESSORIES_IDS: set[str] = {
     '166',
     '184',
     '5192',
@@ -347,13 +367,13 @@ GOOGLE_PRODUCT_CATEGORY_APPAREL_ACCESSORIES_IDS: Set[str] = {
     '185',
 }
 
-GOOGLE_PRODUCT_CATEGORY_APPAREL_ACCESSORIES_CLOTHING_KEYWORDS: Set[str] = {
+GOOGLE_PRODUCT_CATEGORY_APPAREL_ACCESSORIES_CLOTHING_KEYWORDS: set[str] = {
     'Apparel & Accessories > Clothing',
     'ファッション・アクセサリー > 衣料品',
     '의류/액세서리 > 의류',
 }
 
-GOOGLE_PRODUCT_CATEGORY_APPAREL_ACCESSORIES_CLOTHING_IDS: Set[str] = {
+GOOGLE_PRODUCT_CATEGORY_APPAREL_ACCESSORIES_CLOTHING_IDS: set[str] = {
     '1604',
     '5322',
     '5697',
@@ -474,13 +494,13 @@ GOOGLE_PRODUCT_CATEGORY_APPAREL_ACCESSORIES_CLOTHING_IDS: Set[str] = {
     '5329',
 }
 
-GOOGLE_PRODUCT_CATEGORY_APPAREL_ACCESSORIES_SHOES_KEYWORDS: Set[str] = {
+GOOGLE_PRODUCT_CATEGORY_APPAREL_ACCESSORIES_SHOES_KEYWORDS: set[str] = {
     'Apparel & Accessories > Shoes',
     'ファッション・アクセサリー > 靴',
     '의류/액세서리 > 신발',
 }
 
-GOOGLE_PRODUCT_CATEGORY_APPAREL_ACCESSORIES_SHOES_IDS: Set[str] = {
+GOOGLE_PRODUCT_CATEGORY_APPAREL_ACCESSORIES_SHOES_IDS: set[str] = {
     '187',
 }
 

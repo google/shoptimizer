@@ -20,7 +20,6 @@ from unittest import mock
 
 from optimizers_builtin import title_word_order_optimizer
 from test_data import requests_bodies
-from typing import List, Dict
 from util import app_util
 
 import constants
@@ -747,8 +746,9 @@ class TitleWordOrderOptimizerNoFlaskTest(parameterized.TestCase):
     self.assertEqual(1, optimization_result.num_of_products_optimized)
 
 
-def _custom_text_tokenizer(text: str, lang: str,
-                           dictionary_terms: Dict[str, str]) -> List[str]:
+def _custom_text_tokenizer(
+    text: str, lang: str, dictionary_terms: dict[str, str]
+) -> list[str]:
   """Helper function to split text by a comma."""
   del lang
   del dictionary_terms

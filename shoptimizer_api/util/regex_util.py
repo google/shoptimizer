@@ -25,7 +25,6 @@ By using regex, we can check for matches without having to transform every title
 with strip().
 """
 import re
-from typing import Dict, List, Pattern
 
 # Ignores 0+ whitespace or full-width space characters.
 _WHITESPACE_REGEX = '(\s|　)*'  
@@ -61,7 +60,7 @@ def convert_to_regex_str_that_ignores_spaces(term: str) -> str:
   return re.compile(regex_term)
 
 
-def generate_regex_term_dict(terms: List[str]) -> Dict[Pattern[str], str]:
+def generate_regex_term_dict(terms: list[str]) -> dict[re.Pattern[str], str]:
   r"""Convert the list of terms into a regex to term dictionary.
 
   The regex matches the terms regardless of whitespace.

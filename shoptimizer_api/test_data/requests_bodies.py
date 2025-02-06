@@ -16,7 +16,7 @@
 """Contains request bodies used for testing."""
 import copy
 import json
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 _VALID_SINGLE_PRODUCT = json.loads("""{
     "entries": [
@@ -157,8 +157,9 @@ INVALID_ENTRIES_MISSING_PRODUCT_LIST = json.loads("""{
 
 
 def build_request_body(
-    properties_to_be_updated: Optional[Dict[str, Any]] = None,
-    properties_to_be_removed: Optional[List[str]] = None) -> Dict[str, Any]:
+    properties_to_be_updated: Optional[dict[str, Any]] = None,
+    properties_to_be_removed: Optional[list[str]] = None,
+) -> dict[str, Any]:
   """Builds a dummy request body of 1 product.
 
   This function creates a request body from _VALID_SINGLE_PRODUCT by

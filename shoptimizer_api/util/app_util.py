@@ -18,7 +18,7 @@ import json
 import logging
 import os
 import subprocess
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 import flask
 import MeCab
@@ -39,7 +39,7 @@ def setup_test_app() -> None:
   create_app().app_context().push()
 
 
-def _load_all_configs() -> Dict[str, Any]:
+def _load_all_configs() -> dict[str, Any]:
   """Loads into memory the .json config files."""
   all_configs = {}
   config_files_path = os.path.join(os.path.dirname(__file__), '../config/')

@@ -22,12 +22,13 @@ Products that have invalid image_link attributes will be disapproved. Those with
   invalid additional_image_link attributes will be flagged but not disapproved.
 """
 
+from collections.abc import Iterable, Mapping
 import concurrent.futures
 import logging
 import math
 import os
 import sys
-from typing import Any, Iterable, List, Mapping, Tuple
+from typing import Any
 import urllib.error
 
 import constants
@@ -196,7 +197,8 @@ class ImageLinkOptimizer(base_optimizer.BaseOptimizer):
         num_of_products_optimized, num_of_products_excluded)
 
   def _process_images_in_parallel(
-      self, image_urls: Iterable[str]) -> List[image_download.ImageDownload]:
+      self, image_urls: Iterable[str]
+  ) -> list[image_download.ImageDownload]:
     """Processes all image URLs provided in parallel.
 
     File contents are stored in the resulting ImageDownload objects if the
@@ -314,8 +316,9 @@ def _log_download_status(future: concurrent.futures.Future) -> None:
                   image.url, sys.getsizeof(image.content))
 
 
-def _truncate_excess_images(images: List[image_download.ImageDownload]
-                            ) -> Tuple[List[image_download.ImageDownload], int]:
+def _truncate_excess_images(
+    images: list[image_download.ImageDownload],
+) -> tuple[list[image_download.ImageDownload], int]:
   """Truncates the list of ImageDownloads to the maximum length allowed.
 
   First, removes any images with errors, starting from the end of the list.

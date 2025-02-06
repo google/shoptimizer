@@ -26,7 +26,7 @@ https://support.google.com/merchants/answer/6324487?hl=en
 
 import logging
 import subprocess
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Optional
 
 import MeCab
 import mecab_ko
@@ -46,7 +46,7 @@ class ColorMiner(object):
   """A class that mines color from product data."""
 
   _language: Optional[str] = None
-  _color_config: Optional[Dict[str, Any]] = None
+  _color_config: Optional[dict[str, Any]] = None
   _gpc_id_to_string_converter: Optional[
       gpc_id_to_string_converter.GPCConverter] = None
   _mecab_tagger: Optional[MeCab.Tagger] = None
@@ -98,9 +98,8 @@ class ColorMiner(object):
       logging.exception('Error during initializing mecab_ko Tagger: %s', error)
 
   def mine_color(
-      self,
-      product: Dict[str,
-                    Any]) -> Tuple[Optional[List[str]], Optional[List[str]]]:
+      self, product: dict[str, Any]
+  ) -> tuple[Optional[list[str]], Optional[list[str]]]:
     """Mines the color from product fields.
 
     Args:
@@ -142,8 +141,9 @@ class ColorMiner(object):
 
     return mined_standard_colors, mined_unique_colors
 
-  def _mine_color_from_attribute(self,
-                                 text: str) -> Tuple[List[str], List[str]]:
+  def _mine_color_from_attribute(
+      self, text: str
+  ) -> tuple[list[str], list[str]]:
     """Mines the color from attribute based on the configured language.
 
     Args:
@@ -159,8 +159,9 @@ class ColorMiner(object):
       return self._mine_color_by_komecab(text)
     return self._mine_color_by_scanning_terms(text)
 
-  def _mine_color_by_scanning_terms(self,
-                                    text: str) -> Tuple[List[str], List[str]]:
+  def _mine_color_by_scanning_terms(
+      self, text: str
+  ) -> tuple[list[str], list[str]]:
     """Mines the color by scanning words.
 
     It will not add a standard color to if an unique color that includes the
@@ -190,7 +191,7 @@ class ColorMiner(object):
                                 constants.MAX_COLOR_COUNT),
             _clean_up_term_list(mined_unique_colors, constants.MAX_COLOR_COUNT))
 
-  def _mine_color_by_mecab(self, text: str) -> Tuple[List[str], List[str]]:
+  def _mine_color_by_mecab(self, text: str) -> tuple[list[str], list[str]]:
     """Mines the color by using MeCab for language processing.
 
     Args:
@@ -219,7 +220,7 @@ class ColorMiner(object):
                                 constants.MAX_COLOR_COUNT),
             _clean_up_term_list(mined_unique_colors, constants.MAX_COLOR_COUNT))
 
-  def _mine_color_by_komecab(self, text: str) -> Tuple[List[str], List[str]]:
+  def _mine_color_by_komecab(self, text: str) -> tuple[list[str], list[str]]:
     """Mines the color by using mecab_ko for language processing.
 
     We obtain part of speech (pos) from tokens obtained from Korean sentences
@@ -302,7 +303,7 @@ class ColorMiner(object):
     )
 
 
-def _clean_up_term_list(term_list: List[str], max_count: int) -> List[str]:
+def _clean_up_term_list(term_list: list[str], max_count: int) -> list[str]:
   """Cleans up a list of terms.
 
   This function removes duplicate elements and returns a list of title-formed

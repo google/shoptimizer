@@ -21,7 +21,7 @@ Invalid MPN values will cause products to be disapproved.
 """
 import logging
 import string
-from typing import Any, Dict
+from typing import Any
 
 from models import optimization_result_counts
 from optimizers_abstract import base_optimizer
@@ -67,8 +67,12 @@ class MPNOptimizer(base_optimizer.BaseOptimizer):
   _OPTIMIZER_PARAMETER = 'mpn-optimizer'
 
   def _optimize(
-      self, product_batch: Dict[str, Any], language: str, country: str,
-      currency: str) -> optimization_result_counts.OptimizationResultCounts:
+      self,
+      product_batch: dict[str, Any],
+      language: str,
+      country: str,
+      currency: str,
+  ) -> optimization_result_counts.OptimizationResultCounts:
     """Runs the optimization.
 
     Args:

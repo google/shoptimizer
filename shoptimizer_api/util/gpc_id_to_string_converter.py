@@ -16,7 +16,7 @@
 """Utility module that converts GPCs as ID numbers into their mapped strings."""
 
 
-from typing import Dict, Union
+from typing import Union
 from flask import current_app
 
 
@@ -40,7 +40,8 @@ class GPCConverter(object):
 
   @classmethod
   def from_dictionary(
-      cls, gpc_string_to_id_mapping: Dict[str, int]) -> 'GPCConverter':
+      cls, gpc_string_to_id_mapping: dict[str, int]
+  ) -> 'GPCConverter':
     """Initializes GPCConverter.
 
     Args:

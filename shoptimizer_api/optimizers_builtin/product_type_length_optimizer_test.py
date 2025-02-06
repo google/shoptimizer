@@ -15,7 +15,6 @@
 
 """Unit tests for product_type_length_optimizer module."""
 
-from typing import List
 import unittest.mock as mock
 
 from absl.testing import parameterized
@@ -63,7 +62,8 @@ class ProductTypeLengthOptimizerTest(parameterized.TestCase):
       },
   )
   def test_process_not_cut_product_type_when_not_too(
-      self, original_product_type: List[str]):
+      self, original_product_type: list[str]
+  ):
     original_data = requests_bodies.build_request_body(
         properties_to_be_updated={'productTypes': original_product_type})
 

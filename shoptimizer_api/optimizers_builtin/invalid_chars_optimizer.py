@@ -28,7 +28,7 @@ This optimizer finds characters with a code point that maps to the private
 use area and removes them.
 """
 import logging
-from typing import Any, Dict, List
+from typing import Any
 
 from models import optimization_result_counts
 from optimizers_abstract import base_optimizer
@@ -48,8 +48,12 @@ class InvalidCharsOptimizer(base_optimizer.BaseOptimizer):
   _OPTIMIZER_PARAMETER = 'invalid-chars-optimizer'
 
   def _optimize(
-      self, product_batch: Dict[str, Any], language: str, country: str,
-      currency: str) -> optimization_result_counts.OptimizationResultCounts:
+      self,
+      product_batch: dict[str, Any],
+      language: str,
+      country: str,
+      currency: str,
+  ) -> optimization_result_counts.OptimizationResultCounts:
     """Runs the optimization.
 
     Removes invalid chars from the title and description.
@@ -86,7 +90,7 @@ class InvalidCharsOptimizer(base_optimizer.BaseOptimizer):
         num_of_products_optimized, num_of_products_excluded)
 
 
-def _sanitize_fields(product: Dict[str, Any], fields: List[str]) -> bool:
+def _sanitize_fields(product: dict[str, Any], fields: list[str]) -> bool:
   """Removes invalid chars from product fields.
 
   Invalid chars are any chars that have code points in the Unicode private use

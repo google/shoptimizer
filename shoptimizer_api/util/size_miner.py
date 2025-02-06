@@ -24,11 +24,12 @@ References
 - Google Merchant Center Help Center:
 https://support.google.com/merchants/answer/6324492?hl=en
 """
+from collections.abc import Iterator
 
 import itertools
 import logging
 import re
-from typing import Any, AnyStr, Dict, Iterator, Match, Optional
+from typing import Any, AnyStr, Optional
 from flask import current_app
 
 import jaconv
@@ -80,7 +81,7 @@ class SizeMiner(object):
     self._mecab_tagger = current_app.config.get('MECAB')
     self._komecab_tagger = mecab_ko.Tagger()
 
-  def mine_size(self, product: Dict[str, Any]) -> Optional[str]:
+  def mine_size(self, product: dict[str, Any]) -> Optional[str]:
     """Mines size from product fields.
 
     Args:
@@ -116,8 +117,9 @@ class SizeMiner(object):
           self._language)
       return None
 
-  def is_size_in_attribute(self, product: Dict[str, Any],
-                           attribute: str) -> bool:
+  def is_size_in_attribute(
+      self, product: dict[str, Any], attribute: str
+  ) -> bool:
     """Checks if the size is already in a given attribute or not.
 
     Args:
@@ -563,7 +565,8 @@ def _concat_mecab_nodes_from_node(node: object) -> str:
 
 
 def _get_longest_alphabetic_regex_match(
-    regex_matches: Iterator[Match[AnyStr]]) -> str:
+    regex_matches: Iterator[re.Match[AnyStr]],
+) -> str:
   """Helper that returns the longest sequence in a regex result, or None."""
   longest_match = ''
   for match in regex_matches:

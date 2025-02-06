@@ -22,7 +22,7 @@ product imply that the condition is otherwise, this optimizer will reset
 the condition value to "used".
 """
 import logging
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Optional
 
 from models import optimization_result_counts
 from optimizers_abstract import base_optimizer
@@ -46,8 +46,12 @@ class ConditionOptimizer(base_optimizer.BaseOptimizer):
       gpc_id_to_string_converter.GPCConverter] = None
 
   def _optimize(
-      self, product_batch: Dict[str, Any], language: str, country: str,
-      currency: str) -> optimization_result_counts.OptimizationResultCounts:
+      self,
+      product_batch: dict[str, Any],
+      language: str,
+      country: str,
+      currency: str,
+  ) -> optimization_result_counts.OptimizationResultCounts:
     """Runs the optimization.
 
     Fixes invalid condition values.
@@ -143,8 +147,9 @@ class ConditionOptimizer(base_optimizer.BaseOptimizer):
         google_product_category.startswith(category_to_exclude)
         for category_to_exclude in excluded_categories)
 
-  def _field_contains_used_tokens(self, field_text: str,
-                                  used_tokens: Set[str]) -> bool:
+  def _field_contains_used_tokens(
+      self, field_text: str, used_tokens: set[str]
+  ) -> bool:
     """Checks if the provided field contains any terms in the given set.
 
     Args:
@@ -156,7 +161,7 @@ class ConditionOptimizer(base_optimizer.BaseOptimizer):
     """
     return any(token in field_text.lower() for token in used_tokens)
 
-  def _get_tokens_for_category(self, product_category: str) -> List[str]:
+  def _get_tokens_for_category(self, product_category: str) -> list[str]:
     """Gets the values in a list of dictionaries if the provided category was found.
 
     Args:

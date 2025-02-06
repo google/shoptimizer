@@ -14,9 +14,10 @@
 # limitations under the License.
 
 """Tests for image_link_optimizer.py."""
+from collections.abc import Iterable
 import json
 import time
-from typing import Any, Dict, Iterable, List
+from typing import Any
 from unittest import mock
 import urllib.error
 
@@ -30,13 +31,14 @@ from util import image_util
 from util import networking
 
 
-def _build_list_of_image_links(num_links: int,
-                               file_type: str = 'jpg') -> List[str]:
+def _build_list_of_image_links(
+    num_links: int, file_type: str = 'jpg'
+) -> list[str]:
   return [f'https://examples.com/image{n}.{file_type}'
           for n in list(range(num_links))]
 
 
-def _request_body_from_image_links(links: Iterable[str]) -> Dict[str, Any]:
+def _request_body_from_image_links(links: Iterable[str]) -> dict[str, Any]:
   return requests_bodies.build_request_body(properties_to_be_updated={
       'imageLink': links[0],
       'additionalImageLink': links[1:]

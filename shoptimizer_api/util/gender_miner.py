@@ -24,7 +24,7 @@ https://support.google.com/merchants/answer/6324479?hl=en
 """
 
 import logging
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Optional
 
 from util import config_parser
 from util import gpc_id_to_string_converter
@@ -38,13 +38,13 @@ _BABY: str = 'baby'
 _FEMALE: str = 'female'
 _MALE: str = 'male'
 _UNISEX: str = 'unisex'
-_VALID_GENDER_VALUES: List[str] = [_FEMALE, _MALE, _UNISEX]
+_VALID_GENDER_VALUES: list[str] = [_FEMALE, _MALE, _UNISEX]
 
 
 class GenderMiner(object):
   """A class that mines color from product data."""
 
-  _gender_config: Optional[Dict[str, Any]] = None
+  _gender_config: Optional[dict[str, Any]] = None
   _gpc_id_to_string_converter: Optional[
       gpc_id_to_string_converter.GPCConverter] = None
 
@@ -63,7 +63,7 @@ class GenderMiner(object):
     self._gpc_id_to_string_converter = gpc_id_to_string_converter.GPCConverter(
         _GPC_STRING_TO_ID_MAPPING_CONFIG_FILE_NAME.format(language))
 
-  def mine_gender(self, product: Dict[str, Any]) -> Optional[Tuple[str, str]]:
+  def mine_gender(self, product: dict[str, Any]) -> Optional[tuple[str, str]]:
     """Mines the gender from product fields.
 
     Args:
@@ -137,8 +137,9 @@ class GenderMiner(object):
 
     return None
 
-  def _get_gender_from_product_types(self, age_demographic: str,
-                                     product_types: List[str]) -> str:
+  def _get_gender_from_product_types(
+      self, age_demographic: str, product_types: list[str]
+  ) -> str:
     """Extracts the gender from the productTypes field.
 
     Args:
@@ -218,8 +219,9 @@ class GenderMiner(object):
       return gender_field
     return ''
 
-  def _remove_terms_from_description(self, description: str,
-                                     search_terms: List[str]) -> str:
+  def _remove_terms_from_description(
+      self, description: str, search_terms: list[str]
+  ) -> str:
     """Removes the provided terms from the provided description string.
 
     Args:
@@ -235,8 +237,9 @@ class GenderMiner(object):
       description = description.lower().replace(keyword.lower(), '')
     return description
 
-  def _text_contains_terms(self, field_text: str,
-                           search_terms: List[str]) -> bool:
+  def _text_contains_terms(
+      self, field_text: str, search_terms: list[str]
+  ) -> bool:
     """Checks if any provided search term was found in the provided text.
 
     Args:

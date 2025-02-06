@@ -15,7 +15,7 @@
 
 """Unit tests for color_miner.py."""
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 from unittest import mock
 
 from absl.testing import parameterized
@@ -26,8 +26,9 @@ from util import color_miner
 
 
 def _build_dummy_product(
-    properties_to_be_updated: Optional[Dict[str, Any]] = None,
-    properties_to_be_removed: Optional[List[str]] = None) -> Dict[str, Any]:
+    properties_to_be_updated: Optional[dict[str, Any]] = None,
+    properties_to_be_removed: Optional[list[str]] = None,
+) -> dict[str, Any]:
   """Builds a dummy product data.
 
   Args:

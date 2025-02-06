@@ -23,10 +23,9 @@ This module does three things:
 3. Ensures there are no more than 3 colors in the list of colors
 If the above conditions are not met, the product will be disapproved.
 """
-from typing import Any, Dict
+from typing import Any
 
 import constants
-
 from models import optimization_result_counts
 from optimizers_abstract import base_optimizer
 from util import optimization_util
@@ -40,8 +39,12 @@ class ColorLengthOptimizer(base_optimizer.BaseOptimizer):
   _OPTIMIZER_PARAMETER = 'color-length-optimizer'
 
   def _optimize(
-      self, product_batch: Dict[str, Any], language: str, country: str,
-      currency: str) -> optimization_result_counts.OptimizationResultCounts:
+      self,
+      product_batch: dict[str, Any],
+      language: str,
+      country: str,
+      currency: str,
+  ) -> optimization_result_counts.OptimizationResultCounts:
     """Runs the optimization.
 
     Fixes invalid color fields.

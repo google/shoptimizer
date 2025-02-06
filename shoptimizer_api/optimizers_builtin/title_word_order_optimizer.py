@@ -29,11 +29,12 @@ shoptimizer_api/config/title_word_order_options.json.
   When set to "aggressive we apply our high performing keywords title
   optimizations to products with google product category level 3, 4 or more.
 """
+from collections.abc import Callable
 
 import enum
 import logging
 import re
-from typing import Any, Callable, Dict, List, Optional, Pattern, Tuple
+from typing import Any, Optional
 from util import promo_text_remover as promo_text_remover_lib
 from flask import current_app
 
@@ -66,8 +67,9 @@ GPC_STRING_TO_ID_MAPPING_CONFIG = None
 TITLE_WORD_ORDER_CONFIG = None
 BLOCKLIST_CONFIG = None
 TITLE_WORD_ORDER_OPTIONS_CONFIG = None
-CUSTOM_TEXT_TOKENIZER: Callable[[str, str, Dict[Pattern[str], str]],
-                                List[str]] = None
+CUSTOM_TEXT_TOKENIZER: Callable[
+    [str, str, dict[re.Pattern[str], str]], list[str]
+] = None
 
 
 def _get_required_configs():
@@ -137,8 +139,12 @@ class TitleWordOrderOptimizer(base_optimizer.BaseOptimizer):
       gpc_id_to_string_converter.GPCConverter] = None
 
   def _optimize(
-      self, product_batch: Dict[str, Any], language: str, country: str,
-      currency: str) -> optimization_result_counts.OptimizationResultCounts:
+      self,
+      product_batch: dict[str, Any],
+      language: str,
+      country: str,
+      currency: str,
+  ) -> optimization_result_counts.OptimizationResultCounts:
     """Runs the optimization.
 
     This is called by process() in the base class.
@@ -345,7 +351,7 @@ def _should_skip_optimization(gpc_string: str,
 
 def _get_level_3_gpc_id(
     gpc_string: str,
-    gpc_string_to_id_mapping: Dict[str, Any],
+    gpc_string_to_id_mapping: dict[str, Any],
 ) -> int:
   """Gets the GPC ID for the given product with a GPC in string format.
 
@@ -362,14 +368,15 @@ def _get_level_3_gpc_id(
 
 
 def _sort_keywords_for_gpc_by_descending_weight(
-    keywords_for_gpc: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    keywords_for_gpc: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
   """Sorts keywords_for_gpc by their weight values in descending order."""
   return sorted(keywords_for_gpc, key=lambda x: x['weight'], reverse=True)
 
 
 def _remove_keywords_in_blocklist(
-    keywords: List[Dict[str, Any]],
-    keyword_blocklist: List[str]) -> List[Dict[str, Any]]:
+    keywords: list[dict[str, Any]], keyword_blocklist: list[str]
+) -> list[dict[str, Any]]:
   """Removes keywords from the keyword list that were found in the blocklist.
 
   The check for existence is case-insensitive.
@@ -392,8 +399,8 @@ def _remove_keywords_in_blocklist(
 
 
 def _tokenize_text(
-    text: str, language: str, regex_dictionary_terms: Dict[Pattern[str],
-                                                           str]) -> List[str]:
+    text: str, language: str, regex_dictionary_terms: dict[re.Pattern[str], str]
+) -> list[str]:
   """Splits text into individual words using the correct method for the given language.
 
   Args:
@@ -414,7 +421,8 @@ def _tokenize_text(
 
 
 def _split_words_in_japanese(
-    text: str, regex_dictionary_terms: Dict[Pattern[str], str]) -> List[str]:
+    text: str, regex_dictionary_terms: dict[re.Pattern[str], str]
+) -> list[str]:
   """Splits Japanese text into words by using MeCab.
 
   If a group of words in the text match a regex in the
@@ -446,7 +454,8 @@ def _split_words_in_japanese(
 
 
 def _split_words_in_western_languages(
-    text: str, regex_dictionary_terms: Dict[Pattern[str], str]) -> List[str]:
+    text: str, regex_dictionary_terms: dict[re.Pattern[str], str]
+) -> list[str]:
   """Splits western text into words.
 
   If a group of words in the text match a regex in the
@@ -469,9 +478,12 @@ def _split_words_in_western_languages(
 
 
 def _generate_list_of_keywords_to_append(
-    sorted_keywords: List[Dict[str, Any]], title_to_process: str,
-    title_words: List[str], description_words: List[str],
-    product_types_words: List[str]) -> List[str]:
+    sorted_keywords: list[dict[str, Any]],
+    title_to_process: str,
+    title_words: list[str],
+    description_words: list[str],
+    product_types_words: list[str],
+) -> list[str]:
   """Determines which high-performing keywords need to be appended.
 
   Args:
@@ -508,10 +520,13 @@ def _generate_list_of_keywords_to_append(
 
 
 def _generate_front_and_back_keyword_lists(
-    sorted_keywords: List[Dict[str, Any]], title_to_process: str,
-    title_words: List[str], description_words: List[str],
-    product_types_words: List[str],
-    language: str) -> Tuple[List[str], List[str], str]:
+    sorted_keywords: list[dict[str, Any]],
+    title_to_process: str,
+    title_words: list[str],
+    description_words: list[str],
+    product_types_words: list[str],
+    language: str,
+) -> tuple[list[str], list[str], str]:
   """Generates two lists of keywords: those in the front and back of the title.
 
   Args:
@@ -565,15 +580,18 @@ def _generate_front_and_back_keyword_lists(
 
 
 def _num_keywords_to_prepend_meets_or_exceeds_limit(
-    keywords_to_prepend: List[str]) -> bool:
+    keywords_to_prepend: list[str],
+) -> bool:
   """"Checks if the number of the given list of keywords hit the max allowed."""
   return len(keywords_to_prepend) >= _MAX_KEYWORDS_PER_TITLE
 
 
 def _generate_list_of_keywords_to_prepend(
-    keywords_visible_to_user: List[str],
-    keywords_not_visible_to_user: List[str], title: str,
-    language: str) -> List[str]:
+    keywords_visible_to_user: list[str],
+    keywords_not_visible_to_user: list[str],
+    title: str,
+    language: str,
+) -> list[str]:
   """Determines which performant keywords need to be prepended and sorts them.
 
   Args:
@@ -609,8 +627,9 @@ def _generate_list_of_keywords_to_prepend(
 
 
 def _reorder_keywords_by_weight(
-    keywords_to_prepend: List[str],
-    sorted_keywords_for_gpc: List[Dict[str, Any]]) -> List[str]:
+    keywords_to_prepend: list[str],
+    sorted_keywords_for_gpc: list[dict[str, Any]],
+) -> list[str]:
   """Reorders keywords by weight."""
   sorted_keywords_to_prepend = []
   for weighted_word in sorted_keywords_for_gpc:
@@ -620,8 +639,11 @@ def _reorder_keywords_by_weight(
   return sorted_keywords_to_prepend
 
 
-def _generate_optimized_title(performant_keywords_to_add: List[str], title: str,
-                              keywords_position: _KeywordsPosition) -> str:
+def _generate_optimized_title(
+    performant_keywords_to_add: list[str],
+    title: str,
+    keywords_position: _KeywordsPosition,
+) -> str:
   """Adds keywords in square brackets to the title.
 
   Args:
@@ -646,7 +668,8 @@ def _generate_optimized_title(performant_keywords_to_add: List[str], title: str,
 
 def _remove_keywords_with_promo(
     promo_text_remover: promo_text_remover_lib,
-    keywords_for_gpc: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    keywords_for_gpc: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
   """Remove elements of keywords_for_gpc that contains promo text as keyword.
 
   Args:

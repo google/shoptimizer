@@ -24,7 +24,7 @@ than 10 elements.
 limit is 10 as of 20200331)
 """
 import logging
-from typing import Any, Dict
+from typing import Any
 
 from models import optimization_result_counts
 from optimizers_abstract import base_optimizer
@@ -40,8 +40,12 @@ class ProductTypeLengthOptimizer(base_optimizer.BaseOptimizer):
   _OPTIMIZER_PARAMETER = 'product-type-length-optimizer'
 
   def _optimize(
-      self, product_batch: Dict[str, Any], language: str, country: str,
-      currency: str) -> optimization_result_counts.OptimizationResultCounts:
+      self,
+      product_batch: dict[str, Any],
+      language: str,
+      country: str,
+      currency: str,
+  ) -> optimization_result_counts.OptimizationResultCounts:
     """Runs the optimization.
 
     Args:

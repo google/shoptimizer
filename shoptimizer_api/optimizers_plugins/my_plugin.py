@@ -14,7 +14,7 @@
 # limitations under the License.
 
 """An plugin for testing. Returns the product data without modifying it."""
-from typing import Any, Dict
+from typing import Any
 
 from models import optimization_result_counts
 from optimizers_abstract import base_optimizer
@@ -25,8 +25,13 @@ class MyPlugin(base_optimizer.BaseOptimizer):
 
   _OPTIMIZER_PARAMETER = 'my-plugin'
 
-  def _optimize(self, product_batch: Dict[str, Any], language: str,
-                country: str, currency: str) -> int:
+  def _optimize(
+      self,
+      product_batch: dict[str, Any],
+      language: str,
+      country: str,
+      currency: str,
+  ) -> int:
     """Runs identity optimization.
 
     This optimizer does not transform the product data and is only

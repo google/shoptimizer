@@ -35,7 +35,7 @@ The following fields are appended if they contain values:
 
 import logging
 import re
-from typing import Any, Dict, List
+from typing import Any
 
 from models import optimization_result_counts
 from optimizers_abstract import base_optimizer
@@ -52,8 +52,12 @@ class TitleOptimizer(base_optimizer.BaseOptimizer):
   _OPTIMIZER_PARAMETER: str = 'title-optimizer'
 
   def _optimize(
-      self, product_batch: Dict[str, Any], language: str, country: str,
-      currency: str) -> optimization_result_counts.OptimizationResultCounts:
+      self,
+      product_batch: dict[str, Any],
+      language: str,
+      country: str,
+      currency: str,
+  ) -> optimization_result_counts.OptimizationResultCounts:
     """Runs the optimization.
 
     Args:
@@ -94,9 +98,13 @@ class TitleOptimizer(base_optimizer.BaseOptimizer):
     return optimization_result_counts.OptimizationResultCounts(
         num_of_products_optimized, num_of_products_excluded)
 
-  def _append_attributes_to_title(self, product: Dict[str, Any],
-                                  chars_to_preserve: int, language: str,
-                                  country: str) -> None:
+  def _append_attributes_to_title(
+      self,
+      product: dict[str, Any],
+      chars_to_preserve: int,
+      language: str,
+      country: str,
+  ) -> None:
     """Appends mined attributes to the title.
 
     Args:
@@ -130,7 +138,7 @@ class TitleOptimizer(base_optimizer.BaseOptimizer):
                               chars_to_preserve)
 
 
-def _create_title_from_description(product: Dict[str, Any]) -> str:
+def _create_title_from_description(product: dict[str, Any]) -> str:
   """Creates a title from the description field.
 
   Args:
@@ -152,7 +160,7 @@ def _create_title_from_description(product: Dict[str, Any]) -> str:
   return title
 
 
-def _optimize_length_of_title(product: Dict[str, Any]) -> None:
+def _optimize_length_of_title(product: dict[str, Any]) -> None:
   """Optimizes the length of title.
 
   Args:
@@ -162,7 +170,7 @@ def _optimize_length_of_title(product: Dict[str, Any]) -> None:
   _complement_title_with_description(product)
 
 
-def _truncate_to_max_length(product: Dict[str, Any]) -> None:
+def _truncate_to_max_length(product: dict[str, Any]) -> None:
   """Truncate the title to the max length: 150.
 
   This function prevents a product with a 150+ title length from being
@@ -179,7 +187,7 @@ def _truncate_to_max_length(product: Dict[str, Any]) -> None:
     base_optimizer.set_optimization_tracking(product, base_optimizer.SANITIZED)
 
 
-def _complement_title_with_description(product: Dict[str, Any]) -> None:
+def _complement_title_with_description(product: dict[str, Any]) -> None:
   """Complements title with description if title is truncated from description.
 
   This is expected to improve ad performance by adding more information to the
@@ -199,8 +207,9 @@ def _complement_title_with_description(product: Dict[str, Any]) -> None:
     base_optimizer.set_optimization_tracking(product, base_optimizer.OPTIMIZED)
 
 
-def _append_fields_to_title(product: Dict[str, Any], fields: List[str],
-                            chars_to_preserve: int) -> None:
+def _append_fields_to_title(
+    product: dict[str, Any], fields: list[str], chars_to_preserve: int
+) -> None:
   """Appends the fields to the title.
 
   Args:

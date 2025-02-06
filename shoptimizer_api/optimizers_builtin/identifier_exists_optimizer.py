@@ -23,7 +23,7 @@ could cause disapproval, so this optimizer will delete the identifierExists
 value in these cases, which defaults the value to true in Content API.
 """
 import logging
-from typing import Any, Dict
+from typing import Any
 
 from models import optimization_result_counts
 from optimizers_abstract import base_optimizer
@@ -36,8 +36,12 @@ class IdentifierExistsOptimizer(base_optimizer.BaseOptimizer):
   _OPTIMIZER_PARAMETER = 'identifier-exists-optimizer'
 
   def _optimize(
-      self, product_batch: Dict[str, Any], language: str, country: str,
-      currency: str) -> optimization_result_counts.OptimizationResultCounts:
+      self,
+      product_batch: dict[str, Any],
+      language: str,
+      country: str,
+      currency: str,
+  ) -> optimization_result_counts.OptimizationResultCounts:
     """Runs the optimization.
 
     Removes invalid identifierExists fields.

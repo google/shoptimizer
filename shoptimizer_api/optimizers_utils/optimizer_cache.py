@@ -18,7 +18,6 @@ import importlib
 import inspect
 import pkgutil
 import sys
-from typing import List, Type
 
 from optimizers_abstract import base_optimizer
 
@@ -63,7 +62,8 @@ class OptimizerCache(object):
     return self._optimizer_classes
 
   def _get_optimizer_classes_in_package(
-      self) -> List[Type[base_optimizer.BaseOptimizer]]:
+      self,
+  ) -> list[type[base_optimizer.BaseOptimizer]]:
     """Gets optimizer classes in a given package.
 
     Dynamically loads classes in a package. Classes are loaded dynamically

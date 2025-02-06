@@ -16,7 +16,7 @@
 """A module for Shoptimizer API that sanitizes promo text in product titles."""
 
 import logging
-from typing import Any, Dict
+from typing import Any
 
 from models import optimization_result_counts
 from optimizers_abstract import base_optimizer
@@ -30,8 +30,12 @@ class PromoTextRemovalOptimizer(base_optimizer.BaseOptimizer):
   _OPTIMIZER_PARAMETER: str = 'promo-text-removal-optimizer'
 
   def _optimize(
-      self, product_batch: Dict[str, Any], language: str, country: str,
-      currency: str) -> optimization_result_counts.OptimizationResultCounts:
+      self,
+      product_batch: dict[str, Any],
+      language: str,
+      country: str,
+      currency: str,
+  ) -> optimization_result_counts.OptimizationResultCounts:
     """Runs the optimization.
 
     Args:
@@ -69,7 +73,7 @@ class PromoTextRemovalOptimizer(base_optimizer.BaseOptimizer):
         num_of_products_optimized, num_of_products_excluded)
 
 
-def _remove_unnecessary_text(product: Dict[str, Any], language: str) -> None:
+def _remove_unnecessary_text(product: dict[str, Any], language: str) -> None:
   """Removes unnecessary text from the title.
 
   Args:

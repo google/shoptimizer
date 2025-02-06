@@ -20,7 +20,7 @@ Shopping, so this optimizer will exclude them from the Shopping Ads destination.
 """
 
 import logging
-from typing import Any, Dict, Optional, Set
+from typing import Any, Optional
 
 from models import optimization_result_counts
 from optimizers_abstract import base_optimizer
@@ -43,12 +43,16 @@ class ShoppingExclusionOptimizer(base_optimizer.BaseOptimizer):
   """An optimizer that detects and excludes products from Shopping Ads."""
 
   _OPTIMIZER_PARAMETER: str = 'shopping-exclusion-optimizer'
-  shopping_removal_config: Optional[Dict[str, Any]] = None
-  shopping_removal_patterns_exact_match: Optional[Set[str]] = None
+  shopping_removal_config: Optional[dict[str, Any]] = None
+  shopping_removal_patterns_exact_match: Optional[set[str]] = None
 
   def _optimize(
-      self, product_batch: Dict[str, Any], language: str, country: str,
-      currency: str) -> optimization_result_counts.OptimizationResultCounts:
+      self,
+      product_batch: dict[str, Any],
+      language: str,
+      country: str,
+      currency: str,
+  ) -> optimization_result_counts.OptimizationResultCounts:
     """Runs the optimization.
 
     Args:
@@ -134,13 +138,13 @@ class ShoppingExclusionOptimizer(base_optimizer.BaseOptimizer):
       return False
 
 
-def _normalize_all_destinations(product: Dict[str, Any]) -> None:
+def _normalize_all_destinations(product: dict[str, Any]) -> None:
   """Normalizes the format of shopping destinations in both 'excludedDestinations' and 'includedDestinations' fields."""
   for key in (_EXCLUDED_DESTINATIONS_KEY, _INCLUDED_DESTINATIONS_KEY):
     _normalize_destinations(product, key)
 
 
-def _normalize_destinations(product: Dict[str, Any], key: str) -> None:
+def _normalize_destinations(product: dict[str, Any], key: str) -> None:
   """Normalizes the format of shopping destinations to be consistent with the help page: https://support.google.com/merchants/answer/6324486?hl=en.
 
   This function replaces a space in destinations with an underscore.

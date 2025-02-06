@@ -14,7 +14,6 @@
 # limitations under the License.
 
 """Original type aliases."""
-from typing import Dict
 
 # OrderedDict is deprecated and reimplemented between major
 # versions of Python 3.6 and 3.9. It also moves from `typing`
@@ -24,4 +23,4 @@ from typing import Dict
 # To solve for this, we use forward-reference annotations per:
 # * https://www.python.org/dev/peps/pep-0484/#forward-references
 # * https://stackoverflow.com/a/52626233
-MinedAttributes = Dict[str, 'OrderedDict[str, Any]']
+MinedAttributes = dict[str, 'OrderedDict[str, Any]']

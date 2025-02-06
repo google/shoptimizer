@@ -21,8 +21,9 @@ If a product in the request is determined to be in a category that requires
 the "adult" attribute to be set to True on the Content API request, this
 optimizer will set the "adult" attribute to True for that product.
 """
+from collections.abc import Mapping, Sequence, Set
 import logging
-from typing import AbstractSet, Any, Mapping, Optional, Sequence
+from typing import Any, Optional
 
 from models import optimization_result_counts
 from optimizers_abstract import base_optimizer
@@ -138,8 +139,9 @@ class AdultOptimizer(base_optimizer.BaseOptimizer):
     return any(
         product_type in self._adult_types for product_type in product_types)
 
-  def _field_contains_adult_tokens(self, field_text: str,
-                                   adult_tokens: AbstractSet[str]) -> bool:
+  def _field_contains_adult_tokens(
+      self, field_text: str, adult_tokens: Set[str]
+  ) -> bool:
     """Checks if the provided field contains adult terms specified in the adult config file.
 
     Args:

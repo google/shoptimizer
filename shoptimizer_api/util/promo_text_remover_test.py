@@ -14,17 +14,16 @@
 # limitations under the License.
 
 """Unit tests for promo_text_remover.py."""
-from typing import Any, Dict
+from typing import Any
 from unittest import mock
 
 from absl.testing import parameterized
-
 import constants
 from util import app_util
 from util import promo_text_remover
 
 
-def _build_dummy_product(title: str = '') -> Dict[str, Any]:
+def _build_dummy_product(title: str = '') -> dict[str, Any]:
   """Builds a dummy product data.
 
   Args:

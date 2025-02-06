@@ -18,13 +18,14 @@
 import ast
 import base64
 import logging
-from typing import Any, Dict
+from typing import Any
 
 from flask import current_app
 
 
-def get_config_contents(config_override_key: str,
-                        config_filename: str) -> Dict[str, Any]:
+def get_config_contents(
+    config_override_key: str, config_filename: str
+) -> dict[str, Any]:
   """Translates either an overridden config or local file into a dictionary.
 
   Args:
@@ -45,4 +46,3 @@ def get_config_contents(config_override_key: str,
   else:
     config = current_app.config.get('CONFIGS', {}).get(config_filename, {})
   return config
-

@@ -15,7 +15,7 @@
 
 """Unit tests for mpn_optimizer.py."""
 
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 import unittest.mock as mock
 
 from absl.testing import parameterized
@@ -25,8 +25,9 @@ from optimizers_builtin import mpn_optimizer
 from test_data import requests_bodies
 
 
-def _build_request_body(has_mpn_field: bool,
-                        mpn_value: Optional[str] = None) -> Dict[str, Any]:
+def _build_request_body(
+    has_mpn_field: bool, mpn_value: Optional[str] = None
+) -> dict[str, Any]:
   """Builds a dummy request body.
 
   Request body includes 1 product with specific mpn value or without mpn.

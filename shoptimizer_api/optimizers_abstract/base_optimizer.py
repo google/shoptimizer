@@ -19,7 +19,7 @@ import abc
 import bisect
 import logging
 import os
-from typing import Any, Dict
+from typing import Any
 
 import constants
 import enums
@@ -96,11 +96,11 @@ class BaseOptimizer(abc.ABC):
   @final
   def process(
       self,
-      product_batch: Dict[str, Any],
+      product_batch: dict[str, Any],
       language: str = constants.DEFAULT_LANG,
       country: str = constants.DEFAULT_COUNTRY,
-      currency: str = constants.DEFAULT_CURRENCY
-  ) -> (Dict[str, Any], optimization_result.OptimizationResult):
+      currency: str = constants.DEFAULT_CURRENCY,
+  ) -> (dict[str, Any], optimization_result.OptimizationResult):
     """The entry point for running optimization processing.
 
     Args:
@@ -143,8 +143,12 @@ class BaseOptimizer(abc.ABC):
 
   @abc.abstractmethod
   def _optimize(
-      self, product_batch: Dict[str, Any], language: str, country: str,
-      currency: str) -> optimization_result_counts.OptimizationResultCounts:
+      self,
+      product_batch: dict[str, Any],
+      language: str,
+      country: str,
+      currency: str,
+  ) -> optimization_result_counts.OptimizationResultCounts:
     """Implement optimization logic in this method.
 
     Subclasses must call base_optimizer.set_optimization_tracking(...)
@@ -167,8 +171,9 @@ class BaseOptimizer(abc.ABC):
     return self._OPTIMIZER_PARAMETER
 
 
-def set_optimization_tracking(product: Dict[str, Any],
-                              tracking_tag: enums.TrackingTag) -> None:
+def set_optimization_tracking(
+    product: dict[str, Any], tracking_tag: enums.TrackingTag
+) -> None:
   """Marks a product as optimized so it can be tracked in Google Ads.
 
   If the current tracking value is already 'sanitized' and an 'optimized' tag

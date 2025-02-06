@@ -21,7 +21,7 @@ such as color_miner.
 
 import collections
 import logging
-from typing import Any, Dict, Optional, OrderedDict, Set
+from typing import Any, Optional
 from flask import current_app
 
 import original_types
@@ -38,11 +38,11 @@ _MAX_BRAND_LENGTH: int = 70
 class AttributeMiner(object):
   """A class that mines attributes from products."""
 
-  _brand_blocklist: Set[str] = ()
+  _brand_blocklist: set[str] = ()
   _color_miner: Optional[color_miner.ColorMiner] = None
   _gender_miner: Optional[gender_miner.GenderMiner] = None
   _size_miner: Optional[size_miner.SizeMiner] = None
-  _mining_options = Dict[str, Any]
+  _mining_options = dict[str, Any]
 
   def __init__(self, language: str, country: str) -> None:
     """Initializes AttributeMiner.
@@ -63,7 +63,8 @@ class AttributeMiner(object):
     self._mining_options = current_app.config.get('MINING_OPTIONS')
 
   def mine_and_insert_attributes_for_batch(
-      self, product_batch: Dict[str, Any]) -> original_types.MinedAttributes:
+      self, product_batch: dict[str, Any]
+  ) -> original_types.MinedAttributes:
     """Mines attributes (specified below) and inserts them in to product fields.
 
     The fields to be appended are:
@@ -89,7 +90,8 @@ class AttributeMiner(object):
     return mining_results_for_products
 
   def _mine_and_insert_attributes_for_product(
-      self, product: Dict[str, Any]) -> OrderedDict[str, Any]:
+      self, product: dict[str, Any]
+  ) -> collections.OrderedDict[str, Any]:
     """Mines attributes (specified below) and inserts them into product fields.
 
     The fields to be appended are:
@@ -176,8 +178,9 @@ class AttributeMiner(object):
     return normalized_header_value == 'True'
 
 
-def _insert_value_in_field(product: Dict[str, Any], field: str, value: Any,
-                           overwrite_on: bool) -> None:
+def _insert_value_in_field(
+    product: dict[str, Any], field: str, value: Any, overwrite_on: bool
+) -> None:
   """Inserts the value into the product target field if it doesn't exist, or if overwrite is on.
 
   Args:

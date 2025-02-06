@@ -23,7 +23,7 @@ This optimizer will trim the sizes attribute string to 100 characters and
 ensure the sizes attribute only contains one value.
 """
 import logging
-from typing import Any, Dict
+from typing import Any
 
 from models import optimization_result_counts
 from optimizers_abstract import base_optimizer
@@ -38,8 +38,12 @@ class SizeLengthOptimizer(base_optimizer.BaseOptimizer):
   _OPTIMIZER_PARAMETER = 'size-length-optimizer'
 
   def _optimize(
-      self, product_batch: Dict[str, Any], language: str, country: str,
-      currency: str) -> optimization_result_counts.OptimizationResultCounts:
+      self,
+      product_batch: dict[str, Any],
+      language: str,
+      country: str,
+      currency: str,
+  ) -> optimization_result_counts.OptimizationResultCounts:
     """Runs size length optimization.
 
     Fixes invalid size values.

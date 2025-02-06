@@ -31,7 +31,7 @@ title-optimizer removes patterns representing free shipping.
 
 import logging
 import re
-from typing import Any, Dict, List
+from typing import Any
 
 from models import optimization_result_counts
 from optimizers_abstract import base_optimizer
@@ -49,8 +49,12 @@ class FreeShippingOptimizer(base_optimizer.BaseOptimizer):
   _OPTIMIZER_PARAMETER: str = 'free-shipping-optimizer'
 
   def _optimize(
-      self, product_batch: Dict[str, Any], language: str, country: str,
-      currency: str) -> optimization_result_counts.OptimizationResultCounts:
+      self,
+      product_batch: dict[str, Any],
+      language: str,
+      country: str,
+      currency: str,
+  ) -> optimization_result_counts.OptimizationResultCounts:
     """Runs the optimization.
 
     Args:
@@ -96,7 +100,7 @@ class FreeShippingOptimizer(base_optimizer.BaseOptimizer):
     return optimization_result_counts.OptimizationResultCounts(
         num_of_products_optimized, num_of_products_excluded)
 
-  def _has_free_shipping_pattern(self, product: Dict[str, Any]) -> bool:
+  def _has_free_shipping_pattern(self, product: dict[str, Any]) -> bool:
     """Checks if any pattern that represents free shipping is in the title of a given product.
 
     Args:
@@ -108,7 +112,7 @@ class FreeShippingOptimizer(base_optimizer.BaseOptimizer):
     """
     return self._title_contains_pattern(product, 'free_shipping_patterns')
 
-  def _has_exceptional_pattern(self, product: Dict[str, Any]) -> bool:
+  def _has_exceptional_pattern(self, product: dict[str, Any]) -> bool:
     """Checks if any exceptional pattern for free shipping is in the title of a given product.
 
     Args:
@@ -120,8 +124,9 @@ class FreeShippingOptimizer(base_optimizer.BaseOptimizer):
     """
     return self._title_contains_pattern(product, 'shipping_exclusion_patterns')
 
-  def _title_contains_pattern(self, product: Dict[str, Any],
-                              config_key: str) -> bool:
+  def _title_contains_pattern(
+      self, product: dict[str, Any], config_key: str
+  ) -> bool:
     """Checks if any pattern in the config is in the title of a given product.
 
     Args:
@@ -139,8 +144,9 @@ class FreeShippingOptimizer(base_optimizer.BaseOptimizer):
     return False
 
 
-def _update_shipping_field_to_zero(product: Dict[str, Any], country: str,
-                                   currency: str) -> None:
+def _update_shipping_field_to_zero(
+    product: dict[str, Any], country: str, currency: str
+) -> None:
   """Adds a free shipping object to shipping field of a product.
 
   Args:
@@ -161,8 +167,9 @@ def _update_shipping_field_to_zero(product: Dict[str, Any], country: str,
                product.get('offerId', ''), product.get('title', ''))
 
 
-def _free_shipping_already_exists(shipping_field: List[Dict[str, Any]],
-                                  country: str, currency: str) -> bool:
+def _free_shipping_already_exists(
+    shipping_field: list[dict[str, Any]], country: str, currency: str
+) -> bool:
   """Checks if free shipping object to the given country and currency is already in shipping field.
 
   Args:

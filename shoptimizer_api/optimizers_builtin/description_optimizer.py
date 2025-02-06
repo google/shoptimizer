@@ -28,7 +28,7 @@ contain values or could be mined from the product:
 """
 
 import logging
-from typing import Any, Dict
+from typing import Any
 
 from models import optimization_result_counts
 from optimizers_abstract import base_optimizer
@@ -43,8 +43,12 @@ class DescriptionOptimizer(base_optimizer.BaseOptimizer):
   _OPTIMIZER_PARAMETER: str = 'description-optimizer'
 
   def _optimize(
-      self, product_batch: Dict[str, Any], language: str, country: str,
-      currency: str) -> optimization_result_counts.OptimizationResultCounts:
+      self,
+      product_batch: dict[str, Any],
+      language: str,
+      country: str,
+      currency: str,
+  ) -> optimization_result_counts.OptimizationResultCounts:
     """Runs the optimization.
 
     Args:
@@ -82,8 +86,9 @@ class DescriptionOptimizer(base_optimizer.BaseOptimizer):
     return optimization_result_counts.OptimizationResultCounts(
         num_of_products_optimized, num_of_products_excluded)
 
-  def _get_fields_to_append_to_description(self,
-                                           product_id: str) -> Dict[str, Any]:
+  def _get_fields_to_append_to_description(
+      self, product_id: str
+  ) -> dict[str, Any]:
     """Returns the fields to append to the description for a given product id.
 
     Args:
@@ -99,8 +104,9 @@ class DescriptionOptimizer(base_optimizer.BaseOptimizer):
     return self._mined_attributes.get(product_id)
 
 
-def _create_optimized_description(original_description: str,
-                                  fields: Dict[str, Any]) -> str:
+def _create_optimized_description(
+    original_description: str, fields: dict[str, Any]
+) -> str:
   """Appends the fields to the description.
 
   Args:
@@ -127,8 +133,9 @@ def _create_optimized_description(original_description: str,
   return field_with_keywords_appended
 
 
-def _update_product_description(product: Dict[str, Any],
-                                optimized_description: str) -> None:
+def _update_product_description(
+    product: dict[str, Any], optimized_description: str
+) -> None:
   """Updates the description for the given product and sets tracking/logging.
 
   Args:
