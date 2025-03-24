@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Tests for url_util."""
 from absl.testing import parameterized
 import constants
 from util import url_util

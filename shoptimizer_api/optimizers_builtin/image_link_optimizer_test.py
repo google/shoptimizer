@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Tests for image_link_optimizer.py."""
 from collections.abc import Iterable
 import json
 import time
