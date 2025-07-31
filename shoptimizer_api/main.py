@@ -20,7 +20,6 @@ This module acts as the main entry point to the Shoptimizer API.
 
 
 import collections
-from collections.abc import Sequence
 import http
 import logging
 import sys
@@ -41,7 +40,6 @@ _OPTIMIZERS_PLUGINS_PACKAGE = 'optimizers_plugins'
 _OPTIMIZERS_THAT_USE_MINED_ATTRIBUTES = frozenset(
     ['title-optimizer', 'description-optimizer']
 )
-_OPTIMIZERS_TO_RUN_LAST = ('title-word-order-optimizer',)
 _SUPPORTED_LANGUAGES = frozenset([
     constants.LANGUAGE_CODE_DE,
     constants.LANGUAGE_CODE_EN,
@@ -178,12 +176,6 @@ def optimize() -> tuple[str, http.HTTPStatus]:
       ),
       'shopping_exclusion_optimizer_config_override': flask.request.headers.get(
           'shopping_exclusion_optimizer_config_override', ''
-      ),
-      'title_word_order_optimizer_config_override': flask.request.headers.get(
-          'title_word_order_optimizer_config_override', ''
-      ),
-      'title_word_order_blocklist_override': flask.request.headers.get(
-          'title_word_order_blocklist_override', ''
       ),
   }
 
@@ -379,9 +371,7 @@ def _run_optimizers(
   ]
   optimizer_mapping = dict(zip(optimizer_parameters, optimizers))
 
-  for optimizer_parameter in _generate_optimizer_parameter_list_to_run(
-      optimizer_parameters_to_run_last=_OPTIMIZERS_TO_RUN_LAST
-  ):
+  for optimizer_parameter in _generate_optimizer_parameter_list_to_run():
     optimizer = optimizer_mapping.get(optimizer_parameter)
     if optimizer:
       logging.info(
@@ -459,16 +449,8 @@ def _extract_all_url_parameters() -> list[str]:
     return []
 
 
-def _generate_optimizer_parameter_list_to_run(
-    optimizer_parameters_to_run_last: Sequence[str],
-) -> list[str]:
+def _generate_optimizer_parameter_list_to_run() -> list[str]:
   """Generates a list of optimizer parameters whose values are true by extracting from query string.
-
-  Also brings optimizer parameters that should run last to the end of the
-  returning list.
-
-  Args:
-    optimizer_parameters_to_run_last: optimizer parameters that should run last.
 
   Returns:
     Optimizer parameters that exist in query string and are set to true.
@@ -477,10 +459,6 @@ def _generate_optimizer_parameter_list_to_run(
   for parameter_key, parameter_value in flask.request.args.items():
     if isinstance(parameter_value, str) and parameter_value.lower() == 'true':
       optimizer_parameters.append(parameter_key)
-  for optimizer_parameter_to_run_last in optimizer_parameters_to_run_last:
-    if optimizer_parameter_to_run_last in optimizer_parameters:
-      optimizer_parameters.remove(optimizer_parameter_to_run_last)
-      optimizer_parameters.append(optimizer_parameter_to_run_last)
   return optimizer_parameters
 
 
