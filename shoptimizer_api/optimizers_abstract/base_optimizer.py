@@ -14,6 +14,7 @@
 # limitations under the License.
 
 """The base optimizer that all optimizers must inherit from."""
+
 import _pickle as pickle
 import abc
 import bisect
@@ -39,7 +40,6 @@ except ImportError:
 
 OPTIMIZED = enums.TrackingTag.OPTIMIZED
 SANITIZED = enums.TrackingTag.SANITIZED
-WMM = enums.TrackingTag.WMM
 
 
 class BaseOptimizer(abc.ABC):
@@ -72,8 +72,9 @@ class BaseOptimizer(abc.ABC):
 
   _OPTIMIZER_PARAMETER: str
 
-  def __init__(self,
-               mined_attributes: original_types.MinedAttributes = None) -> None:
+  def __init__(
+      self, mined_attributes: original_types.MinedAttributes = None
+  ) -> None:
     """Initializes BaseOptimizer.
 
     Args:
@@ -90,7 +91,8 @@ class BaseOptimizer(abc.ABC):
       return self._OPTIMIZER_PARAMETER
     except AttributeError as attribute_error:
       raise NotImplementedError(
-          'Optimizer must implement a str property called "_OPTIMIZER_PARAMETER"'
+          'Optimizer must implement a str property called'
+          ' "_OPTIMIZER_PARAMETER"'
       ) from attribute_error
 
   @final
@@ -117,29 +119,39 @@ class BaseOptimizer(abc.ABC):
     optimized_product_batch = pickle.loads(pickle.dumps(product_batch))
 
     try:
-      optimizer_result_counts = self._optimize(optimized_product_batch,
-                                               language, country, currency)
+      optimizer_result_counts = self._optimize(
+          optimized_product_batch, language, country, currency
+      )
     except NotImplementedError:
-      logging.error('Optimizer %s did not implement base_optimizer correctly.',
-                    self._OPTIMIZER_PARAMETER)
+      logging.error(
+          'Optimizer %s did not implement base_optimizer correctly.',
+          self._OPTIMIZER_PARAMETER,
+      )
       raise
     # As per PyStyle, Exception is caught to create an isolation point
     # that protects the main API container from crashing, so
     
     except Exception as error:
-      logging.exception('Error while running optimization %s: %s',
-                        self._OPTIMIZER_PARAMETER, error)
+      logging.exception(
+          'Error while running optimization %s: %s',
+          self._OPTIMIZER_PARAMETER,
+          error,
+      )
       return product_batch, optimization_result.OptimizationResult(
-          'failure', 0, str(error))
+          'failure', 0, str(error)
+      )
     else:
       logging.info(
           'Finished running optimizer: %s. %s products were touched by the '
           'optimizer and %s products were requested to be excluded from being '
-          'run by this optimizer.', self._OPTIMIZER_PARAMETER,
+          'run by this optimizer.',
+          self._OPTIMIZER_PARAMETER,
           optimizer_result_counts.num_of_products_optimized,
-          optimizer_result_counts.num_of_products_excluded)
+          optimizer_result_counts.num_of_products_excluded,
+      )
       return optimized_product_batch, optimization_result.OptimizationResult(
-          'success', optimizer_result_counts.num_of_products_optimized, '')
+          'success', optimizer_result_counts.num_of_products_optimized, ''
+      )
 
   @abc.abstractmethod
   def _optimize(
@@ -194,7 +206,8 @@ def set_optimization_tracking(
     logging.error(
         'Failed to set product tracking. '
         'Product tracking field is not a custom label: %s',
-        product_tracking_field)
+        product_tracking_field,
+    )
     return
 
   product_tracking_value = product.get(product_tracking_field, '')
@@ -210,4 +223,5 @@ def set_optimization_tracking(
     if tracking_tag.value not in preexisting_tracking_tags:
       bisect.insort(preexisting_tracking_tags, tracking_tag.value)
     product[product_tracking_field] = '-'.join(
-        preexisting_tracking_tags).lstrip('-')
+        preexisting_tracking_tags
+    ).lstrip('-')

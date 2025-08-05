@@ -63,25 +63,6 @@ class DummySanitizer(base_optimizer.BaseOptimizer):
         len(product_batch), 0)
 
 
-class DummyWMM(base_optimizer.BaseOptimizer):
-  """A dummy optimizer for testing WMM (marks all products as WMM)."""
-  _OPTIMIZER_PARAMETER = 'dummy-wmm'
-
-  def _optimize(
-      self,
-      product_batch: dict[str, Any],
-      language: str,
-      country: str,
-      currency: str,
-  ) -> optimization_result_counts.OptimizationResultCounts:
-    for entry in product_batch['entries']:
-      product = entry['product']
-      base_optimizer.set_optimization_tracking(product, base_optimizer.WMM)
-
-    return optimization_result_counts.OptimizationResultCounts(
-        len(product_batch), 0)
-
-
 class BaseOptimizerTest(parameterized.TestCase):
 
   def test_optimizer_parameter_not_implemented_throws_not_implemented_error(
@@ -250,36 +231,3 @@ class BaseOptimizerTest(parameterized.TestCase):
       self.assertEqual(
           f'{base_optimizer.OPTIMIZED.value}-{base_optimizer.SANITIZED.value}',
           sanitized_optimized_sanitized_product[tracking_field])
-
-  def test_set_optimization_tracking_sets_tracking_field_wmm_when_product_is_title_word_order_optimized(
-      self):
-    data = requests_bodies.build_request_body()
-    dummy_wmm = DummyWMM()
-    tracking_field = 'customLabel4'
-
-    with mock.patch.dict('os.environ',
-                         {'PRODUCT_TRACKING_FIELD': tracking_field}):
-      optimized_data, _ = dummy_wmm.process(data)
-      wmm_product = optimized_data['entries'][0]['product']
-
-      self.assertEqual(base_optimizer.WMM.value, wmm_product[tracking_field])
-
-  def test_set_optimization_tracking_sets_tracking_field_optimized_sanitized_wmm_when_product_is_sanitized_title_word_order_optimized_and_optimized(
-      self):
-    data = requests_bodies.build_request_body()
-    dummy_optimizer = DummyOptimizer()
-    dummy_sanitizer = DummySanitizer()
-    dummy_wmm = DummyWMM()
-    tracking_field = 'customLabel4'
-
-    with mock.patch.dict('os.environ',
-                         {'PRODUCT_TRACKING_FIELD': tracking_field}):
-      sanitized_data, _ = dummy_sanitizer.process(data)
-      wmm_data, _ = dummy_wmm.process(sanitized_data)
-      optimized_data, _ = dummy_optimizer.process(wmm_data)
-
-      sanitized_wmm_optimized_product = optimized_data['entries'][0]['product']
-
-      self.assertEqual(
-          f'{base_optimizer.OPTIMIZED.value}-{base_optimizer.SANITIZED.value}-{base_optimizer.WMM.value}',
-          sanitized_wmm_optimized_product[tracking_field])
