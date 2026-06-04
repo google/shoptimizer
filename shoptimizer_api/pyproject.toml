@@ -1,0 +1,25 @@
+[project]
+name = "shoptimizer-api"
+version = "0.1.0"
+description = "Shoptimizer API for product data optimization"
+readme = "../README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "absl-py",
+    "chardet",
+    "flask",
+    "google-api-python-client",
+    "gunicorn",
+    "importlib-metadata",
+    "jaconv",
+    "keras-preprocessing",
+    "mecab-ko",
+    "mecab-python3",
+    "requests",
+    "tensorflow",
+]
+
+[tool.uv]
+dev-dependencies = [
+    "parameterized",
+]
