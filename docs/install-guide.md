@@ -68,7 +68,7 @@ Git clone the repository:
 
 Navigate to the Shoptimizer directory:
 
-`cd shoptimizer/shoptimizer_api`
+`cd shoptimizer`
 
 Edit the env.sh file:
 
