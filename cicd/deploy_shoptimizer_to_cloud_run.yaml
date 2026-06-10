@@ -14,7 +14,7 @@
 
 steps:
   # Install dependencies & run unit tests
-  - name: python:3.8-slim
+  - name: python:3.12-slim
     id: ShoptimizerUnitTests
     entrypoint: /bin/sh
     dir: shoptimizer_api
@@ -25,10 +25,10 @@ steps:
         && apt-get -y install swig mecab libmecab-dev mecab-ipadic-utf8 git make curl xz-utils file sudo \
         && git clone --depth 1 https://github.com/neologd/mecab-ipadic-neologd.git \
         && echo yes | mecab-ipadic-neologd/bin/install-mecab-ipadic-neologd -n -a \
-        && pip install --upgrade pip \
-        && pip install -r requirements.txt \
+        && pip install --upgrade pip uv \
+        && uv sync --frozen --no-install-project --link-mode=copy \
         && cp /etc/mecabrc /usr/local/etc/ \
-        && python test_runner.py
+        && uv run python test_runner.py
 
   # Docker Build and Push
   - name: gcr.io/kaniko-project/executor:latest
