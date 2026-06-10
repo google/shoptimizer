@@ -1,4 +1,4 @@
-FROM python:3.8-slim
+FROM python:3.12-slim
 
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV FLASK_APP "main.py"
@@ -11,6 +11,12 @@ ENV PYTHONUNBUFFERED 1
 # Ref: https://developers.google.com/shopping-content/v2/reference/v2/products#resource -> see customLabel
 ENV PRODUCT_TRACKING_FIELD "customLabel4"
 
+# Set up virtualenv path so it is used automatically
+ENV PATH="/app/.venv/bin:$PATH"
+# Tell uv to copy files instead of hardlinking
+ENV UV_LINK_MODE=copy
+
+
 RUN mkdir /app
 WORKDIR /app
 
@@ -22,12 +28,12 @@ RUN git clone --depth 1 https://github.com/neologd/mecab-ipadic-neologd.git
 RUN echo yes | mecab-ipadic-neologd/bin/install-mecab-ipadic-neologd -n -a
 RUN cp /etc/mecabrc /usr/local/etc/
 
-# Copy requirements.txt to app/
-COPY requirements.txt /app/
+# Copy dependency definition files
+COPY pyproject.toml uv.lock /app/
 
-# Install packages using pip.
-RUN pip install --upgrade pip && \
-    pip install --require-hashes -r requirements.txt
+# Install uv and sync dependencies
+RUN pip install --upgrade pip uv && \
+    uv sync --frozen --no-dev --no-install-project
 
 # Add all files in Dockerfile directory to /app (can ignore files with .dockerignore)
 ADD . /app

@@ -19,7 +19,7 @@ dependencies = [
     "tensorflow",
 ]
 
-[tool.uv]
-dev-dependencies = [
+[dependency-groups]
+dev = [
     "parameterized",
 ]
