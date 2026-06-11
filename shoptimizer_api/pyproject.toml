@@ -10,7 +10,6 @@ dependencies = [
     "flask",
     "google-api-python-client",
     "gunicorn",
-    "importlib-metadata",
     "jaconv",
     "keras-preprocessing",
     "mecab-ko",
