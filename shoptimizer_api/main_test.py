@@ -13,7 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Unit tests for main.py."""
+
+
+import sys
+from unittest import mock
+
+# Mock tensorflow to bypass import failures in local test environments.
+mock_tf = mock.MagicMock()
+mock_tf.compat.v1 = mock.MagicMock()
+sys.modules['tensorflow'] = mock_tf
+sys.modules['tensorflow.compat'] = mock_tf
+sys.modules['tensorflow.compat.v1'] = mock_tf.compat.v1
 
 import base64
 import http
@@ -343,6 +353,128 @@ class MainTest(parameterized.TestCase):
     response_dict = json.loads(response_data)
     self.assertIsNone(
         response_dict['optimized-data']['entries'][0].get('excludedOptimizers')
+    )
+
+  # endregion
+
+  # region v2 optimizer tests
+
+  def test_optimize_v2_success(self) -> None:
+    request_body = requests_bodies.build_v2_request_body()
+
+    response = self.test_client.post(
+        f'{main._V2_BASE_URL}/batch/optimize?identity-optimizer=true',
+        json=request_body,
+    )
+    response_data = response.data.decode('utf-8')
+    response_dict = json.loads(response_data)
+
+    self.assertEqual(http.HTTPStatus.OK, response.status_code)
+    self.assertIn('identity-optimizer', response_dict['optimization-results'])
+    self.assertIn('productInput', response_dict['optimized-data']['entries'][0])
+    self.assertEqual(
+        'Google Tee',
+        response_dict['optimized-data']['entries'][0]['productInput'][
+            'productAttributes'
+        ]['title'],
+    )
+
+  def test_optimize_v2_validation_error(self) -> None:
+    request_body = requests_bodies.build_v2_request_body(
+        properties_to_be_updated={'contentLanguage': 'invalid_lang'}
+    )
+
+    response = self.test_client.post(
+        f'{main._V2_BASE_URL}/batch/optimize', json=request_body
+    )
+    response_data = response.data.decode('utf-8')
+    response_dict = json.loads(response_data)
+
+    self.assertEqual(http.HTTPStatus.BAD_REQUEST, response.status_code)
+    self.assertIn(
+        'lang must be a supported language', response_dict['error-msg']
+    )
+
+  def test_optimize_v2_with_url_parameters(self) -> None:
+    request_body = requests_bodies.build_v2_request_body()
+
+    response = self.test_client.post(
+        f'{main._V2_BASE_URL}/batch/optimize?lang=ja&country=jp&identity-optimizer=true',
+        json=request_body,
+    )
+    response_data = response.data.decode('utf-8')
+    response_dict = json.loads(response_data)
+
+    self.assertEqual(http.HTTPStatus.OK, response.status_code)
+    # The language and country of the product itself should not be overwritten
+    # by query parameters
+    self.assertEqual(
+        'en',
+        response_dict['optimized-data']['entries'][0]['productInput'][
+            'contentLanguage'
+        ],
+    )
+    self.assertEqual(
+        'US',
+        response_dict['optimized-data']['entries'][0]['productInput'][
+            'feedLabel'
+        ],
+    )
+
+  def test_optimize_v2_url_parameter_validation_error(self) -> None:
+    request_body = requests_bodies.build_v2_request_body()
+
+    response = self.test_client.post(
+        f'{main._V2_BASE_URL}/batch/optimize?lang=invalid_lang',
+        json=request_body,
+    )
+    response_data = response.data.decode('utf-8')
+    response_dict = json.loads(response_data)
+
+    self.assertEqual(http.HTTPStatus.BAD_REQUEST, response.status_code)
+    self.assertIn(
+        'lang must be a supported language', response_dict['error-msg']
+    )
+
+  def test_optimize_v2_with_optimizers_in_query(self) -> None:
+    request_body = requests_bodies.build_v2_request_body()
+
+    response = self.test_client.post(
+        f'{main._V2_BASE_URL}/batch/optimize?title-optimizer=true',
+        json=request_body,
+    )
+    response_data = response.data.decode('utf-8')
+    response_dict = json.loads(response_data)
+
+    self.assertEqual(http.HTTPStatus.OK, response.status_code)
+    self.assertIn('title-optimizer', response_dict['optimization-results'])
+
+  def test_optimize_v2_attributes_fallback(self) -> None:
+    # Construct a request body that uses the 'attributes' key instead of
+    # 'productAttributes'
+    request_body = requests_bodies.build_v2_request_body()
+    entry = request_body['entries'][0]
+    product_input = entry['productInput']
+    attrs = product_input.pop('productAttributes')
+    product_input['attributes'] = attrs
+
+    response = self.test_client.post(
+        f'{main._V2_BASE_URL}/batch/optimize?identity-optimizer=true',
+        json=request_body,
+    )
+    response_data = response.data.decode('utf-8')
+    response_dict = json.loads(response_data)
+
+    self.assertEqual(http.HTTPStatus.OK, response.status_code)
+    self.assertIn(
+        'attributes',
+        response_dict['optimized-data']['entries'][0]['productInput'],
+    )
+    self.assertEqual(
+        'Google Tee',
+        response_dict['optimized-data']['entries'][0]['productInput'][
+            'attributes'
+        ]['title'],
     )
 
   # endregion

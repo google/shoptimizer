@@ -187,3 +187,65 @@ def build_request_body(
         del product[key]
 
   return body
+
+
+_VALID_SINGLE_PRODUCT_V2 = {
+    'entries': [{
+        'batchId': 1111,
+        'merchantId': 1234567,
+        'method': 'insert',
+        'productInput': {
+            'offerId': '1111111111',
+            'contentLanguage': 'en',
+            'feedLabel': 'US',
+            'channel': 'online',
+            'productAttributes': {
+                'title': 'Google Tee',
+                'description': 'The Google Tee is available in ...',
+                'link': 'http://my.site.com/blacktee/',
+                'imageLink': 'https://shop.example.com/.../images/foo.jpg',
+                'ageGroup': 'adult',
+                'availability': 'in stock',
+                'availabilityDate': '2019-01-25T13:00:00-08:00',
+                'brand': 'Google',
+                'color': 'black',
+                'condition': 'new',
+                'gender': 'male',
+                'googleProductCategory': '1604',
+                'gtins': ['608802531656'],
+                'itemGroupId': 'google_tee',
+                'mpn': '608802531656',
+                'price': {'value': '21.99', 'currency': 'USD'},
+                'sizes': ['Large'],
+                'includedDestinations': ['Shopping ads'],
+            },
+        },
+    }]
+}
+
+
+def build_v2_request_body(
+    properties_to_be_updated: Optional[dict[str, Any]] = None,
+    properties_to_be_removed: Optional[list[str]] = None,
+) -> dict[str, Any]:
+  """Builds a dummy v2 request body of 1 product."""
+  body = copy.deepcopy(_VALID_SINGLE_PRODUCT_V2)
+  product_input = body['entries'][0]['productInput']
+  attributes = product_input['productAttributes']
+
+  # Handle top-level metadata or attributes
+  if properties_to_be_updated:
+    for key, value in properties_to_be_updated.items():
+      if key in ('offerId', 'contentLanguage', 'feedLabel', 'channel'):
+        product_input[key] = value
+      else:
+        attributes[key] = value
+
+  if properties_to_be_removed:
+    for key in properties_to_be_removed:
+      if key in ('offerId', 'contentLanguage', 'feedLabel', 'channel'):
+        product_input.pop(key, None)
+      else:
+        attributes.pop(key, None)
+
+  return body

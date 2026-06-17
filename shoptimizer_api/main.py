@@ -32,9 +32,11 @@ from models import optimization_result
 from optimizers_utils import optimizer_cache
 import original_types
 from util import app_util
+from util import api_adapter
 from util import attribute_miner
 
 _V1_BASE_URL = '/shoptimizer/v1'
+_V2_BASE_URL = '/shoptimizer/v2'
 _OPTIMIZERS_BUILTIN_PACKAGE = 'optimizers_builtin'
 _OPTIMIZERS_PLUGINS_PACKAGE = 'optimizers_plugins'
 _OPTIMIZERS_THAT_USE_MINED_ATTRIBUTES = frozenset(
@@ -238,6 +240,207 @@ def remove_exclude_optimizers_attributes(
   """
   for entry in optimized_product_batch.get('entries'):
     entry.pop('excludeOptimizers', None)
+
+
+def _extract_v2_parameters(v2_payload: dict[str, Any]) -> tuple[str, str, str]:
+  """Extracts lang, country, currency from request URL or payload.
+
+  Args:
+    v2_payload: A dictionary representing the v2 payload.
+
+  Returns:
+    A tuple containing the extracted lang, country, and currency.
+  """
+  lang = flask.request.args.get('lang')
+  country = flask.request.args.get('country')
+  currency = flask.request.args.get('currency')
+
+  entries = v2_payload.get('entries', [])
+  first_product_input = entries[0].get('productInput', {}) if entries else {}
+
+  if not lang:
+    lang = first_product_input.get('contentLanguage')
+  if not country:
+    country = first_product_input.get('feedLabel')
+  if not currency:
+    currency = (
+        first_product_input.get('productAttributes', {})
+        .get('price', {})
+        .get('currency')
+    )
+    if not currency:
+      currency = (
+          first_product_input.get('attributes', {})
+          .get('price', {})
+          .get('currency')
+      )
+
+  lang = (lang or constants.DEFAULT_LANG).lower()
+  country = (country or constants.DEFAULT_COUNTRY).lower()
+  currency = (currency or constants.DEFAULT_CURRENCY).upper()
+
+  return lang, country, currency
+
+
+def _check_v2_request_valid(
+    lang: str,
+    country: str,
+    currency: str,
+) -> tuple[bool, str]:
+  """Checks that the flask request is in a valid format for v2.
+
+  Args:
+    lang: The language to validate.
+    country: The country to validate.
+    currency: The currency to validate.
+
+  Returns:
+    A tuple containing a boolean indicating validity and an error message if
+    invalid.
+  """
+  if not flask.request.is_json:
+    return False, 'Request must be valid JSON'
+
+  if 'entries' not in flask.request.json:
+    return False, 'Request must contain entries as a key.'
+
+  product_dict = flask.request.json
+
+  if not isinstance(product_dict['entries'], list):
+    return False, 'Entries must contain a list of products.'
+
+  if lang not in _SUPPORTED_LANGUAGES:
+    return False, f'lang must be a supported language: {_SUPPORTED_LANGUAGES}'
+
+  if country not in _SUPPORTED_COUNTRIES:
+    return False, f'country must be a supported country: {_SUPPORTED_COUNTRIES}'
+
+  if currency not in _SUPPORTED_CURRENCIES:
+    return (
+        False,
+        f'currency must be a supported currency: {_SUPPORTED_CURRENCIES}',
+    )
+
+  request_full_query_string_parameters = _extract_all_url_parameters()
+  request_optimizer_query_string_parameters = set(
+      request_full_query_string_parameters
+  ) - {
+      _LANG_QUERY_STRING_KEY,
+      _COUNTRY_QUERY_STRING_KEY,
+      _CURRENCY_QUERY_STRING_KEY,
+  }
+  invalid_query_string_parameters = list(
+      request_optimizer_query_string_parameters
+      - set(_VALID_OPTIMIZER_PARAMETERS)
+  )
+  if invalid_query_string_parameters:
+    return False, (
+        'Invalid query string parameter detected. Please provide a '
+        'valid Shoptimizer API query string parameter.'
+    )
+
+  return True, ''
+
+
+@app.route(f'{_V2_BASE_URL}/batch/optimize', methods=['POST'])
+def optimize_v2() -> tuple[str, http.HTTPStatus]:
+  """Optimizes a JSON payload containing ProductInput (v2) data.
+
+  Returns:
+    A tuple containing the serialized optimized v2 JSON payload and the HTTP
+    status code.
+  """
+  app.config['MINING_OPTIONS'] = {
+      'brand_mining_on': flask.request.headers.get('brand_mining_on', 'True'),
+      'color_mining_on': flask.request.headers.get('color_mining_on', 'True'),
+      'gender_mining_on': flask.request.headers.get('gender_mining_on', 'True'),
+      'size_mining_on': flask.request.headers.get('size_mining_on', 'True'),
+      'color_mining_overwrite': flask.request.headers.get(
+          'color_mining_overwrite', 'False'
+      ),
+      'gender_mining_overwrite': flask.request.headers.get(
+          'gender_mining_overwrite', 'False'
+      ),
+      'size_mining_overwrite': flask.request.headers.get(
+          'size_mining_overwrite', 'False'
+      ),
+  }
+
+  app.config['DRIVE_CONFIG_OVERRIDES'] = {
+      'adult_optimizer_config_override': flask.request.headers.get(
+          'adult_optimizer_config_override', ''
+      ),
+      'brand_blocklist_override': flask.request.headers.get(
+          'brand_blocklist_override', ''
+      ),
+      'color_optimizer_config_override': flask.request.headers.get(
+          'color_optimizer_config_override', ''
+      ),
+      'condition_optimizer_config_override': flask.request.headers.get(
+          'condition_optimizer_config_override', ''
+      ),
+      'free_shipping_optimizer_config_override': flask.request.headers.get(
+          'free_shipping_optimizer_config_override', ''
+      ),
+      'gender_optimizer_config_override': flask.request.headers.get(
+          'gender_optimizer_config_override', ''
+      ),
+      'promo_text_removal_optimizer_config_override': flask.request.headers.get(
+          'promo_text_removal_optimizer_config_override', ''
+      ),
+      'shopping_exclusion_optimizer_config_override': flask.request.headers.get(
+          'shopping_exclusion_optimizer_config_override', ''
+      ),
+  }
+
+  original_v2_payload = flask.request.json
+  lang, country, currency = _extract_v2_parameters(original_v2_payload)
+
+  request_valid, error_msg = _check_v2_request_valid(lang, country, currency)
+  if not request_valid:
+    response_dict = {
+        'error-msg': error_msg,
+        'optimization-results': {},
+        'plugin-results': {},
+        'optimized-data': {},
+    }
+    return flask.make_response(
+        flask.jsonify(response_dict), http.HTTPStatus.BAD_REQUEST
+    )
+
+  v1_payload = api_adapter.translate_v2_to_v1(original_v2_payload)
+  _sanitize_batch(v1_payload)
+
+  optimized_v1_payload, builtin_optimizer_results = _run_optimizers(
+      v1_payload,
+      lang,
+      country,
+      currency,
+      _builtin_optimizer_cache,
+  )
+  optimized_v1_payload, plugin_optimizer_results = _run_optimizers(
+      optimized_v1_payload,
+      lang,
+      country,
+      currency,
+      _plugin_optimizer_cache,
+  )
+
+  remove_exclude_optimizers_attributes(optimized_v1_payload)
+
+  v1_response_dict = _build_response_dict(
+      optimized_v1_payload,
+      builtin_optimizer_results,
+      plugin_optimizer_results,
+  )
+
+  v2_response_payload = api_adapter.translate_v1_to_v2(
+      v1_response_dict, original_v2_payload
+  )
+
+  return flask.make_response(
+      flask.jsonify(v2_response_payload), http.HTTPStatus.OK
+  )
 
 
 def _check_request_valid(
