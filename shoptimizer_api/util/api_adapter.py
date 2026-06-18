@@ -25,6 +25,99 @@ _METADATA_FIELDS = frozenset([
 ])
 
 
+def _translate_v2_price_to_v1(v2_price: dict[str, Any]) -> dict[str, Any]:
+  """Translates v2 Price (amountMicros, currencyCode) to v1 (value, currency)."""
+  if not v2_price:
+    return {}
+  v1_price = {}
+  amount_micros = v2_price.get('amountMicros')
+  if amount_micros is not None:
+    try:
+      micros_val = int(amount_micros)
+      float_val = micros_val / 1_000_000.0
+      val_str = f'{float_val:.6f}'
+      if '.' in val_str:
+        val_str = val_str.rstrip('0').rstrip('.')
+      v1_price['value'] = val_str
+    except (ValueError, TypeError):
+      v1_price['value'] = str(amount_micros)
+  if 'currencyCode' in v2_price:
+    v1_price['currency'] = v2_price['currencyCode']
+  return v1_price
+
+
+def _translate_v1_price_to_v2(v1_price: dict[str, Any]) -> dict[str, Any]:
+  """Translates v1 Price (value, currency) to v2 (amountMicros, currencyCode)."""
+  if not v1_price:
+    return {}
+  v2_price = {}
+  value = v1_price.get('value')
+  if value is not None:
+    try:
+      val = float(value)
+      v2_price['amountMicros'] = str(int(round(val * 1_000_000)))
+    except (ValueError, TypeError):
+      v2_price['amountMicros'] = value
+  if 'currency' in v1_price:
+    v2_price['currencyCode'] = v1_price['currency']
+  return v2_price
+
+
+def _translate_v2_shipping_to_v1(
+    v2_shipping: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+  """Translates v2 shipping list to v1 format."""
+  if not v2_shipping:
+    return []
+  v1_shipping = []
+  for item in v2_shipping:
+    v1_item = {}
+    for k, v in item.items():
+      if k == 'price':
+        v1_item['price'] = _translate_v2_price_to_v1(v)
+      elif k in (
+          'minHandlingTime',
+          'maxHandlingTime',
+          'minTransitTime',
+          'maxTransitTime',
+      ):
+        if v is not None:
+          try:
+            v1_item[k] = int(v)
+          except (ValueError, TypeError):
+            v1_item[k] = v
+      else:
+        v1_item[k] = v
+    v1_shipping.append(v1_item)
+  return v1_shipping
+
+
+def _translate_v1_shipping_to_v2(
+    v1_shipping: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+  """Translates v1 shipping list back to v2 format."""
+  if not v1_shipping:
+    return []
+  v2_shipping = []
+  for item in v1_shipping:
+    v2_item = {}
+    for k, v in item.items():
+      if k == 'price':
+        v2_item['price'] = _translate_v1_price_to_v2(v)
+      elif k in (
+          'minHandlingTime',
+          'maxHandlingTime',
+          'minTransitTime',
+          'maxTransitTime',
+      ):
+        if v is not None:
+          v2_item[k] = str(v)
+      else:
+        v2_item[k] = v
+    v2_shipping.append(v2_item)
+  return v2_shipping
+
+
 def translate_v2_to_v1(v2_payload: dict[str, Any]) -> dict[str, Any]:
   """Translates a Merchant API (v2) payload to Content API (v1) format.
 
@@ -62,6 +155,18 @@ def translate_v2_to_v1(v2_payload: dict[str, Any]) -> dict[str, Any]:
       if field == 'gtins':
         if val is not None:
           v1_product['gtin'] = ','.join(str(g) for g in val)
+      elif field == 'size':
+        if val is not None:
+          v1_product['sizes'] = [val]
+      elif field in (
+          'price',
+          'salePrice',
+          'costOfGoodsSold',
+          'maximumRetailPrice',
+      ):
+        v1_product[field] = _translate_v2_price_to_v1(val)
+      elif field == 'shipping':
+        v1_product['shipping'] = _translate_v2_shipping_to_v1(val)
       else:
         v1_product[field] = val
 
@@ -138,6 +243,18 @@ def translate_v1_to_v2(
           ]
         else:
           v2_attributes['gtins'] = []
+      elif field == 'sizes':
+        if val and isinstance(val, list):
+          v2_attributes['size'] = val[0]
+      elif field in (
+          'price',
+          'salePrice',
+          'costOfGoodsSold',
+          'maximumRetailPrice',
+      ):
+        v2_attributes[field] = _translate_v1_price_to_v2(val)
+      elif field == 'shipping':
+        v2_attributes['shipping'] = _translate_v1_shipping_to_v2(val)
       else:
         v2_attributes[field] = val
 
