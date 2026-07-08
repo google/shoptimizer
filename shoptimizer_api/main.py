@@ -138,6 +138,10 @@ def optimize() -> tuple[str, http.HTTPStatus]:
   Returns:
     JSON string and HTTP status code.
   """
+  # Note that WSGI servers (e.g. Werkzeug) and reverse
+  # proxies (e.g. Nginx) silently strip HTTP headers with underscores by
+  # default. If config overrides (e.g. gender_mining_on) are ignored, consider
+  # migrating to hyphenated headers or configuring server proxy flags.
   app.config['MINING_OPTIONS'] = {
       'brand_mining_on': flask.request.headers.get('brand_mining_on', 'True'),
       'color_mining_on': flask.request.headers.get('color_mining_on', 'True'),
@@ -350,6 +354,10 @@ def optimize_v2() -> tuple[str, http.HTTPStatus]:
     A tuple containing the serialized optimized v2 JSON payload and the HTTP
     status code.
   """
+  # Note that WSGI servers (e.g. Werkzeug) and reverse
+  # proxies (e.g. Nginx) silently strip HTTP headers with underscores by
+  # default. If config overrides (e.g. gender_mining_on) are ignored, consider
+  # migrating to hyphenated headers or configuring server proxy flags.
   app.config['MINING_OPTIONS'] = {
       'brand_mining_on': flask.request.headers.get('brand_mining_on', 'True'),
       'color_mining_on': flask.request.headers.get('color_mining_on', 'True'),
