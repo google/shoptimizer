@@ -449,6 +449,39 @@ class TitleOptimizerTest(parameterized.TestCase):
     self.assertEqual(expected_title, product.get('title'))
     self.assertEqual(1, optimization_result.num_of_products_optimized)
 
+  def test_title_created_from_attributes_when_description_is_empty_string(
+      self) -> None:
+    """Tests that empty description string does not create ellipsis title."""
+    brand = 'Nike'
+    color = 'black'
+    sizes = ['Large']
+    gender = 'male'
+    gender_title_replacement = "Men's"
+    original_data = requests_bodies.build_request_body(
+        properties_to_be_updated={
+            'brand': brand,
+            'color': color,
+            'description': '',
+            'sizes': sizes,
+            'gender': gender,
+        },
+        properties_to_be_removed=['title'],
+    )
+    expected_title = f'{gender_title_replacement} {sizes[0]} {brand} {color}'
+    mined_attrs = attribute_miner.AttributeMiner(
+        constants.LANGUAGE_CODE_EN, constants.COUNTRY_CODE_US
+    ).mine_and_insert_attributes_for_batch(original_data)
+    optimizer = title_optimizer.TitleOptimizer(mined_attrs)
+
+    optimized_data, optimization_result = optimizer.process(
+        original_data, 'ja'
+    )
+
+    product = optimized_data['entries'][0]['product']
+
+    self.assertEqual(expected_title, product.get('title'))
+    self.assertEqual(1, optimization_result.num_of_products_optimized)
+
   def test_title_not_created_from_description_if_title_already_exists(self):
     brand = 'Nike'
     color = 'black'

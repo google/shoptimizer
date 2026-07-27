@@ -149,8 +149,9 @@ def _create_title_from_description(product: dict[str, Any]) -> str:
     description field + ellipsis, or an empty string if the description field
     does not exist.
   """
-  if 'description' in product:
-    title = f'{product["description"][:_CHARS_TO_USE_WHEN_CREATING_TITLE].strip()}…'
+  description = product.get('description', '').strip()
+  if description:
+    title = f'{description[:_CHARS_TO_USE_WHEN_CREATING_TITLE].strip()}…'
   else:
     title = ''
 
