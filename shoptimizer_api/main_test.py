@@ -49,6 +49,14 @@ class MainTest(parameterized.TestCase):
     self.assertEqual('Success', response_data)
     self.assertEqual(http.HTTPStatus.OK, response.status_code)
 
+  def test_v2_health(self) -> None:
+    """Tests that the v2 health check endpoint returns success."""
+    response = self.test_client.get(f'{main._V2_BASE_URL}/health')
+    response_data = response.data.decode('utf-8')
+
+    self.assertEqual('Success', response_data)
+    self.assertEqual(http.HTTPStatus.OK, response.status_code)
+
   # region bad request tests
   def test_non_valid_json_request_returns_error(self):
     non_json_request_body = requests_bodies.INVALID_NON_JSON

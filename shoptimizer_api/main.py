@@ -704,6 +704,7 @@ def _build_response_dict(
 
 
 @app.route(f'{_V1_BASE_URL}/health', methods=['GET'])
+@app.route(f'{_V2_BASE_URL}/health', methods=['GET'])
 def health() -> tuple[str, http.HTTPStatus]:
   """A simple endpoint for checking the health of the deployed application.
 
