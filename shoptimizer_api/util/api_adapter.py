@@ -157,7 +157,7 @@ def translate_v2_to_v1(v2_payload: dict[str, Any]) -> dict[str, Any]:
           v1_product['gtin'] = ','.join(str(g) for g in val)
       elif field == 'size':
         if val is not None:
-          v1_product['sizes'] = [val]
+          v1_product['sizes'] = val if isinstance(val, list) else [val]
       elif field in (
           'price',
           'salePrice',

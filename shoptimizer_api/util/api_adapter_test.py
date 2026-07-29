@@ -364,6 +364,31 @@ class ApiAdapterTest(unittest.TestCase):
     result = api_adapter.translate_v1_to_v2(v1_payload, original_v2_payload)
     self.assertEqual(result, expected_v2_payload)
 
+  def test_translate_v2_to_v1_size_as_list(self) -> None:
+    """Tests translate_v2_to_v1 recovers cleanly when size is a list."""
+    v2_payload = {
+        'entries': [{
+            'batchId': 101,
+            'productInput': {
+                'productAttributes': {
+                    'size': ['XL', 'L'],
+                }
+            },
+        }]
+    }
+
+    expected_v1_payload = {
+        'entries': [{
+            'batchId': 101,
+            'product': {
+                'sizes': ['XL', 'L'],
+            },
+        }]
+    }
+
+    result = api_adapter.translate_v2_to_v1(v2_payload)
+    self.assertEqual(result, expected_v1_payload)
+
 
 if __name__ == '__main__':
   unittest.main()
