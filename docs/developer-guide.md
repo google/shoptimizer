@@ -782,13 +782,23 @@ See section 2.3.3 'Run the Container' in the [install guide](./install-guide.md#
 
 ## 8. Run Unit Tests
 
-First, all the necessary python dependencies need to be installed. You can
- use pip and run:
-```
+Note: Running Japanese NLP unit tests locally requires MeCab and the NEologd
+dictionary. Follow the setup steps in
+[Section 6.3: Install MeCab](#63-install-mecab) first.
+
+First, sync all necessary Python dependencies into the virtual environment
+using `uv`:
+
+```bash
 cd shoptimizer_api
-pip -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
+uv sync --frozen
 ```
-From the virtual environment, you can now run all of the unit tests in
- the solution by running `python test_runner.py`.
+
+Run all unit tests within the virtual environment:
+
+```bash
+uv run python test_runner.py
+```
+
+*Note: `uv run` automatically executes the command inside the project
+virtual environment (`.venv`).*
