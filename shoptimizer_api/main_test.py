@@ -18,12 +18,14 @@
 import sys
 from unittest import mock
 
-# Mock tensorflow to bypass import failures in local test environments.
-mock_tf = mock.MagicMock()
-mock_tf.compat.v1 = mock.MagicMock()
-sys.modules['tensorflow'] = mock_tf
-sys.modules['tensorflow.compat'] = mock_tf
-sys.modules['tensorflow.compat.v1'] = mock_tf.compat.v1
+try:
+  import tensorflow  
+except ImportError:
+  mock_tf = mock.MagicMock()
+  mock_tf.compat.v1 = mock.MagicMock()
+  sys.modules['tensorflow'] = mock_tf
+  sys.modules['tensorflow.compat'] = mock_tf
+  sys.modules['tensorflow.compat.v1'] = mock_tf.compat.v1
 
 import base64
 import http
