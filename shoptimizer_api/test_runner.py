@@ -22,7 +22,9 @@ import unittest
 
 def main(test_path, test_pattern):
   # Discover and run tests.
-  suite = unittest.loader.TestLoader().discover(test_path, test_pattern)
+  suite = unittest.loader.TestLoader().discover(
+      test_path, test_pattern, top_level_dir=os.getcwd()
+  )
   return unittest.TextTestRunner(verbosity=2).run(suite)
 
 
@@ -35,10 +37,7 @@ if __name__ == '__main__':
       default='*_test.py')
   args = parser.parse_args()
 
-  test_paths = [os.getcwd(),
-                f'{os.getcwd()}/optimizers_abstract',
-                f'{os.getcwd()}/optimizers_builtin',
-                f'{os.getcwd()}/optimizers_plugins']
+  test_paths = [os.getcwd()]
   test_failed = False
   for path in test_paths:
     result = main(path, args.test_pattern)
