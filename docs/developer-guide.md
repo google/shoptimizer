@@ -51,8 +51,9 @@ usage in connection with your business, if at all._
 ## 0. About
 
 This document explains how to integrate the Shoptimizer API (referred to as
-'Shoptimizer') with your existing Content API for Shopping solution. It also
-describes the technical architecture, how to create or custom optimizations, and
+'Shoptimizer') with your existing Content API for Shopping or Merchant Center
+API solution. It also
+describes the technical architecture, how to create custom optimizations, and
 how to track optimization performance.
 
 For an explanation of how to pull the source code and run Shoptimizer, see the
@@ -61,7 +62,7 @@ For an explanation of how to pull the source code and run Shoptimizer, see the
 ## 1. Prerequisites
 
 *   The Shoptimizer source code (see the [install guide](./install-guide.md))
-*   A Python 4.8+ environment
+*   A Python 3.12+ environment
 
 ## 2. Architecture Overview
 
@@ -73,20 +74,71 @@ For an explanation of how to pull the source code and run Shoptimizer, see the
 
 #### HTTP Endpoint
 
-Shoptimizer consists of a single endpoint called `optimize`, which is documented
-below.
+Shoptimizer provides two `optimize` endpoints, depending on which upstream API
+format you are integrating with.
 
 --------------------------------------------------------------------------------
 
-__optimize__
+__V1 (Content API for Shopping)__
 
-**URL**
+**URL:** `/shoptimizer/v1/batch/optimize`
 
-`/batch/optimize`
+**Method:** `POST`
 
-**Method**
+**Sample Input Payload:**
 
-`POST`
+```json
+{
+  "entries": [
+    {
+      "batchId": 1,
+      "merchantId": 1234567,
+      "method": "insert",
+      "product": {
+         "id": "123",
+         "title": "My V1 Format Product",
+         "description": "Standard fields are placed directly in the product object.",
+         "sizes": ["M"]
+      }
+    }
+  ]
+}
+```
+
+--------------------------------------------------------------------------------
+
+__V2 (Merchant Center API)__
+
+**URL:** `/shoptimizer/v2/batch/optimize`
+
+**Method:** `POST`
+
+**Sample Input Payload:**
+
+```json
+{
+  "entries": [
+    {
+      "batchId": 1,
+      "merchantId": 1234567,
+      "method": "insert",
+      "productInput": {
+         "offerId": "123",
+         "contentLanguage": "en",
+         "feedLabel": "US",
+         "channel": "online",
+         "productAttributes": {
+            "title": "My V2 Format Product",
+            "description": "Notice how fields like title, description, and size are bundled in the productAttributes wrapper.",
+            "size": "M"
+         }
+      }
+    }
+  ]
+}
+```
+
+--------------------------------------------------------------------------------
 
 #### URL Query Params
 
@@ -138,10 +190,15 @@ Order to Run Optimizers' for running multiple optimizers in sequence.
 
 ### Request Body
 
-The request body should contain a JSON payload of product data in the same
-format as a Content API for Shopping
-[products.custombatch](https://developers.google.com/shopping-content/reference/rest/v2.1/products/custombatch)
-call.
+The request body for both API endpoints must be a JSON object containing a
+top-level `"entries"` array to enable efficient bulk-processing.
+
+* **For Content API (V1):** Each entry in the array directly mirrors the legacy
+  Content API for Shopping `products.custombatch` schema (containing a `product`
+  object).
+* **For Merchant Center API (V2):** The batching envelope is preserved, but the
+  inner product data strictly follows the modern Merchant Center API
+  `ProductInput` and `productAttributes` schema.
 
 ### Responses
 
