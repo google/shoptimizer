@@ -27,7 +27,7 @@ usage in connection with your business, if at all._
       - [Request Headers](#request-headers)
     + [2.3 Example Usage](#23-example-usage)
   * [3. Config Files](#3-config-files)
-  * [4. Integrating Shoptimizer with your Content API Client](#4-integrating-shoptimizer-with-your-content-api-client)
+  * [4. Integrating Shoptimizer with your Content and Merchant API Clients](#4-integrating-shoptimizer-with-your-content-and-merchant-api-clients)
     + [4.1 Authentication](#41-authentication)
     + [4.2 Calling Shoptimizer](#42-calling-shoptimizer)
     + [4.3 Recommended Order to Run Optimizers](#43-recommended-order-to-run-optimizers)
@@ -206,7 +206,8 @@ top-level `"entries"` array to enable efficient bulk-processing.
 
 *   **Code:** 200 <br />
     **Content:**
-    `json
+
+    ```json
     {
         "optimization-results": {
             "optimizer-name": {
@@ -225,28 +226,33 @@ top-level `"entries"` array to enable efficient bulk-processing.
                 "result": "{success/failure}"
             }
         }
-    }`
+    }
+    ```
 
 **Error Response**
 
 *   **Code:** 404 NOT FOUND <br />
     **Content:**
-    `json
+
+    ```json
     {
       "error": "URL not found"
-    }`
+    }
+    ```
 
     OR
 
 *   **Code:** 400 BAD REQUEST <br />
     **Content:**
-    `json
+
+    ```json
     {
       "error-msg": "Error msg.",
       "optimization-results": {},
       "optimized-data": {},
       "plugin-results": {}
-    }`
+    }
+    ```
 
 --------------------------------------------------------------------------------
 
@@ -257,7 +263,7 @@ Shoptimizer API provides the ability to set several request headers that control
 The following request headers can be set as key-value pairs in the REST request:
 
 | Header Name | Accepted Values | Description |
-|--|--|--|
+| --- | --- | --- |
 | **brand_mining_on** | True/False | If set to "True", attempts to mine brand from title/description. If this header is not set, the default value is "True". |
 | **color_mining_on** | True/False | If set to "True", attempts to mine color from title/description. If this header is not set, the default value is "True". |
 | **gender_mining_on** | True/False | If set to "True", attempts to mine gender from title/description. If this header is not set, the default value is "True". |
@@ -284,7 +290,7 @@ to a local host or remote host, such as a Google Cloud Run URL.
 
 Postman can also be used to
 [generate code snippets](https://learning.postman.com/docs/postman/sending-api-requests/generate-code-snippets/)
-for use within your Content API Client.
+for use within your Content / Merchant API Client.
 
 ## 3. Config Files
 
@@ -309,11 +315,12 @@ gender_optimizer_config_{lang}.json    | title-optimizer, description-optimizer 
 gpc_string_to_id_mapping_{lang}.json    | color-miner, size-miner, etc. | An inverse version of the Google Product Category taxonomy mapping for the purpose of converting string representations of GPCs into their ID number counterparts. This config should be static and not need manual modification unless the taxonomy changes.
 image_link_optimizer_config.json       | image-link-optimizer                   | \"**require_image_can_be_downloaded**\" (bool, Default=True) If True, image URLs must be accessible over the internet by this optimizer; image file size is also validated. This requires network access to work. If False, do not try to download this image. \n \"**require_image_score_quality_better_than**\" (float, Default=0.9) Consider images likely to be disapproved if their quality score is worse than this value. Requires images to be downloaded. Normal scores range from 0.0 (best) to 1.0 (worst). See the documentation for [Image Link Optimizer](./image-link-optimizer.md) for details.
 promo_text_removal_optimizer_config_{lang}.json  | promo-text-removal-optimizer           | Set \"**promotional_text_patterns_regex**\" to a list of strings representing regex patterns that will be matched against the product's title. Set \"**promotional_text_patterns_exact_match**\" to a list of strings representing exact-match patterns that will be matched against the product's title. Matching patterns will be removed from the title.
-shopping_exclusion_optimizer_config_{lang}.json  | shopping-exclusion-optimizer           | Set \"**shopping_exclusion_patterns_exact_match**\" to a list of strings representing text that will be matched against the product's title. If the title contains any of these terms, the optimizer will exclude the product from Shopping ads in the Content API request.
+shopping_exclusion_optimizer_config_{lang}.json  | shopping-exclusion-optimizer           | Set \"**shopping_exclusion_patterns_exact_match**\" to a list of strings representing text that will be matched against the product's title. If the title contains any of these terms, the optimizer will exclude the product from Shopping ads in the Content API / Merchant Center API request.
 
-## 4. Integrating Shoptimizer with your Content API Client
+## 4. Integrating Shoptimizer with your Content and Merchant API Clients
 
-This section explains how to call Shoptimizer from your Content API Client. It
+This section explains how to call Shoptimizer from your Content API or Merchant
+Center API Client. It
 assumes you already have Shoptimizer running on your chosen infrastructure. If
 you do not have Shoptimizer running yet, see the
 [install guide](./install-guide.md).
@@ -349,11 +356,18 @@ jwt = response.content.decode('utf-8')
 
 The Shoptimizer endpoint is constructed as follows:
 
+**For Content API (V1):**
 [POST]`{HOST}:{PORT}/shoptimizer/v1/batch/optimize?{OPTIMIZATION-QUERY-STRING}`
 
 The body should contain a batch of product data encoded as JSON, in the same
 format as
 [products.custombatch](https://developers.google.com/shopping-content/reference/rest/v2.1/products/custombatch).
+
+**For Merchant Center API (V2):**
+[POST]`{HOST}:{PORT}/shoptimizer/v2/batch/optimize?{OPTIMIZATION-QUERY-STRING}`
+
+The body should contain a batch of product data encoded as JSON, formatted for
+the Merchant Center API (e.g., using `productAttributes`).
 
 `OPTIMIZATION-QUERY-STRING` is a list of query parameters in the format
 `{optimizer-key}={true/false}` that determines which optimizers Shoptimizer will
@@ -374,8 +388,8 @@ If you don't specify an optimizer in the query string, it will not
 be run, unless an item in the body specifies that it should be excluded.
 See [section 5](./developer-guide.md#22-api-specification#5-excluding-optimizers-for-specific-items) 'Excluding Optimizers for Specific Items' for details.
 
-Consider creating a config file for your Content API client so that you can
-easily toggle optimizers on and off.
+Consider creating a config file for your API client so that you can easily
+toggle optimizers on and off.
 
 __Example Endpoint__
 
@@ -503,7 +517,7 @@ in the following format:
 The JSON contains three parts:
 
 *   __optimized-data__: The optimized product batch. This can be sent to Content
-    API for Shopping.
+    API for Shopping or the Merchant Center API.
 
 *   __optimization-results__: A list of the results for each built-in optimizer
     in the format `optimizer-name: {result-dictionary}`. This can be read to
@@ -677,7 +691,9 @@ The result would be that even if the request's query string contained "promo-tex
 
 then the `promo-text-optimizer` would not be applied to that specific product, but the `title-optimizer` would be applied as normal.
 
-Importantly, the returned Shoptimizer API response will never contain `excludeOptimizers` attributes in the entries, so that the desired Content API format will be unaffected.
+Importantly, the returned Shoptimizer API response will never contain
+`excludeOptimizers` attributes in the entries, so that the desired Content API
+(or Merchant Center API) format will be unaffected.
 
 This will allow, if desired, for more granular control of a batch request, in the case that some specific products in that request are not intended to be processed through a subset of the request query's optimizers list.
 
@@ -788,7 +804,8 @@ python -m unittest optimizers_builtin.title_optimizer_test
 After creating your plugin, follow the [install guide](./install-guide.md) to
 redeploy the updated Shoptimizer.
 
-You can call your new Plugin from your Content API Client by appending the
+You can call your new Plugin from your Content / Merchant API Client by
+appending the
 `{_OPTIMIZER_PARAMETER}=true` value to the end of the query string. For example,
 to call the sample plugin above:
 
